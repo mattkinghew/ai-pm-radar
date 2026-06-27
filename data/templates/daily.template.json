@@ -1,0 +1,22 @@
+{
+  "date": "YYYY-MM-DD",
+  "articles": [
+    {
+      "question_title": "What is the core question this article helps answer?",
+      "short_title": "Short headline",
+      "summary": "Two to three sentence summary based only on the source.",
+      "why_it_matters": "Why this matters for the target audience.",
+      "business_angle": "Business or operational implication.",
+      "ai_pm_angle": "AI PM or product thinking implication.",
+      "risk_note": "Key risk, limitation, or caution.",
+      "category": "AI PM Learning",
+      "tags": ["tag-1", "tag-2"],
+      "source_name": "Source name",
+      "source_url": "https://example.com/article",
+      "published_at": "YYYY-MM-DDTHH:MM:SSZ",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1
+    }
+  ]
+}
