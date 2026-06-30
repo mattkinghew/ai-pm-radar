@@ -4,6 +4,10 @@ AI PM Radar is a static daily AI and business radar website for non-technical AI
 
 This project is designed as an AI Product Manager portfolio case study. It shows how a low-cost static MVP can turn noisy AI and business updates into structured, source-aware, risk-aware learning content without adding premature backend complexity.
 
+## Live demo
+
+https://ai-pm-radar-pages.pages.dev/
+
 ## 1. Project overview
 
 AI PM Radar helps readers quickly understand selected AI / business signals through a consistent article format:
