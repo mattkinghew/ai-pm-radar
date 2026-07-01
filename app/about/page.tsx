@@ -27,6 +27,11 @@ export default function AboutPage() {
               research into a readable front-end experience for non-technical
               readers.
             </p>
+            <p>
+              It is also an AI Product Manager portfolio case study showing MVP
+              scope control, source-aware content design, human review, validation,
+              and low-cost static deployment.
+            </p>
           </div>
 
           <div className="info-panel">

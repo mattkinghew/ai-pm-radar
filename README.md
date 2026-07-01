@@ -16,6 +16,10 @@ Latest verification record:
 
 - `docs/LOCAL_VERIFICATION_2026-07-01.md`
 
+Portfolio case study:
+
+- `docs/CASE_STUDY.md`
+
 Verified baseline:
 
 - Next.js production build passes

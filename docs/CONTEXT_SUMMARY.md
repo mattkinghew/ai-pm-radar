@@ -55,7 +55,9 @@ ai-pm-radar/
 - 已新增 `scripts/validate_daily_data.mjs`，可檢查 daily JSON 結構、必填欄位、URL、分數與重複來源
 - 已新增 `scripts/validate-daily-json.mjs` 作為 daily JSON 驗證流程
 - 已新增本地驗收紀錄 `docs/LOCAL_VERIFICATION_2026-07-01.md`
-- README 已補上 demo link、目前狀態、驗收證據與 portfolio value proposition
+- README 已補上 demo link、目前狀態、驗收證據、case study 入口與 portfolio value proposition
+- 已新增 `docs/CASE_STUDY.md` 作為面試與作品集用 case study
+- About page 已加入 AI Product Manager portfolio case study 定位
 
 ## 重要實作細節
 - `lib/articles.ts` 會在 build time 讀取所有 `data/daily/*.json`
@@ -80,7 +82,7 @@ ai-pm-radar/
 
 ## 下一步任務
 - 擴充更多真實 daily content samples
-- 補寫 portfolio case-study 版本，說明問題、受眾、MVP 取捨、驗證方式與後續 roadmap
+- 擴充 `docs/CASE_STUDY.md` 成 Notion / LinkedIn / 面試簡報可用版本
 - 視需要補上更嚴格的 schema validation 與內容品質規則
 - 建立更完整的內容審核腳本或 pre-build 檢查
 - 規劃後續半自動化內容產出流程
