@@ -56,4 +56,12 @@ AI PM Radar
 - 展示 AI PM / AI Product Builder 的資訊架構（information architecture）能力
 - 展示把 AI 內容包裝成可用產品的 scope control 能力
 - 展示內容品質控管、風險控管與 human-in-the-loop workflow 設計
+- 展示以低成本 static MVP 驗證資訊產品價值，而不是過早加入 backend、CMS、帳戶系統或自動爬蟲
+- 展示以 data validation、static export、local verification record 支撐 portfolio credibility
 - 適合作為面試時說明「如何從使用者問題出發做低成本 MVP 驗證」的案例
+
+## Portfolio 證據
+- Live demo：`https://ai-pm-radar-pages.pages.dev/`
+- 驗收紀錄：`docs/LOCAL_VERIFICATION_2026-07-01.md`
+- 驗證項目：Next.js build、static export、daily JSON validation、local dev server response
+- 產品證據：README 已列明目標用戶、使用者問題、MVP 範圍、非目標、部署方式與 portfolio value proposition

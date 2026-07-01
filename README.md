@@ -1,12 +1,28 @@
 # AI PM Radar
 
-AI PM Radar is a static daily AI and business radar website for non-technical AI PM learners, NGO and education practitioners, and SME decision-makers.
+AI PM Radar is a static AI product management radar that turns selected AI and business updates into structured, source-aware, risk-aware learning content for non-technical AI PM learners, NGO and education practitioners, and SME decision-makers.
 
-This project is designed as an AI Product Manager portfolio case study. It shows how a low-cost static MVP can turn noisy AI and business updates into structured, source-aware, risk-aware learning content without adding premature backend complexity.
+The project is positioned as an AI Product Manager portfolio case study. It demonstrates how to define a focused information product, control MVP scope, design a repeatable content schema, validate data quality, and publish a low-cost static deployment without adding premature backend complexity.
 
 ## Live demo
 
 https://ai-pm-radar-pages.pages.dev/
+
+## Current status
+
+Status: `Local Verified Baseline + Verification Record Committed`
+
+Latest verification record:
+
+- `docs/LOCAL_VERIFICATION_2026-07-01.md`
+
+Verified baseline:
+
+- Next.js production build passes
+- Static export is generated in `out/`
+- Daily JSON validation passes
+- Local dev server returns `HTTP/1.1 200 OK`
+- No frontend API keys, backend, user accounts, or CMS are required for the MVP
 
 ## 1. Project overview
 
@@ -215,7 +231,19 @@ npm run build
 
 ## 10. Deployment readiness
 
-The project is prepared for static hosting, but this README does not include a live demo URL because no public deployment URL is currently documented in the repo.
+The project has a documented public demo and is prepared for static hosting through Cloudflare Pages or Firebase Hosting.
+
+Current demo:
+
+```text
+https://ai-pm-radar-pages.pages.dev/
+```
+
+Latest local verification evidence is documented in:
+
+```text
+docs/LOCAL_VERIFICATION_2026-07-01.md
+```
 
 ### Cloudflare Pages
 
@@ -251,27 +279,29 @@ Official guide:
 - Static export configuration
 - Daily JSON template
 - Content drafting and review prompts
-- Minimal JSON validation script
+- Daily JSON validation scripts
+- Public Cloudflare Pages demo link documented
+- Local verification record added for build, data validation, static export, and dev server checks
 
 ### Next steps
 
 - Add more real daily content samples
-- Run deployment QA after choosing a hosting platform
-- Publish a public demo only after deployment is ready
-- Document lessons learned as an AI PM case study
+- Add a short case-study page or portfolio write-up explaining product decisions and trade-offs
+- Improve content QA with clearer source-quality rules and overclaiming checks
 - Explore newsletter or LinkedIn reuse formats while keeping source links and disclaimers consistent
+- Consider adding lint or typecheck scripts only after the current portfolio baseline remains stable
 
 ## 12. Portfolio value
 
 This project demonstrates practical AI PM skills rather than only technical implementation:
 
-- MVP scope control for an AI content product
-- information architecture for non-technical AI readers
-- structured content schema design
-- human-in-the-loop AI workflow design
-- source attribution and risk-control thinking
-- low-cost static deployment strategy
-- basic engineering hygiene through validation and build checks
+- Product positioning: defines a clear audience, problem, value proposition, and non-goals
+- MVP scope control: validates a useful information workflow before adding backend, CMS, scraping, accounts, or personalization
+- Information architecture: structures AI updates around user decisions, business relevance, AI PM angle, and risk notes
+- Content system design: uses a repeatable JSON schema and prompt-assisted workflow for daily radar entries
+- Quality and risk control: keeps source attribution, disclaimers, validation scripts, and human review in the workflow
+- Engineering-to-product bridge: connects static deployment, build verification, and data validation to a business-facing AI PM case study
+- Portfolio communication: provides demo link, documented verification evidence, and a clear explanation of product trade-offs
 
 ## Current limitations
 

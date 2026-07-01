@@ -4,11 +4,13 @@
 AI PM Radar 是以 Next.js static export 建立的每日 AI / business radar 網站。產品重點不是即時抓新聞，而是把每日選出的少量內容整理成對非技術讀者有用的學習與決策材料。
 
 ## 目前狀態
-- 狀態：`v0.1` 已可 build 的靜態 MVP
+- 狀態：`Local Verified Baseline + Verification Record Committed`
 - 架構：Next.js + TypeScript + local JSON
-- 部署目標：Firebase Hosting 或 Cloudflare Pages
+- Live demo：`https://ai-pm-radar-pages.pages.dev/`
+- 部署目標：Cloudflare Pages 或 Firebase Hosting
 - 內容來源：`data/daily/YYYY-MM-DD.json`
-- 已有最小資料驗證腳本：`npm run validate:data`
+- 已有資料驗證腳本：`npm run validate:data`、`npm run validate:daily`
+- 驗收紀錄：`docs/LOCAL_VERIFICATION_2026-07-01.md`
 
 ## 檔案結構
 ```text
@@ -51,6 +53,9 @@ ai-pm-radar/
 - 已支援 category filter
 - 已設定 `output: "export"` 與 `out/` 靜態輸出
 - 已新增 `scripts/validate_daily_data.mjs`，可檢查 daily JSON 結構、必填欄位、URL、分數與重複來源
+- 已新增 `scripts/validate-daily-json.mjs` 作為 daily JSON 驗證流程
+- 已新增本地驗收紀錄 `docs/LOCAL_VERIFICATION_2026-07-01.md`
+- README 已補上 demo link、目前狀態、驗收證據與 portfolio value proposition
 
 ## 重要實作細節
 - `lib/articles.ts` 會在 build time 讀取所有 `data/daily/*.json`
@@ -74,6 +79,8 @@ ai-pm-radar/
 - 內容品質主要依賴人工與 prompt workflow 控管
 
 ## 下一步任務
+- 擴充更多真實 daily content samples
+- 補寫 portfolio case-study 版本，說明問題、受眾、MVP 取捨、驗證方式與後續 roadmap
 - 視需要補上更嚴格的 schema validation 與內容品質規則
 - 建立更完整的內容審核腳本或 pre-build 檢查
 - 規劃後續半自動化內容產出流程
