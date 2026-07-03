@@ -1,4 +1,4 @@
-# AI PM Radar
+#AI PM Radar
 
 AI PM Radar is a static AI product management radar that turns selected AI and business updates into structured, source-aware, risk-aware learning content for non-technical AI PM learners, NGO and education practitioners, and SME decision-makers.
 
@@ -9,6 +9,10 @@ The project is positioned as an AI Product Manager portfolio case study. It demo
 https://ai-pm-radar-pages.pages.dev/
 
 ## Current status
+
+Agent safety workflow:
+
+- `docs/AGENT_SAFETY_WORKFLOW.md`
 
 Status: `Local Verified Baseline + Verification Record Committed`
 

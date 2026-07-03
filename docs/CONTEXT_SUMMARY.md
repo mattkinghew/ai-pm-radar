@@ -4,6 +4,10 @@
 AI PM Radar 是以 Next.js static export 建立的每日 AI / business radar 網站。產品重點不是即時抓新聞，而是把每日選出的少量內容整理成對非技術讀者有用的學習與決策材料。
 
 ## 目前狀態
+- 已建立 Level 3 Agent Safety Executor
+- 已新增 `ai-agent/QUEUE.md`、`ai-agent/state.json`、`ai-agent/executor.mjs`
+- 已加入 approval gate、validation gate、local audit log、manual rollback plan
+- 已新增 `docs/AGENT_SAFETY_WORKFLOW.md`
 - 狀態：`Local Verified Baseline + Verification Record Committed`
 - 架構：Next.js + TypeScript + local JSON
 - Live demo：`https://ai-pm-radar-pages.pages.dev/`
