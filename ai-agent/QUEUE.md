@@ -67,6 +67,24 @@ Use this format for future tasks:
     - npm run validate:daily
     - npm run build
 
+- id: TASK-003
+  title: Add daily content generation SOP
+  type: docs
+  priority: high
+  status: pending
+  scope: ai-pm-radar
+  risk: low
+  approval_required: true
+  input: |
+    Add a reusable daily content generation SOP for AI PM Radar.
+    The SOP should explain how to collect sources, generate daily JSON,
+    review quality, run validation, and commit updates safely through the
+    Level 3 agent workflow.
+  validation:
+    - npm run validate:data
+    - npm run validate:daily
+    - npm run build
+
 ## Safety Constraint
 
 The agent MUST NOT:

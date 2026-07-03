@@ -1,5 +1,11 @@
 # AI PM Radar 內容工作流
 
+## Related SOP
+
+For the reusable daily publishing checklist, see:
+
+- `docs/DAILY_CONTENT_SOP.md`
+
 ## 每日內容生產流程
 1. 收集候選文章
 2. 依選文標準篩選 5 到 10 則候選
