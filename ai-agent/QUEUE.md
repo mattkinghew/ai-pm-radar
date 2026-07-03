@@ -103,6 +103,24 @@ Use this format for future tasks:
     - npm run validate:daily
     - npm run build
 
+- id: TASK-005
+  title: Add next daily update playbook
+  type: docs
+  priority: high
+  status: pending
+  scope: ai-pm-radar
+  risk: low
+  approval_required: true
+  input: |
+    Add a concise 5-minute daily update playbook for AI PM Radar.
+    The playbook should tell the user exactly what to collect, which prompt to use,
+    where to save the JSON, which validation commands to run, how to commit,
+    and how to recover from common mistakes.
+  validation:
+    - npm run validate:data
+    - npm run validate:daily
+    - npm run build
+
 ## Safety Constraint
 
 The agent MUST NOT:

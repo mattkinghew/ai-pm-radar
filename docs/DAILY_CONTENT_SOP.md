@@ -6,6 +6,14 @@ This SOP explains how to create a new AI PM Radar daily JSON file safely and con
 
 The goal is to turn daily AI product, AI PM, Hong Kong technology, education / NGO, SME adoption, and practical AI workflow signals into a verified static content update.
 
+## Quick Playbook
+
+For the 5-minute daily operating checklist, see:
+
+```text
+docs/NEXT_DAILY_UPDATE_PLAYBOOK.md
+```
+
 ## Output
 
 Each daily update should produce one file:
