@@ -78,7 +78,13 @@ Do not paste private data, paid-only article text, sensitive documents, or confi
 
 ### 4. Generate Daily JSON Draft
 
-Use:
+Use the daily operator prompt first:
+
+```text
+prompts/daily_update_operator.md
+```
+
+Then use the JSON generator prompt when the selected sources are ready:
 
 ```text
 prompts/daily_json_generator.md

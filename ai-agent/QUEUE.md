@@ -85,6 +85,24 @@ Use this format for future tasks:
     - npm run validate:daily
     - npm run build
 
+- id: TASK-004
+  title: Add daily update operator prompt
+  type: docs
+  priority: high
+  status: pending
+  scope: ai-pm-radar
+  risk: low
+  approval_required: true
+  input: |
+    Add a reusable daily update operator prompt template.
+    The prompt should let the user paste candidate sources and receive a safe,
+    structured update plan for creating data/daily/YYYY-MM-DD.json, reviewing it,
+    running the Level 3 validation gate, and committing only relevant files.
+  validation:
+    - npm run validate:data
+    - npm run validate:daily
+    - npm run build
+
 ## Safety Constraint
 
 The agent MUST NOT:
