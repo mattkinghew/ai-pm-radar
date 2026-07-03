@@ -11,7 +11,8 @@
     "agent:status": "node ai-agent/executor.mjs status",
     "agent:approve": "node ai-agent/executor.mjs approve",
     "agent:run": "node ai-agent/executor.mjs run",
-    "agent:rollback-plan": "node ai-agent/executor.mjs rollback-plan"
+    "agent:rollback-plan": "node ai-agent/executor.mjs rollback-plan",
+    "daily:new": "node scripts/create-daily-update.mjs"
   },
   "dependencies": {
     "next": "16.2.9",

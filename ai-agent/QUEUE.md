@@ -121,6 +121,24 @@ Use this format for future tasks:
     - npm run validate:daily
     - npm run build
 
+- id: TASK-006
+  title: Add daily update draft script
+  type: build
+  priority: high
+  status: pending
+  scope: ai-pm-radar
+  risk: low
+  approval_required: true
+  input: |
+    Add a safe daily update draft script and npm script.
+    The script should create data/daily/YYYY-MM-DD.json and append a matching
+    low-risk task to ai-agent/QUEUE.md without approving, validating, committing,
+    pushing, or calling any external AI service.
+  validation:
+    - npm run validate:data
+    - npm run validate:daily
+    - npm run build
+
 ## Safety Constraint
 
 The agent MUST NOT:

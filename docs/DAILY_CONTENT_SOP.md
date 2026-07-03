@@ -144,23 +144,21 @@ Review checklist:
 - Are scores integers from 1 to 10?
 - Is the content useful for the target readers?
 
-### 6. Save the JSON File
+### 6. Create the JSON Draft and Queue Task
 
-Create:
+Use the helper script:
 
-```text
-data/daily/YYYY-MM-DD.json
+```bash
+npm run daily:new -- YYYY-MM-DD
 ```
+
+This creates the daily draft file and appends a matching task to `ai-agent/QUEUE.md`.
 
 Do not overwrite previous daily files unless fixing a verified mistake.
 
 ### 7. Use Agent Safety Workflow
 
-Add or confirm a task in:
-
-```text
-ai-agent/QUEUE.md
-```
+After filling the `articles` array with reviewed entries, approve the generated task.
 
 Approve the task:
 

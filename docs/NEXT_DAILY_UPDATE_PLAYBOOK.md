@@ -99,44 +99,37 @@ prompts/content_reviewer.md
 
 for a second-pass review.
 
-## 4. Save the JSON File
+## 4. Create the Daily Draft and Queue Task
 
-Create:
+Use the helper script:
+
+```bash
+npm run daily:new -- YYYY-MM-DD
+```
+
+This creates:
 
 ```text
 data/daily/YYYY-MM-DD.json
 ```
 
-Do not overwrite existing daily files unless fixing a verified mistake.
-
-## 5. Add or Confirm Queue Task
-
-Open:
+and appends a matching task to:
 
 ```text
 ai-agent/QUEUE.md
 ```
 
-Add a task like:
+The generated JSON starts with an empty `articles` array. Fill it with 5 to 6 reviewed entries before running validation.
 
-```text
-- id: TASK-XXX
-  title: Add YYYY-MM-DD daily radar sample
-  type: docs
-  priority: high
-  status: pending
-  scope: ai-pm-radar
-  risk: low
-  approval_required: true
-  input: |
-    Add data/daily/YYYY-MM-DD.json with 5 to 6 AI PM Radar entries.
-  validation:
-    - npm run validate:data
-    - npm run validate:daily
-    - npm run build
+Preview without writing files:
+
+```bash
+npm run daily:new -- YYYY-MM-DD --dry-run
 ```
 
-## 6. Run Agent Validation Gate
+Do not overwrite existing daily files unless fixing a verified mistake.
+
+## 5. Run Agent Validation Gate
 
 Approve the task:
 
@@ -158,7 +151,7 @@ npm run validate:daily
 npm run build
 ```
 
-## 7. Review Git Diff
+## 6. Review Git Diff
 
 Check status:
 
@@ -182,7 +175,7 @@ data/daily/YYYY-MM-DD.json
 
 Do not commit unrelated files.
 
-## 8. Commit and Push
+## 7. Commit and Push
 
 Use precise add:
 
@@ -209,7 +202,7 @@ git status -sb
 git log --oneline -5
 ```
 
-## 9. Common Mistakes and Recovery
+## 8. Common Mistakes and Recovery
 
 ### Mistake: Edited the wrong path
 
