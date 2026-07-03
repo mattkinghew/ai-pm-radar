@@ -7,7 +7,11 @@
     "validate:data": "node scripts/validate_daily_data.mjs",
     "validate:daily": "node scripts/validate-daily-json.mjs",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "agent:status": "node ai-agent/executor.mjs status",
+    "agent:approve": "node ai-agent/executor.mjs approve",
+    "agent:run": "node ai-agent/executor.mjs run",
+    "agent:rollback-plan": "node ai-agent/executor.mjs rollback-plan"
   },
   "dependencies": {
     "next": "16.2.9",

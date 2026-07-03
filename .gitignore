@@ -11,3 +11,5 @@ out/
 .firebase/
 *.log
 npm-debug.log*
+# AI agent local audit logs
+ai-agent/logs/*.jsonl

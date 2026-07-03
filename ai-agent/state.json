@@ -1,0 +1,14 @@
+{
+  "version": "3.0.0",
+  "mode": "manual-approval",
+  "approvedTasks": [
+    "TASK-001"
+  ],
+  "lastRun": "2026-07-03T07:19:31.250Z",
+  "notes": [
+    "Default mode is safe.",
+    "No automatic file deletion, commit, push, or rollback.",
+    "Tasks must be approved before run mode.",
+    "Validation gate must pass before manual commit."
+  ]
+}
