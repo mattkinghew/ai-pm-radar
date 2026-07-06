@@ -1,6 +1,6 @@
-# deal-radar-storage v3
+# deal-radar-storage v3.1
 
-A beginner-friendly, rule-based storage deal helper with optional SMART checks, purchase decisions, suggested price ranges, use-case fit evaluation, seller questions, evidence checklists, sample validation, a portfolio-ready documentation package, an optional argparse CLI, a quick analyze mode, discovery preparation from requirements YAML, v2.9 real market screening rules, and v3 browser-assisted manual capture for second-hand SSD purchase trials.
+A beginner-friendly, rule-based storage deal helper with optional SMART checks, purchase decisions, suggested price ranges, use-case fit evaluation, seller questions, evidence checklists, sample validation, a portfolio-ready documentation package, an optional argparse CLI, a quick analyze mode, discovery preparation from requirements YAML, v2.9 real market screening rules, v3 browser-assisted manual capture, and v3.1 search result batch capture triage for second-hand SSD purchase trials.
 
 It supports three workflows:
 
@@ -14,6 +14,7 @@ It supports three workflows:
 8. **Discovery preparation mode**: start from requirements YAML and generate manual discovery queries, platform search URLs, and a CSV template for confirmed listings.
 9. **Real market screening mode**: flag weak real-market listings such as SATA / mSATA / NGFF SATA, QVO / QLC, low-trust brands, low-health drives, and suspicious low-price Samsung 990 Pro listings.
 10. **Browser-assisted manual capture mode**: manually copy visible listing text into `captures/raw/*.txt`, then parse it locally into `captures/parsed_listings.csv`.
+11. **Search result batch capture mode**: manually copy visible search result text into `captures/raw_search/*.txt`, then parse and rank candidates before opening product pages.
 
 ## Safety boundaries
 
@@ -45,6 +46,21 @@ Outputs:
 - `captures/processed/capture_report.md`
 
 For the full workflow, see [Browser-assisted capture guide](docs/BROWSER_ASSISTED_CAPTURE.md).
+
+## v3.1 Search Result Batch Capture
+
+Use this workflow before opening individual product pages. Manually copy visible search result text into `captures/raw_search/*.txt`, then run local triage:
+
+```bash
+python3 src/cli.py search-capture
+open reports/candidate_queue.md
+open reports/price_reliability.md
+open reports/seller_risk.md
+```
+
+The command outputs `captures/search_candidates.csv` and ranks candidates as `HIGH`, `MEDIUM`, `LOW`, or `SKIP`. It does not scrape, open pages, buy, message sellers, use credentials, or store account/session data.
+
+For the full workflow, see [Search result batch capture guide](docs/SEARCH_RESULT_BATCH_CAPTURE.md).
 
 ## Real Purchase Trial Quick Start
 
@@ -111,7 +127,10 @@ data/sample_real_listings.csv
 data/discovered_listings.csv
 captures/raw/
 captures/processed/
+captures/raw_search/
+captures/search_processed/
 captures/parsed_listings.csv
+captures/search_candidates.csv
 reports/today.md
 reports/today.csv
 reports/rejects.md
@@ -140,8 +159,10 @@ src/rules.py
 src/report.py
 src/validate_samples.py
 src/validate_capture_samples.py
+src/validate_search_capture_samples.py
 src/cli.py
 src/capture_parse.py
+src/search_capture_parse.py
 src/quick_analyze.py
 src/discover.py
 src/search_queries.py

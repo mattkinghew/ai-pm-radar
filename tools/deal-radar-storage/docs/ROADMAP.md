@@ -75,6 +75,27 @@ Status: completed local manual capture baseline.
 
 此方向保持「人工控制瀏覽器」而非交易自動化。
 
+## v3.1 Search Result Batch Capture
+
+Status: completed search result triage baseline.
+
+目標：在使用者打開單一商品頁前，先讓使用者手動複製搜尋結果頁的可見文字到 `captures/raw_search/*.txt`，由本地 parser 產生候選排序，減少無效頁面瀏覽。
+
+已加入：
+
+- `src/search_capture_parse.py`：解析本地 raw search result text。
+- `src/validate_search_capture_samples.py`：驗證 search capture sample parsing。
+- `python3 src/cli.py search-capture`。
+- `captures/raw_search/`。
+- `captures/search_processed/`。
+- `captures/search_candidates.csv`。
+- `reports/candidate_queue.md`。
+- `reports/price_reliability.md`。
+- `reports/seller_risk.md`。
+- `docs/SEARCH_RESULT_BATCH_CAPTURE.md`。
+
+限制：本功能只處理使用者手動貼入的本地文字，不處理帳戶、交易、平台 session 或批量頁面讀取。
+
 ## v3.x possible manual SMART image workflow
 
 可能方向：

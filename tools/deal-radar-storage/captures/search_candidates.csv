@@ -1,0 +1,35 @@
+﻿source_file,platform,title,displayed_price,price,url,description,notes,model_guess,capacity_guess,interface_guess,seller_text,seller_risk_level,price_reliability,option_price_risk,skip_reason,follow_up_priority,intended_use
+sample_bad_broad_2tb_search_results.txt,goofish,Samsung 870 QVO 2TB SATA QLC 健康92,¥770,770,https://www.goofish.com/item?id=qvo-770,"Samsung 870 QVO 2TB SATA QLC 健康92
+¥770 包邮
+售出不退 只保正常使用
+https://www.goofish.com/item?id=qvo-770",search result block #1,870 QVO,2TB,SATA,negative: 售出不退、只保正常使用；positive: 包邮,high,high,low,命中避雷詞：SATA、QVO、870 QVO、只保正常使用；賣家條款風險高；SATA / mSATA / NGFF SATA 不是目標 NVMe；SATA / QVO / 白牌 2TB 價格接近 NVMe，不值得優先跟進,SKIP,external_mac_drive
+sample_bad_broad_2tb_search_results.txt,goofish,金储星 mSATA 2TB 固态硬盘 SATA协议,￥720,720,https://www.goofish.com/item?id=king-msata,"金储星 mSATA 2TB 固态硬盘 SATA协议
+￥720
+打包出 懂的来 不退不换
+https://www.goofish.com/item?id=king-msata",search result block #2,金储星,2TB,SATA,negative: 不退不换、打包出、懂的来,high,high,low,命中避雷詞：SATA、mSATA、打包；賣家條款風險高；SATA / mSATA / NGFF SATA 不是目標 NVMe；SATA / QVO / 白牌 2TB 價格接近 NVMe，不值得優先跟進,SKIP,external_mac_drive
+sample_bad_broad_2tb_search_results.txt,goofish,白牌 2TB M.2 SSD 便宜,¥520,520,https://www.goofish.com/item?id=white-label,"白牌 2TB M.2 SSD 便宜
+¥520
+不保品牌 图吧显示
+https://www.goofish.com/item?id=white-label",search result block #3,unknown,2TB,NVMe,negative: 不保品牌,high,medium,low,命中避雷詞：不保品牌、图吧、白牌；賣家條款風險高,SKIP,external_mac_drive
+sample_pm9a1_mixed_results.txt,goofish,PM9A1 2TB NVMe 健康95 通电1200小时,¥820,820,https://www.goofish.com/item?id=pm9a1-good,"PM9A1 2TB NVMe 健康95 通电1200小时
+¥820
+支持退货 有完整SMART
+https://www.goofish.com/item?id=pm9a1-good",search result block #1,PM9A1,2TB,NVMe,positive: 支持退货、有完整SMART,low,high,low,,HIGH,external_mac_drive
+sample_pm9a1_mixed_results.txt,goofish,PM9A1 2TB 价格区间 ¥399-899,¥399,399,https://www.goofish.com/item?id=pm9a1-options,"PM9A1 2TB 价格区间 ¥399-899
+多规格 可选 512G 1T 2T 下单备注 详情为准
+https://www.goofish.com/item?id=pm9a1-options",search result block #2,PM9A1,2TB,unknown,,unknown,low,high,顯示價格可信度低，可能是選項價／釣魚價／容量不明；多規格或選項價風險高,SKIP,external_mac_drive
+sample_pm9a1_mixed_results.txt,goofish,Samsung 990 Pro 2TB 低价 图吧工具箱,￥520,520,https://www.goofish.com/item?id=fake-990,"Samsung 990 Pro 2TB 低价 图吧工具箱
+￥520
+只保正常使用 不保品牌 爽快就出
+https://www.goofish.com/item?id=fake-990",search result block #3,990 Pro,2TB,unknown,negative: 只保正常使用、不保品牌、爽快就出,high,low,low,命中避雷詞：不保品牌、只保正常使用、图吧、图吧工具箱；賣家條款風險高；顯示價格可信度低，可能是選項價／釣魚價／容量不明；Samsung 990 Pro 2TB 價格異常低，需視為可疑,SKIP,external_mac_drive
+sample_sn730_search_results.txt,goofish,SN730 2TB NVMe 固態硬盤 健康98 有完整SMART,¥850,850,https://www.goofish.com/item?id=sn730-good,"SN730 2TB NVMe 固態硬盤 健康98 有完整SMART
+¥850 包邮
+支持到手测试 CrystalDiskInfo 可提供测试
+https://www.goofish.com/item?id=sn730-good",search result block #1,SN730,2TB,NVMe,positive: 支持到手测试、有完整SMART、CrystalDiskInfo、可提供测试、包邮,low,high,low,,HIGH,external_mac_drive
+sample_sn730_search_results.txt,goofish,SN730 2TB M.2 NVMe 健康96,￥780,780,https://www.goofish.com/item?id=sn730-medium,"SN730 2TB M.2 NVMe 健康96
+￥780
+CDI截图 可退
+https://www.goofish.com/item?id=sn730-medium",search result block #2,SN730,2TB,NVMe,positive: 可退、CDI截图,low,high,low,,HIGH,external_mac_drive
+sample_sn730_search_results.txt,goofish,SN730 1TB NVMe 多规格 低至 ¥299 起,¥299,299,https://www.goofish.com/item?id=sn730-option,"SN730 1TB NVMe 多规格 低至 ¥299 起
+选项 1TB / 2TB 详情为准
+https://www.goofish.com/item?id=sn730-option",search result block #3,SN730,1TB,NVMe,,unknown,low,high,顯示價格可信度低，可能是選項價／釣魚價／容量不明；多規格或選項價風險高,SKIP,external_mac_drive

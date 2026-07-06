@@ -1,6 +1,6 @@
-# Browser-assisted Manual Capture Guide — v3
+# Browser-assisted Manual Capture Guide — v3 / v3.1
 
-本文件說明 `deal-radar-storage` v3 的 browser-assisted manual capture workflow。這個流程的目的，是減少你把 Goofish / Taobao / JD listing 人工複製到 CSV 的時間。
+本文件說明 `deal-radar-storage` v3 的 browser-assisted manual capture workflow。這個流程的目的，是減少你把 Goofish / Taobao / JD listing 人工複製到 CSV 的時間。v3.1 另外加入 search result batch capture，讓你先從搜尋結果頁挑出最值得打開的 3–5 個候選。
 
 ## 安全邊界
 
@@ -9,6 +9,23 @@
 工具不會自動開啟大量頁面、不會抓取搜尋結果、不會登入平台、不會處理驗證碼、不會儲存 cookies、passwords、tokens、credentials、API keys 或 session data，也不會自動購買或自動聯絡賣家。
 
 你仍然需要人工打開 listing page，人工複製可見文字到本地檔案。工具只解析你提供的本地文字。
+
+## v3.1 search result triage first
+
+在打開 product page 之前，你可以先複製搜尋結果頁的可見文字到：
+
+```text
+captures/raw_search/search_sn730_2tb.txt
+```
+
+然後執行：
+
+```bash
+python3 src/cli.py search-capture
+open reports/candidate_queue.md
+```
+
+先看 `HIGH` / `MEDIUM` 候選，再打開完整 product page。詳見 [Search result batch capture guide](SEARCH_RESULT_BATCH_CAPTURE.md)。
 
 ## Workflow
 

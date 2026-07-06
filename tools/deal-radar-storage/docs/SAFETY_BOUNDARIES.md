@@ -1,4 +1,4 @@
-# SAFETY BOUNDARIES — deal-radar-storage v3
+# SAFETY BOUNDARIES — deal-radar-storage v3.1
 
 ## Core safety principles
 
@@ -16,7 +16,7 @@
 
 ### No aggressive scraping
 
-工具不會高頻抓取網頁、不會批量爬取平台。Link-only mode 和 v3 capture mode 即使沒有網頁 metadata 也可運作。
+工具不會高頻抓取網頁、不會批量讀取平台頁面。Link-only mode、v3 capture mode 和 v3.1 search-capture mode 即使沒有網頁 metadata 也可運作。
 
 ### No credentials
 
@@ -29,6 +29,10 @@
 ### Browser-assisted manual capture boundary
 
 v3 capture mode 只解析使用者手動複製到 `captures/raw/*.txt` 的本地文字。工具不會自動開頁、不會讀取瀏覽器 session、不會保存 cookies、不會自動聯絡賣家，也不會替使用者付款。
+
+### Search result batch capture boundary
+
+v3.1 search-capture mode 只解析使用者手動複製到 `captures/raw_search/*.txt` 的本地搜尋結果文字。它只做本地 candidate triage，不會打開 product page、不會讀取平台帳戶資料、不會操作交易流程。
 
 ### Human confirmation required before purchase
 

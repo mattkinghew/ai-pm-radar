@@ -12,6 +12,7 @@ Examples:
     python3 src/cli.py quick
     python3 src/cli.py discover --requirements config/requirements.ssd.yml
     python3 src/cli.py capture
+    python3 src/cli.py search-capture
 """
 
 from __future__ import annotations
@@ -29,6 +30,7 @@ from validate_samples import SAMPLE_CSV, compare_samples, read_samples, write_va
 from quick_analyze import DEFAULT_REQUIREMENT_FILE, LINKS_TXT as QUICK_LINKS_TXT, print_quick_summary, run_quick
 from discover import DEFAULT_REQUIREMENT_FILES as DISCOVER_REQUIREMENT_FILES, print_discovery_summary, run_discovery
 from capture_parse import CAPTURE_REPORT_MD, PARSED_LISTINGS_CSV, RAW_CAPTURE_DIR, print_capture_summary, run_capture
+from search_capture_parse import RAW_SEARCH_DIR, SEARCH_CANDIDATES_CSV, print_search_capture_summary, run_search_capture
 
 
 def as_path(value: str) -> Path:
@@ -111,6 +113,13 @@ def run_capture_command(args: argparse.Namespace) -> None:
     append_to = as_path(args.append_to) if args.append_to else None
     summary = run_capture(input_dir=input_dir, output_path=output, report_path=report, append_to=append_to)
     print_capture_summary(summary)
+
+
+def run_search_capture_command(args: argparse.Namespace) -> None:
+    input_dir = as_path(args.input_dir)
+    output = as_path(args.output)
+    summary = run_search_capture(input_dir=input_dir, output_path=output)
+    print_search_capture_summary(summary)
 
 
 def add_output_dir_argument(parser: argparse.ArgumentParser) -> None:
@@ -212,6 +221,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional target CSV to append parsed rows to, e.g. data/discovered_listings.csv. Duplicate URLs are skipped.",
     )
     capture_parser.set_defaults(func=run_capture_command)
+
+    search_capture_parser = subparsers.add_parser("search-capture", help="Parse manually copied search result text and rank candidates for triage.")
+    search_capture_parser.add_argument(
+        "--input-dir",
+        default=str(RAW_SEARCH_DIR),
+        help="Directory containing manually copied search result .txt files. Default: captures/raw_search",
+    )
+    search_capture_parser.add_argument(
+        "--output",
+        default=str(SEARCH_CANDIDATES_CSV),
+        help="Output search candidates CSV path. Default: captures/search_candidates.csv",
+    )
+    search_capture_parser.set_defaults(func=run_search_capture_command)
 
     return parser
 
