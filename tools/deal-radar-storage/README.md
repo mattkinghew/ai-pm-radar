@@ -1,6 +1,6 @@
-# deal-radar-storage v2.8
+# deal-radar-storage v2.9
 
-A beginner-friendly, rule-based storage deal helper with optional SMART checks, purchase decisions, suggested price ranges, use-case fit evaluation, seller questions, evidence checklists, sample validation, a portfolio-ready documentation package, an optional argparse CLI, and a quick analyze mode for hurry-friendly link / requirements workflows, and discovery preparation from requirements YAML.
+A beginner-friendly, rule-based storage deal helper with optional SMART checks, purchase decisions, suggested price ranges, use-case fit evaluation, seller questions, evidence checklists, sample validation, a portfolio-ready documentation package, an optional argparse CLI, a quick analyze mode, discovery preparation from requirements YAML, and v2.9 real market screening rules for second-hand SSD purchase trials.
 
 It supports three workflows:
 
@@ -12,6 +12,7 @@ It supports three workflows:
 6. **Sample validation mode**: run representative real-world-like examples to check whether rule changes still behave as expected.
 7. **Quick analyze mode**: run one command when you only have links, requirements YAML, or both.
 8. **Discovery preparation mode**: start from requirements YAML and generate manual discovery queries, platform search URLs, and a CSV template for confirmed listings.
+9. **Real market screening mode**: flag weak real-market listings such as SATA / mSATA / NGFF SATA, QVO / QLC, low-trust brands, low-health drives, and suspicious low-price Samsung 990 Pro listings.
 
 ## Safety boundaries
 
@@ -45,6 +46,25 @@ Warning:
 - Final purchase decision still requires checking SMART screenshots, physical photos, seller reputation, and return terms.
 
 For the full workflow, see [Real purchase trial guide](docs/REAL_PURCHASE_TRIAL.md).
+
+## v2.9 Real Market Screening Rules
+
+v2.9 is tuned for the current real purchase target: **2TB NVMe TLC SSD for external Mac work drive**, later used with RTL9210B / ASM2362 enclosure. Priority is data safety / reliability first, reasonable price second, speed third.
+
+The evaluator now more strongly warns or rejects:
+
+- SATA / mSATA / NGFF SATA listings that are not NVMe.
+- QVO / QLC drives for high-trust work-drive use.
+- WD Green, WD Blue SATA, SN350, NV1, SA510 and similar low-end SATA-class options.
+- Seller wording such as 不保品牌、只保正常使用、图吧顯示、打包.
+- Low-trust or white-label brands such as 金储星 / 金存星 / 虹舟 unless clearly test-only and very cheap.
+- Suspicious low-price Samsung 990 Pro listings without strong evidence.
+- Health below 90 for `external_mac_drive` or `main_work_drive`.
+
+New generated reports:
+
+- `reports/avoid_patterns.md`: search terms to avoid, better search terms, instant-skip keywords.
+- `reports/search_strategy.md`: next-round manual search strategy.
 
 ## Real Listing Evaluation Tips
 
@@ -111,7 +131,7 @@ v2.5 added a portfolio-ready documentation package for AI PM / AI Engineer prese
 - [Product brief](docs/PRODUCT_BRIEF.md): product summary, target users, pain points, MVP scope, non-goals, metrics, risks, and positioning.
 - [Case study](docs/CASE_STUDY.md): Traditional Chinese product case study with AI PM / AI Engineer framing.
 - [Rule design](docs/RULE_DESIGN.md): explanation of category/model/risk/SMART/decision/price/use-case/seller-evidence rules.
-- [Validation report](docs/VALIDATION_REPORT.md): sample validation workflow and current 12/12 matched result.
+- [Validation report](docs/VALIDATION_REPORT.md): sample validation workflow and current 20/20 matched result after v2.9 real market samples.
 - [Safety boundaries](docs/SAFETY_BOUNDARIES.md): explicit no auto-buying, no login bypass, no aggressive scraping, no credentials, and no API keys.
 - [Roadmap](docs/ROADMAP.md): v2.5 documentation baseline, v2.6 CLI usability baseline, and possible v3 directions.
 - [Context summary](docs/CONTEXT_SUMMARY.md): project state, file structure, completed features, limitations, and next Codex prompts.

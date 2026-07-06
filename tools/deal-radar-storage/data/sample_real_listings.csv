@@ -1,13 +1,21 @@
-﻿url,title,price,description,intended_use,health_percent,power_on_hours,host_writes_tb,reallocated_sector_count,current_pending_sector,offline_uncorrectable,media_integrity_errors,critical_warning,supports_return,expected_decision,expected_comment
-https://example.com/good-nvme-tlc,Samsung 980 PRO 2TB NVMe TLC SSD 健康98,880,Gen4 M.2 NVMe TLC，CrystalDiskInfo 正常，適合主力工作碟,main_work_drive,98,1200,45,,,,0,0,支持,BUY_CANDIDATE,高健康度 NVMe TLC，SMART 關鍵欄位正常。
-https://example.com/pm9a1-health91,Samsung PM9A1 2TB NVMe SSD 健康91,620,二手 PM9A1 2T，CrystalDiskInfo 顯示正常，適合 Docker cache,docker_cache,91,4200,150,,,,0,0,支持,BUY_CANDIDATE,健康度 91%，只適合議價或較低風險用途。
-https://example.com/pm9a1-overpriced-health90,Samsung PM9A1 2TB NVMe SSD 健康90,980,PM9A1 2T 健康90，賣家稱不刀，主力盤,main_work_drive,90,7000,190,,,,0,0,不退不換,WATCH_ONLY,健康度 90% 且價格偏高；不能按主力盤價格買。
-https://example.com/sn750-high-writes,WD SN750 2TB NVMe TLC SSD,580,SN750 2T，寫入量高，適合 docker_cache,docker_cache,94,5000,280,,,,0,0,支持,NEGOTIATE_ONLY,寫入量 >200TB，只能低價議價。
-https://example.com/kc3000-missing-smart,Kingston KC3000 2TB NVMe SSD,780,KC3000 2T，賣家未提供 SMART 截圖,main_work_drive,,,,,,,,,,NEED_MORE_INFO,缺少 SMART；主力工作碟不可直接判定可買。
-https://example.com/wd-blue-sata-high-hours,WD Blue SATA SSD 2TB 健康96,450,WD Blue SATA SSD 2T，通電2萬小時，cold_storage 低價使用,cold_storage,96,22000,80,,,,0,0,支持,WATCH_ONLY,SATA SSD 通電高，只適合低價冷資料或非唯一副本。
-https://example.com/wd-green-overpriced,WD Green SATA QLC SSD 2TB,820,WD Green SATA QLC 2T，入門盤，健康96,cold_storage,96,900,20,,,,0,0,支持,REJECT,低端 SATA / QLC 2TB 價格 >750 CNY，拒絕。
-https://example.com/fake-sn770,SN770 2TB 白牌 雜牌 改容量 超低價,420,疑似 fake SN770，白牌雜牌，改容量，測試用,test_only,,,,,,,,,不退不換,REJECT,疑似假貨／改容量，即使 test_only 也不應買。
-https://example.com/hc620-feiniu-windows,HGST HC620 14TB HDD 飛牛 Windows不能用 ZBC,480,飛牛盤，Linux專用，不支持USB，Windows不能用，可能 ZBC,cold_storage,,18000,,0,0,0,,,不退不換,REJECT,飛牛／Windows 不能用／ZBC 等風險過多。
-https://example.com/enterprise-hdd-sata,Seagate Exos X18 16TB HDD SATA 企業盤,780,普通 SATA 企業盤，可 USB 硬碟座識別，smartctl 正常,cold_storage,,9000,,0,0,0,,,支持,BUY_CANDIDATE,HDD SMART 危險欄位為 0，可議價作 cold storage。
-https://example.com/rtl9210b-enclosure,M.2 NVMe USB-C 硬碟盒 RTL9210B enclosure,65,RTL9210B 10Gbps，支援 UASP TRIM SMART passthrough，適合 external_mac_drive,external_mac_drive,,,,,,,,,支持,BUY_CANDIDATE,已知硬碟盒晶片，仍需確認 TRIM/UASP/SMART passthrough。
-https://example.com/pm9a1-critical-warning,Samsung PM9A1 2TB NVMe SSD 健康98 但有 Critical Warning,500,CrystalDiskInfo 顯示 critical warning 1，便宜出,test_only,98,3000,60,,,,0,1,不退不換,REJECT,Critical Warning 非 0 是 hard reject。
+url,title,price,description,intended_use,health_percent,power_on_hours,host_writes_tb,reallocated_sector_count,current_pending_sector,offline_uncorrectable,media_integrity_errors,critical_warning,supports_return,expected_decision,expected_comment
+https://example.com/good-980pro,Samsung 980 PRO 2TB NVMe TLC SSD 健康98,900,已知型號 2TB NVMe TLC CrystalDiskInfo 正常,external_mac_drive,98,1200,40,,,,0,0,yes,BUY_CANDIDATE,good NVMe TLC with full SMART and return support
+https://example.com/pm9a1-91,Samsung PM9A1 2TB NVMe SSD 健康91,620,PM9A1 2TB 健康91 寫入80TB 可退,external_mac_drive,91,3000,80,,,,0,0,yes,NEGOTIATE_ONLY,health below 95 should not be buy candidate for work drive
+https://example.com/pm9a1-overprice,Samsung PM9A1 2TB NVMe SSD 健康90,950,PM9A1 2TB 健康90 價格偏高,external_mac_drive,90,5000,120,,,,0,0,no,WATCH_ONLY,health 90 with high price should be watch only
+https://example.com/sn750-highwrites,WD Black SN750 2TB NVMe SSD 高寫入,580,SN750 2TB host writes 260TB,external_mac_drive,94,6000,260,,,,0,0,yes,WATCH_ONLY,high writes should be watch only for external work drive
+https://example.com/kc3000-missing,Kingston KC3000 2TB NVMe SSD,820,KC3000 2TB 賣家未提供 SMART,external_mac_drive,,,,,,, ,,,NEED_MORE_INFO,missing SMART should ask seller
+https://example.com/wdblue-hours,WD Blue SATA 2TB SSD 通電2萬小時,450,WD Blue SATA 2TB 通電2萬小時,external_mac_drive,96,20000,50,,,,0,0,no,REJECT,SATA-class and high-risk wording not fit for work drive
+https://example.com/wdgreen-overprice,WD Green SATA 2TB SSD,780,WD Green 2TB SATA SSD 價格偏高,external_mac_drive,97,500,20,,,,0,0,no,REJECT,low-end SATA overpriced
+https://example.com/suspicious-sn770,WD SN770 2TB 白牌 雜牌 不退不換,360,疑似 fake / suspicious SN770 白牌 雜牌 不退不換,test_only,,,,,,,,,no,REJECT,suspicious white-label SN770
+https://example.com/hc620-feiniu,HC620 14T 飛牛 Windows不能用,400,HC620 14T 飛牛專用 Windows不能用 USB不能用,cold_storage,,20000,,0,0,0,,,no,REJECT,Feiniu / Windows cannot use should reject
+https://example.com/enterprise-hdd,HC550 14T 普通 SATA 企業盤,620,普通 SATA 企業 HDD SMART 三項為0,cold_storage,,12000,,0,0,0,,,yes,BUY_CANDIDATE,normal enterprise HDD can be candidate if SMART danger fields are zero and use is cold storage
+https://example.com/enclosure,RTL9210B NVMe 硬碟盒 10Gbps,80,RTL9210B 支援 UASP SMART passthrough,enclosure,,,,,,,,,yes,BUY_CANDIDATE,known enclosure controller
+https://example.com/critical-warning,Samsung 970 EVO Plus 2TB Critical Warning 1,500,970 EVO Plus 2TB 有 Critical Warning,external_mac_drive,96,1000,30,,,,0,1,yes,REJECT,critical warning hard reject
+https://example.com/fake-990,Samsung 990 Pro 2TB 低价 不保品牌 图吧显示,520,990Pro 低价 实际 PCIe 3.0 图吧显示 只保正常使用,external_mac_drive,98,200,20,,,,0,0,no,REJECT,suspicious 990 Pro low price and seller wording
+https://example.com/mzvlb-health40,Samsung MZVLB2T0HMLB-000H1 2TB NVMe OEM 健康40,300,Samsung OEM NVMe 但健康度只有40,external_mac_drive,40,10000,600,,,,0,0,no,REJECT,OEM NVMe direction valid but health below 90 rejects work drive
+https://example.com/870qvo,Samsung 870 QVO 2TB SATA QLC 健康92,770,870 QVO 2TB SATA QLC 價格770,external_mac_drive,92,4000,120,,,,0,0,no,REJECT,QVO / QLC SATA overpriced for main work drive
+https://example.com/ngff-bundle,NGFF SATA 2TB 打包 不保品牌,480,NGFF SATA 协议 拆机打包 不保品牌,external_mac_drive,96,300,10,,,,0,0,no,REJECT,NGFF SATA bundle and no brand guarantee
+https://example.com/kingchuxing,Kingchuxing 金储星 mSATA 2TB SSD,720,金储星 mSATA 2TB SATA协议,external_mac_drive,98,100,10,,,,0,0,no,REJECT,low-trust mSATA overpriced
+https://example.com/sandisk-h3,SanDisk SSD H3 2TB SATA 健康96,750,SanDisk SSD H3 2TB SATA external-class drive,external_mac_drive,96,800,40,,,,0,0,yes,WATCH_ONLY,SATA-class price approaches NVMe alternatives
+https://example.com/good-sn730,SN730 2TB NVMe TLC 健康98,850,SN730 2TB NVMe TLC SMART 正常,external_mac_drive,98,900,35,,,,0,0,yes,BUY_CANDIDATE,good SN730 candidate
+https://example.com/good-kc3000,KC3000 2TB NVMe TLC 健康99,820,KC3000 2TB NVMe TLC SMART 正常,external_mac_drive,99,700,25,,,,0,0,yes,BUY_CANDIDATE,good KC3000 candidate

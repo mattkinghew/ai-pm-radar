@@ -1,8 +1,8 @@
-# VALIDATION REPORT — deal-radar-storage v2.5
+# VALIDATION REPORT — deal-radar-storage v2.9
 
 ## Sample validation workflow
 
-v2.4.1 起，專案加入 sample validation workflow：
+專案使用 sample validation workflow 檢查 rule engine 是否穩定：
 
 ```bash
 python3 src/validate_samples.py
@@ -27,13 +27,13 @@ reports/sample_validation.md
 
 ## Current validation result
 
-目前 v2.5 documentation baseline 沿用 v2.4.1 rule engine 的驗證結果：
+v2.9 Real Market Screening Rules 的目前驗證結果：
 
-- Total samples: 12
-- Matched count: 12
+- Total samples: 20
+- Matched count: 20
 - Mismatch count: 0
 
-代表 12 個代表性樣本的 actual decision 全部符合 `expected_decision`。
+代表 20 個代表性樣本的 actual decision 全部符合 `expected_decision`。
 
 ## Sample coverage
 
@@ -46,17 +46,26 @@ reports/sample_validation.md
 5. KC3000 missing SMART
 6. WD Blue SATA with high power-on hours
 7. WD Green SATA overpriced
-8. fake / suspicious SN770
+8. suspicious SN770 / white-label style listing
 9. HC620 Feiniu / Windows cannot use
 10. normal SATA enterprise HDD
 11. RTL9210B enclosure
 12. SSD with Critical Warning hard reject
+13. suspicious low-price Samsung 990 Pro 2TB
+14. Samsung MZVLB2T0HMLB-000H1 with health 40
+15. Samsung 870 QVO 2TB health 92 price 770
+16. NGFF SATA 2TB bundle
+17. Kingchuxing / 金储星 mSATA 2TB price 720
+18. SanDisk SSD H3 2TB SATA health 96 price 750
+19. good SN730 2TB health 98 price 850
+20. good KC3000 2TB health 99 price 820
 
 ## What validation proves
 
 此 validation workflow 證明：
 
 - 現有 sample cases 在目前規則下可穩定產生預期 decision。
+- v2.9 新增的 real-market screening cases 已被 regression check 覆蓋。
 - future rule changes 可以透過 sample regression check 快速發現 unintended behavior change。
 - `evaluate_item()` 可被 CLI report 和 validation script 重用，代表 rule engine 有基本 modularity。
 - `REJECT`、`NEED_MORE_INFO`、`WATCH_ONLY`、`NEGOTIATE_ONLY`、`BUY_CANDIDATE` 都有樣本覆蓋。

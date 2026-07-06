@@ -22,6 +22,14 @@ MODEL_KEYWORDS = [
     "KC3000",
     "SN770",
     "SN750",
+    "MZVLB2T0HMLB-000H1",
+    "870 QVO",
+    "990 Pro",
+    "SanDisk SSD H3",
+    "Kingchuxing",
+    "金储星",
+    "金存星",
+    "虹舟",
     "P5 Plus",
     "970 EVO Plus",
     "980 PRO",
@@ -56,10 +64,32 @@ RISK_KEYWORDS = [
     "不退不換",
     "健康90",
     "通電2萬小時",
+    "不保品牌",
+    "只保正常使用",
+    "假三星",
+    "假990",
+    "990Pro 低价",
+    "图吧显示",
+    "图吧工具箱",
+    "图吧",
+    "打包",
+    "拆机打包",
+    "杂牌",
+    "mSATA",
+    "NGFF SATA",
+    "SATA协议",
+    "SATA 协议",
+    "QVO",
+    "870 QVO",
+    "WD Green",
+    "WD Blue SATA",
+    "SN350",
+    "NV1",
+    "SA510",
 ]
 
 CATEGORY_PATTERNS = {
-    "SSD": ["ssd", "固態", "固态", "nvme", "m.2", "pm9a1", "sn740", "sn770", "kc3000", "p5 plus", "970 evo", "980 pro", "p31", "p41"],
+    "SSD": ["ssd", "固態", "固态", "nvme", "m.2", "pm9a1", "sn740", "sn770", "kc3000", "p5 plus", "970 evo", "980 pro", "p31", "p41", "mzvlb2t0hmlb", "870 qvo", "990 pro", "sandisk ssd h3", "msata", "ngff"],
     "HDD": ["hdd", "硬碟", "硬盘", "hc620", "hc550", "hc530", "exos", "mg08", "企業盤", "企业盘"],
     "enclosure": ["硬碟盒", "硬盘盒", "外置盒", "enclosure", "rtl9210b", "asm2362", "盒子"],
     "cable": ["線", "线", "cable", "轉接", "转接", "adapter"],
@@ -67,7 +97,7 @@ CATEGORY_PATTERNS = {
 
 INTERFACE_PATTERNS = {
     "NVMe": ["nvme", "pcie", "m.2", "gen3", "gen4"],
-    "SATA": ["sata"],
+    "SATA": ["sata", "msata", "ngff sata", "sata协议", "sata 协议"],
     "USB": ["usb", "type-c", "type c", "usb-c", "usbc", "10gbps", "20gbps"],
 }
 
@@ -107,6 +137,7 @@ def combine_text(item: Dict[str, Any]) -> str:
     parts = [
         normalize_text(item.get("title")),
         normalize_text(item.get("description")),
+        normalize_text(item.get("notes")),
         normalize_text(item.get("url")),
     ]
     return " ".join(part for part in parts if part)
@@ -617,6 +648,114 @@ def generate_seller_followup(
         "rescue_comment": csv_join(rescue_notes),
     }
 
+def apply_real_market_screening(
+    item: Dict[str, Any],
+    text: str,
+    categories: List[str],
+    interfaces: List[str],
+    models: List[str],
+    risks: List[str],
+    capacities: List[str],
+    score: int,
+    reasons: List[str],
+    reject_reasons: List[str],
+    price_fields: Dict[str, Any],
+    use_case_fields: Dict[str, Any],
+) -> int:
+    """Apply v2.9 real-market screening for external Mac / main work drive trials.
+
+    This layer does not replace the SMART or price engine. It adds plain,
+    conservative warnings learned from real Goofish browsing: fake/low-trust
+    wording, SATA-class traps, QLC/QVO drives, and unsuitable health/price fit.
+    """
+    lower_text = text.lower()
+    price = parse_price_cny(item.get("price"))
+    health = parse_number(item.get("health_percent"))
+    intended_use = normalize_text(use_case_fields.get("intended_use") or item.get("intended_use")).lower()
+    work_drive_use = intended_use in {"external_mac_drive", "main_work_drive"}
+    test_only = intended_use == "test_only" or looks_test_only(text)
+    is_2tb = has_capacity_2tb(capacities) or "2tb" in lower_text or "2t" in lower_text
+
+    def has_any(*terms: str) -> bool:
+        return any(term.lower() in lower_text for term in terms)
+
+    low_trust_brand = has_any("kingchuxing", "金储星", "金存星", "虹舟")
+    msata_or_ngff_sata = has_any("msata", "ngff sata", "sata协议", "sata 协议")
+    qvo_or_qlc = has_any("qvo", "870 qvo", "qlc") or "QLC" in risks
+    weak_seller_wording = has_any("不保品牌", "只保正常使用", "图吧显示", "图吧工具箱", "图吧", "打包", "拆机打包")
+    suspicious_samsung = has_any("假三星", "假990", "990pro 低价")
+    suspicious_990 = has_any("990 pro", "990pro") and (
+        (price is not None and price < 800)
+        or weak_seller_wording
+        or has_any("不保品牌", "pcie 3.0", "pcie3.0", "sata速度", "sata level", "图吧")
+    )
+    sandisk_h3 = has_any("sandisk ssd h3")
+    sata_class_model = sandisk_h3 or has_any("wd blue sata", "wd green", "sa510")
+    low_end_model = has_any("sn350", "nv1", "wd green", "wd blue sata", "sa510")
+    sata_2tb_overpriced = is_2tb and ("SATA" in interfaces or sata_class_model or qvo_or_qlc) and price is not None and price > 600
+    white_label_or_unknown = is_unknown_or_white_label_ssd(text, categories, models, risks) or low_trust_brand
+
+    if weak_seller_wording:
+        score -= 35
+        reject_reasons.append("賣家明示不保品牌／只保正常使用／图吧顯示／打包，假貨或錯標風險高")
+    if suspicious_samsung or suspicious_990:
+        score -= 45
+        reject_reasons.append("疑似低價假 Samsung 990 Pro 或錯標 listing，未有強證據前拒絕")
+    if low_end_model:
+        score -= 25
+        reasons.append("命中低端／不適合主力資料碟型號：不是完全不能用，但不符合 external Mac 主力工作碟目標")
+    if "HDD" in categories and has_any("飛牛", "windows不能用", "usb不能用", "不支持usb", "zbc", "pc3000", "屏蔽", "改容量"):
+        score -= 45
+        reject_reasons.append("HDD listing 命中飛牛／不能識別／ZBC／改盤／屏蔽等風險，不適合正常資料儲存")
+    if low_trust_brand:
+        score -= 30
+        reasons.append("命中低信任品牌／白牌方向：需要非常低價及 test_only 才值得考慮")
+
+    if work_drive_use:
+        if msata_or_ngff_sata and not test_only:
+            score -= 45
+            reject_reasons.append("mSATA / NGFF SATA 不是 NVMe，不符合 external Mac / main work drive 目標")
+        if sata_2tb_overpriced:
+            score -= 35
+            if msata_or_ngff_sata or qvo_or_qlc or low_end_model:
+                reject_reasons.append("SATA / mSATA 不是 NVMe，2TB 價格超過 ¥600 且接近 NVMe 時不值得")
+            else:
+                reasons.append("SATA-class 2TB 價格超過 ¥600，價格接近 NVMe alternatives；只適合觀察或大幅議價")
+        if qvo_or_qlc:
+            score -= 30
+            if price is not None and price >= 700:
+                reject_reasons.append("QVO / QLC 不適合作高信任工作碟，且價格接近 NVMe 選項")
+            else:
+                reasons.append("QVO / QLC 不適合作高信任工作碟，只可低價非關鍵用途考慮")
+        if health is not None and health < 90:
+            score -= 50
+            reject_reasons.append("健康度低於 90，不建議作主力資料碟")
+        elif health is not None and health < 95:
+            score -= 18
+            reasons.append("健康度低於 95，external Mac / main work drive 只應議價或觀察，不應直接視為可買")
+        if white_label_or_unknown and price is not None and price > 500:
+            score -= 35
+            reject_reasons.append("未知／白牌／低信任品牌超過 ¥500，不符合資料安全優先目標")
+        if "SATA" in interfaces and "NVMe" not in interfaces:
+            reasons.append("不是完全不能用，但不符合 external Mac 主力工作碟目標；SATA-class 盤速度與價值低於 NVMe")
+
+    if has_any("mzvlb2t0hmlb-000h1", "mzvlb2t0hmlb"):
+        reasons.append("Samsung MZVLB2T0HMLB-000H1 屬 Samsung OEM NVMe 方向，型號方向可接受；仍需看健康度與 SMART")
+        if work_drive_use and health is not None and health < 90:
+            reject_reasons.append("Samsung OEM NVMe 雖方向可接受，但健康度低於 90，不建議作 external Mac / main work drive")
+    if has_any("870 qvo"):
+        reasons.append("Samsung 870 QVO 屬 SATA QLC；不建議作主力工作碟，除非極低價且非關鍵用途")
+    if sandisk_h3:
+        score = max(40, min(score, 59))
+        reasons.append("SanDisk SSD H3 視作 SATA / external SATA-class drive；價格接近 NVMe alternatives 時不理想")
+    if has_any("990 pro", "990pro") and not suspicious_990:
+        reasons.append("Samsung 990 Pro listing 需要特別核對真偽、PCIe 版本、速度與 SMART；低價時要提高警覺")
+
+    if price_fields.get("price_comment"):
+        price_fields["price_comment"] = price_fields["price_comment"] + " v2.9: 已套用 real market screening。"
+    return score
+
+
 def decide_item(score: int, reject_reasons: List[str], missing_key_info: bool) -> str:
     if reject_reasons:
         return "REJECT"
@@ -801,10 +940,26 @@ def evaluate_item(item: Dict[str, Any]) -> Dict[str, Any]:
     use_case_fields = evaluate_use_case_fit(
         item, text, categories, interfaces, models, risks, price_fields, reject_reasons, reasons
     )
+    score = apply_real_market_screening(
+        item,
+        text,
+        categories,
+        interfaces,
+        models,
+        risks,
+        capacities,
+        score,
+        reasons,
+        reject_reasons,
+        price_fields,
+        use_case_fields,
+    )
     use_case_score_delta = int(use_case_fields.get("use_case_score_delta", 0))
     if use_case_score_delta != 0:
         score += use_case_score_delta
         reasons.append(f"用途適配分數調整: {use_case_score_delta:+d}")
+    if "sandisk ssd h3" in text.lower() and not reject_reasons:
+        score = max(40, min(score, 59))
 
     missing_key_info = False
     missing_fields = missing_smart_fields_for_item(item, categories)

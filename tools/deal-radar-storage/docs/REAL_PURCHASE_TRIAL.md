@@ -1,6 +1,6 @@
 # Real Purchase Trial Guide
 
-本文件說明如何用 `deal-radar-storage` v2.8 做一次安全、手動、可驗證的二手 SSD / HDD 實購前篩選流程。
+本文件說明如何用 `deal-radar-storage` v2.9 做一次安全、手動、可驗證的二手 SSD / HDD 實購前篩選流程。v2.9 新增 Real Market Screening Rules，目標是更適合真實 Goofish 二手 SSD trial。
 
 本工具只協助你準備搜尋、整理候選 listing、產生 rule-based 評估、賣家問題與證據清單。它不會替你購買產品，也不會驗證賣家是否誠實。最後購買前仍然要由你人工檢查 SMART 截圖、實物照片、賣家信譽與退換條款。
 
@@ -44,11 +44,14 @@ open reports/discovery_urls.md
 - 980 PRO 2TB
 - Crucial P5 Plus 2TB
 
+目前實購 trial 目標：2TB NVMe TLC SSD，用作 external Mac work drive，之後配合 RTL9210B / ASM2362 enclosure。優先次序是資料安全／可靠性 > 合理價格 > 速度。
+
 一般方向：
 
 - 優先 NVMe、TLC、已知品牌、SMART 資料完整、健康度高、價格合理、支援退換的 listing。
 - `main_work_drive` 或 `external_mac_drive` 用途要更保守，盡量避免缺 SMART、低健康度、未知品牌、QLC 或高熱型號。
 - PM9A1 / SN740 / Micron 3400 這類 OEM 盤要確認來源、健康度、寫入量、是否正常識別。
+- 每輪只挑 3–5 個候選，不要用太廣泛的搜尋詞一次收集大量弱 listing。
 
 ## 4. SSD 應避免類型
 
@@ -65,6 +68,9 @@ open reports/discovery_urls.md
 - SATA 2TB overpriced listings
 - health below 90
 - very high power-on hours
+- mSATA / NGFF SATA / SATA 協議
+- 不保品牌 / 只保正常使用 / 图吧顯示 / 打包
+- Samsung 990 Pro 2TB 但價格異常低、描述不清或賣家不保品牌
 
 另外也要特別避開：
 
@@ -73,6 +79,9 @@ open reports/discovery_urls.md
 - 標題或描述出現「不退不換」但價格不夠低
 - 賣家拒絕提供 CrystalDiskInfo 完整截圖
 - 只有模糊截圖、遮蔽序號以外的重要資料、或描述前後矛盾
+- SATA / mSATA 不是 NVMe，價格接近 NVMe 時不值得。
+- QVO / QLC 不適合作高信任工作碟。
+- 賣家明示不保品牌時，錯標或低信任風險高。
 
 ## 5. 如何填寫 data/discovered_listings.csv
 
