@@ -1,0 +1,6 @@
+url,title,price,description,intended_use,health_percent,power_on_hours,host_writes_tb,reallocated_sector_count,current_pending_sector,offline_uncorrectable,media_integrity_errors,critical_warning,supports_return
+https://example.com/item/ssd-good,SN740 2TB NVMe TLC SSD,820,健康良好 M.2 NVMe SSD 可用作筆電升級,main_work_drive,98,1200,45,,,,0,0,yes
+https://example.com/item/ssd-negotiate,PM9A1 2TB NVMe SSD,680,健康92 有議價空間,docker_cache,92,5000,160,,,,0,0,yes
+https://example.com/item/ssd-reject,PM9A1 2TB NVMe SSD,250,SMART 有 critical warning 需要小心,test_only,88,5000,260,,,,3,1,no
+https://example.com/item/hdd-cold,HC550 16TB SATA HDD,600,企業盤 可作冷儲存 但不要作唯一備份,cold_storage,,20000,,0,0,0,,,yes
+https://example.com/item/hdd-reject,HC550 16TB SATA HDD,600,通電2萬小時 不退不換 Linux專用,backup_drive,,20000,,2,0,0,,,no

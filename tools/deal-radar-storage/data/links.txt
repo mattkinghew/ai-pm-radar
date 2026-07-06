@@ -1,0 +1,6 @@
+# Paste one product URL per line.
+# Lines starting with # are ignored.
+# These demo URLs also exist in data/listings.csv, so evaluate_links.py can use manual metadata without scraping.
+https://example.com/item/ssd-good
+https://example.com/item/ssd-reject
+https://example.com/item/hdd-reject

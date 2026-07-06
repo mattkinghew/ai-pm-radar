@@ -1,0 +1,72 @@
+# Discovery Queries — 人工搜尋關鍵字
+
+> v2.8 discovery preparation mode。此檔只產生人工搜尋關鍵字；不登入、不抓取平台內容、不自動購買。
+
+## Queries
+
+- `SN740 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `SN740 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `SN740 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `SN740 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `SN740 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `SN740 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `PM9A1 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `PM9A1 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `PM9A1 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `PM9A1 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `PM9A1 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `PM9A1 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `PM9A1a 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `PM9A1a 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `PM9A1a 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `PM9A1a 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `PM9A1a 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `PM9A1a 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `Micron 3400 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `Micron 3400 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `Micron 3400 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `Micron 3400 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `Micron 3400 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `Micron 3400 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `KC3000 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `KC3000 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `KC3000 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `KC3000 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `KC3000 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `KC3000 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `SN770 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `SN770 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `SN770 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `SN770 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `SN770 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `SN770 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `P5 Plus 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `P5 Plus 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `P5 Plus 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `P5 Plus 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `P5 Plus 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `P5 Plus 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `970 EVO Plus 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `970 EVO Plus 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `970 EVO Plus 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `970 EVO Plus 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `970 EVO Plus 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `970 EVO Plus 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `980 PRO 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `980 PRO 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `980 PRO 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `980 PRO 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `980 PRO 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `980 PRO 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `P31 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `P31 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `P31 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `P31 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `P31 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `P31 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `P41 1TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `P41 1TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `P41 1TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）
+- `P41 2TB NVMe 閒魚` — Goofish / 閒魚（來源: `requirements.ssd.yml`）
+- `P41 2TB NVMe 淘寶` — Taobao（來源: `requirements.ssd.yml`）
+- `P41 2TB NVMe 京東` — JD（來源: `requirements.ssd.yml`）

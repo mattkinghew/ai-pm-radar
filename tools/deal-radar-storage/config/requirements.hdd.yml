@@ -1,0 +1,17 @@
+preferred_models:
+  - HC620
+  - HC550
+  - HC530
+  - Exos X18
+  - Exos X16
+  - MG08
+capacities:
+  - 12TB
+  - 14TB
+  - 16TB
+  - 18TB
+interfaces:
+  - SATA
+keywords:
+  - HDD
+  - 企業盤

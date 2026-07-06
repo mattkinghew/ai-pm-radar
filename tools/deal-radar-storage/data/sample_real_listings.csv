@@ -1,0 +1,13 @@
+﻿url,title,price,description,intended_use,health_percent,power_on_hours,host_writes_tb,reallocated_sector_count,current_pending_sector,offline_uncorrectable,media_integrity_errors,critical_warning,supports_return,expected_decision,expected_comment
+https://example.com/good-nvme-tlc,Samsung 980 PRO 2TB NVMe TLC SSD 健康98,880,Gen4 M.2 NVMe TLC，CrystalDiskInfo 正常，適合主力工作碟,main_work_drive,98,1200,45,,,,0,0,支持,BUY_CANDIDATE,高健康度 NVMe TLC，SMART 關鍵欄位正常。
+https://example.com/pm9a1-health91,Samsung PM9A1 2TB NVMe SSD 健康91,620,二手 PM9A1 2T，CrystalDiskInfo 顯示正常，適合 Docker cache,docker_cache,91,4200,150,,,,0,0,支持,BUY_CANDIDATE,健康度 91%，只適合議價或較低風險用途。
+https://example.com/pm9a1-overpriced-health90,Samsung PM9A1 2TB NVMe SSD 健康90,980,PM9A1 2T 健康90，賣家稱不刀，主力盤,main_work_drive,90,7000,190,,,,0,0,不退不換,WATCH_ONLY,健康度 90% 且價格偏高；不能按主力盤價格買。
+https://example.com/sn750-high-writes,WD SN750 2TB NVMe TLC SSD,580,SN750 2T，寫入量高，適合 docker_cache,docker_cache,94,5000,280,,,,0,0,支持,NEGOTIATE_ONLY,寫入量 >200TB，只能低價議價。
+https://example.com/kc3000-missing-smart,Kingston KC3000 2TB NVMe SSD,780,KC3000 2T，賣家未提供 SMART 截圖,main_work_drive,,,,,,,,,,NEED_MORE_INFO,缺少 SMART；主力工作碟不可直接判定可買。
+https://example.com/wd-blue-sata-high-hours,WD Blue SATA SSD 2TB 健康96,450,WD Blue SATA SSD 2T，通電2萬小時，cold_storage 低價使用,cold_storage,96,22000,80,,,,0,0,支持,WATCH_ONLY,SATA SSD 通電高，只適合低價冷資料或非唯一副本。
+https://example.com/wd-green-overpriced,WD Green SATA QLC SSD 2TB,820,WD Green SATA QLC 2T，入門盤，健康96,cold_storage,96,900,20,,,,0,0,支持,REJECT,低端 SATA / QLC 2TB 價格 >750 CNY，拒絕。
+https://example.com/fake-sn770,SN770 2TB 白牌 雜牌 改容量 超低價,420,疑似 fake SN770，白牌雜牌，改容量，測試用,test_only,,,,,,,,,不退不換,REJECT,疑似假貨／改容量，即使 test_only 也不應買。
+https://example.com/hc620-feiniu-windows,HGST HC620 14TB HDD 飛牛 Windows不能用 ZBC,480,飛牛盤，Linux專用，不支持USB，Windows不能用，可能 ZBC,cold_storage,,18000,,0,0,0,,,不退不換,REJECT,飛牛／Windows 不能用／ZBC 等風險過多。
+https://example.com/enterprise-hdd-sata,Seagate Exos X18 16TB HDD SATA 企業盤,780,普通 SATA 企業盤，可 USB 硬碟座識別，smartctl 正常,cold_storage,,9000,,0,0,0,,,支持,BUY_CANDIDATE,HDD SMART 危險欄位為 0，可議價作 cold storage。
+https://example.com/rtl9210b-enclosure,M.2 NVMe USB-C 硬碟盒 RTL9210B enclosure,65,RTL9210B 10Gbps，支援 UASP TRIM SMART passthrough，適合 external_mac_drive,external_mac_drive,,,,,,,,,支持,BUY_CANDIDATE,已知硬碟盒晶片，仍需確認 TRIM/UASP/SMART passthrough。
+https://example.com/pm9a1-critical-warning,Samsung PM9A1 2TB NVMe SSD 健康98 但有 Critical Warning,500,CrystalDiskInfo 顯示 critical warning 1，便宜出,test_only,98,3000,60,,,,0,1,不退不換,REJECT,Critical Warning 非 0 是 hard reject。

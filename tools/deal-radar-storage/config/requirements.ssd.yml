@@ -1,0 +1,20 @@
+preferred_models:
+  - SN740
+  - PM9A1
+  - PM9A1a
+  - Micron 3400
+  - KC3000
+  - SN770
+  - P5 Plus
+  - 970 EVO Plus
+  - 980 PRO
+  - P31
+  - P41
+capacities:
+  - 1TB
+  - 2TB
+interfaces:
+  - NVMe
+keywords:
+  - SSD
+  - M.2
