@@ -1,4 +1,4 @@
-# SAFETY BOUNDARIES — deal-radar-storage v2.5
+# SAFETY BOUNDARIES — deal-radar-storage v3
 
 ## Core safety principles
 
@@ -10,13 +10,13 @@
 
 工具不會自動下單、不會提交購買、不會付款、不會聯絡賣家。
 
-### No login bypass
+### No account automation
 
-工具不會繞過登入流程，也不會模擬或破解平台驗證。
+工具不處理平台帳戶流程，也不保存登入狀態或 session data。
 
 ### No aggressive scraping
 
-工具不會高頻抓取網頁、不會批量爬取平台、不會嘗試繞過反爬措施。Link-only mode 即使缺 metadata 也可運作，設計上不依賴 scraping。
+工具不會高頻抓取網頁、不會批量爬取平台。Link-only mode 和 v3 capture mode 即使沒有網頁 metadata 也可運作。
 
 ### No credentials
 
@@ -26,9 +26,9 @@
 
 專案不需要 API keys。不要把 API key、private token 或 `.env` secret 放入 repository。
 
-### No platform security bypass
+### Browser-assisted manual capture boundary
 
-工具不應繞過平台安全機制、風控、驗證碼、登入限制、API 限制或交易規則。
+v3 capture mode 只解析使用者手動複製到 `captures/raw/*.txt` 的本地文字。工具不會自動開頁、不會讀取瀏覽器 session、不會保存 cookies、不會自動聯絡賣家，也不會替使用者付款。
 
 ### Human confirmation required before purchase
 

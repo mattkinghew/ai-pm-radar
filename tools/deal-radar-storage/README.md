@@ -1,6 +1,6 @@
-# deal-radar-storage v2.9
+# deal-radar-storage v3
 
-A beginner-friendly, rule-based storage deal helper with optional SMART checks, purchase decisions, suggested price ranges, use-case fit evaluation, seller questions, evidence checklists, sample validation, a portfolio-ready documentation package, an optional argparse CLI, a quick analyze mode, discovery preparation from requirements YAML, and v2.9 real market screening rules for second-hand SSD purchase trials.
+A beginner-friendly, rule-based storage deal helper with optional SMART checks, purchase decisions, suggested price ranges, use-case fit evaluation, seller questions, evidence checklists, sample validation, a portfolio-ready documentation package, an optional argparse CLI, a quick analyze mode, discovery preparation from requirements YAML, v2.9 real market screening rules, and v3 browser-assisted manual capture for second-hand SSD purchase trials.
 
 It supports three workflows:
 
@@ -13,6 +13,7 @@ It supports three workflows:
 7. **Quick analyze mode**: run one command when you only have links, requirements YAML, or both.
 8. **Discovery preparation mode**: start from requirements YAML and generate manual discovery queries, platform search URLs, and a CSV template for confirmed listings.
 9. **Real market screening mode**: flag weak real-market listings such as SATA / mSATA / NGFF SATA, QVO / QLC, low-trust brands, low-health drives, and suspicious low-price Samsung 990 Pro listings.
+10. **Browser-assisted manual capture mode**: manually copy visible listing text into `captures/raw/*.txt`, then parse it locally into `captures/parsed_listings.csv`.
 
 ## Safety boundaries
 
@@ -25,6 +26,25 @@ This tool does **not**:
 - aggressively scrape websites
 
 The tool is designed to help you shortlist items and prepare seller questions manually. It never contacts sellers for you.
+
+## v3 Browser-assisted Manual Capture
+
+Use this workflow when manual CSV entry is too slow. You manually open listing pages in your browser and manually copy visible listing text into local `.txt` files under `captures/raw/`. The tool only parses those local text files and converts them into candidate CSV rows.
+
+This is not scraping, browser automation, auto-buying, auto-messaging, login bypass, CAPTCHA bypass, or platform security bypass. It does not store cookies, passwords, tokens, credentials, API keys, or session data.
+
+```bash
+python3 src/cli.py capture
+python3 src/cli.py capture --append-to data/discovered_listings.csv
+python3 src/cli.py evaluate --input data/discovered_listings.csv
+```
+
+Outputs:
+
+- `captures/parsed_listings.csv`
+- `captures/processed/capture_report.md`
+
+For the full workflow, see [Browser-assisted capture guide](docs/BROWSER_ASSISTED_CAPTURE.md).
 
 ## Real Purchase Trial Quick Start
 
@@ -89,6 +109,9 @@ data/links.txt
 data/listings.csv
 data/sample_real_listings.csv
 data/discovered_listings.csv
+captures/raw/
+captures/processed/
+captures/parsed_listings.csv
 reports/today.md
 reports/today.csv
 reports/rejects.md
@@ -116,7 +139,9 @@ src/search_requirements.py
 src/rules.py
 src/report.py
 src/validate_samples.py
+src/validate_capture_samples.py
 src/cli.py
+src/capture_parse.py
 src/quick_analyze.py
 src/discover.py
 src/search_queries.py
