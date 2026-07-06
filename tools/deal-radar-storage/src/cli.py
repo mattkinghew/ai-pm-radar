@@ -19,7 +19,7 @@ import argparse
 from pathlib import Path
 from typing import Iterable, List
 
-from evaluate import LISTINGS_CSV, read_listings
+from evaluate import LISTINGS_CSV, evaluate_listings, read_listings
 from evaluate_links import LINKS_TXT, build_candidates
 from report import REPORTS_DIR, write_all_candidate_reports
 from rules import evaluate_item
@@ -44,10 +44,11 @@ def print_candidate_summary(count: int, output_dir: Path) -> None:
 def run_evaluate(args: argparse.Namespace) -> None:
     input_path = as_path(args.input)
     output_dir = as_path(args.output_dir)
-    listings = read_listings(input_path)
-    results = [evaluate_item(item) for item in listings]
-    write_all_candidate_reports(results, output_dir)
+    listings, stats = read_listings(input_path, return_stats=True)
+    results = evaluate_listings(listings)
+    write_all_candidate_reports(results, output_dir, evaluation_stats=stats)
     print_candidate_summary(len(results), output_dir)
+    print(f"Skipped {stats['empty_rows_skipped']} empty placeholder row(s).")
 
 
 def run_links(args: argparse.Namespace) -> None:

@@ -46,6 +46,20 @@ Warning:
 
 For the full workflow, see [Real purchase trial guide](docs/REAL_PURCHASE_TRIAL.md).
 
+## Real Listing Evaluation Tips
+
+When using `data/discovered_listings.csv` for a real purchase trial:
+
+- Do not leave unused placeholder rows in `data/discovered_listings.csv`; v2.8.2 skips fully empty rows, but a clean CSV is easier to review.
+- Minimum useful fields are `title`, `price`, `url`, `description`, and `intended_use`.
+- SMART fields improve accuracy, especially `health_percent`, `power_on_hours`, `host_writes_tb`, `critical_warning`, `media_integrity_errors`, and `supports_return`.
+- URL-only rows will be marked `NEED_MORE_INFO` instead of being treated as real rejected listings.
+- Run:
+
+```bash
+python3 src/cli.py evaluate --input data/discovered_listings.csv
+```
+
 ## Project structure
 
 ```text
