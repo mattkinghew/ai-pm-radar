@@ -36,13 +36,23 @@ export default async function HomePage() {
 
             <div className="hero-panel">
               <p className="eyebrow">Today&apos;s focus</p>
-              <h2>Top 5 daily section</h2>
+              <h2>Today&apos;s Top 5</h2>
               <p className="hero-date">{latestDate ? formatDate(latestDate) : "No data yet"}</p>
-              <ul className="hero-list">
-                {topArticles.map((article) => (
+              <ul className="hero-top-list">
+                {topArticles.map((article, index) => (
                   <li key={article.slug}>
-                    <Link href={`/article/${article.slug}`}>{article.short_title}</Link>
-                    <span>{article.category}</span>
+                    <div className="hero-item-head">
+                      <span className="hero-rank">#{index + 1}</span>
+                      <span className="score-pill">Score {article.priority_score}</span>
+                    </div>
+                    <Link href={`/article/${article.slug}`} className="hero-item-link">
+                      {article.short_title}
+                    </Link>
+                    <p>{article.ai_pm_angle}</p>
+                    <div className="hero-item-meta">
+                      <span>{article.category}</span>
+                      <span>Risk: {article.risk_note}</span>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -57,8 +67,8 @@ export default async function HomePage() {
               <h2>Highest-priority signals from the latest file</h2>
             </div>
             <p className="section-note">
-              Ranked with a simple weighted score based on impact, relevance, and
-              trust.
+              Ranked with the existing weighted score based on impact, relevance,
+              and trust, with optional review metadata shown when present.
             </p>
           </div>
 

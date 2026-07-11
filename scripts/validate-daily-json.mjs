@@ -22,6 +22,13 @@ const requiredArticleFields = [
 ];
 
 const scoreFields = ["impact_score", "relevance_score", "trust_score"];
+const reviewScoreFields = [
+  "ai_pm_relevance",
+  "hk_relevance",
+  "actionability",
+  "technical_depth",
+  "portfolio_value",
+];
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -33,6 +40,10 @@ function isNonEmptyString(value) {
 
 function addIssue(issues, filePath, message) {
   issues.push(`${filePath}: ${message}`);
+}
+
+function isBoolean(value) {
+  return typeof value === "boolean";
 }
 
 async function validateDailyFile(fileName) {
@@ -90,6 +101,43 @@ async function validateDailyFile(fileName) {
 
     if ("source_url" in article && !isNonEmptyString(article.source_url)) {
       addIssue(issues, articlePath, "Field source_url must be a non-empty string.");
+    }
+
+    if ("review" in article) {
+      if (!isObject(article.review)) {
+        addIssue(issues, articlePath, "Field review must be an object.");
+      } else {
+        if ("status" in article.review && !isNonEmptyString(article.review.status)) {
+          addIssue(issues, articlePath, "Field review.status must be a non-empty string.");
+        }
+
+        if (
+          "human_review_required" in article.review &&
+          !isBoolean(article.review.human_review_required)
+        ) {
+          addIssue(issues, articlePath, "Field review.human_review_required must be a boolean.");
+        }
+
+        if ("review_notes" in article.review && !isNonEmptyString(article.review.review_notes)) {
+          addIssue(issues, articlePath, "Field review.review_notes must be a non-empty string.");
+        }
+
+        if ("scoring" in article.review) {
+          if (!isObject(article.review.scoring)) {
+            addIssue(issues, articlePath, "Field review.scoring must be an object.");
+          } else {
+            for (const field of reviewScoreFields) {
+              if (field in article.review.scoring && typeof article.review.scoring[field] !== "number") {
+                addIssue(
+                  issues,
+                  articlePath,
+                  `Field review.scoring.${field} must be a number.`,
+                );
+              }
+            }
+          }
+        }
+      }
     }
   });
 

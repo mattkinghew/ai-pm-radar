@@ -17,6 +17,18 @@ export type Article = {
   impact_score: number;
   relevance_score: number;
   trust_score: number;
+  review?: {
+    status?: string;
+    human_review_required?: boolean;
+    review_notes?: string;
+    scoring?: {
+      ai_pm_relevance?: number;
+      hk_relevance?: number;
+      actionability?: number;
+      technical_depth?: number;
+      portfolio_value?: number;
+    };
+  };
 };
 
 type DailyFile = {

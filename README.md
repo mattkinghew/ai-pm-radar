@@ -1,28 +1,39 @@
-#AI PM Radar
+# AI PM Radar
 
 AI PM Radar is a static AI product management radar that turns selected AI and business updates into structured, source-aware, risk-aware learning content for non-technical AI PM learners, NGO and education practitioners, and SME decision-makers.
 
 The project is positioned as an AI Product Manager portfolio case study. It demonstrates how to define a focused information product, control MVP scope, design a repeatable content schema, validate data quality, and publish a low-cost static deployment without adding premature backend complexity.
 
-## Live demo
+## Public links
 
-https://ai-pm-radar-pages.pages.dev/
+- Current public demo: [https://ai-pm-radar-pages.pages.dev/](https://ai-pm-radar-pages.pages.dev/)
+- Production URL placeholder: `https://your-domain.example/`
 
 ## Current status
 
-Agent safety workflow:
+Agent workflow and verification:
 
-- `docs/AGENT_SAFETY_WORKFLOW.md`
+- [docs/AGENT_STATUS.md](docs/AGENT_STATUS.md)
 
 Status: `Local Verified Baseline + Verification Record Committed`
 
 Latest verification record:
 
-- `docs/LOCAL_VERIFICATION_2026-07-01.md`
+- [docs/LOCAL_VERIFICATION_2026-07-01.md](docs/LOCAL_VERIFICATION_2026-07-01.md)
 
 Portfolio case study:
 
-- `docs/CASE_STUDY.md`
+- [docs/CASE_STUDY.md](docs/CASE_STUDY.md)
+
+## IT Project Coordination Portfolio Evidence
+
+This repository also includes documentation samples for IT Project Coordinator / Assistant Project Manager interviews:
+
+- [docs/UAT_TEST_PLAN.md](docs/UAT_TEST_PLAN.md) — UAT scope, acceptance criteria, test cases, issue log and UAT summary template
+- [docs/PROJECT_STATUS_REPORT_SAMPLE.md](docs/PROJECT_STATUS_REPORT_SAMPLE.md) — sample stakeholder status report with progress, risks, milestones, budget and decision log
+- [docs/AI_ASSISTED_PM_WORKFLOW.md](docs/AI_ASSISTED_PM_WORKFLOW.md) — AI-assisted project coordination workflow for meeting notes, UAT feedback, risk tracking and weekly reporting
+
+These documents show how the project can be discussed not only as an AI PM case study, but also as evidence of project lifecycle support, UAT coordination, documentation discipline, stakeholder reporting and AI-assisted workflow improvement.
 
 Verified baseline:
 
@@ -170,7 +181,32 @@ Each article must include these fields:
 - `relevance_score`
 - `trust_score`
 
-The scoring fields are used to help rank and display the latest daily items. The source fields and risk note are part of the content quality control design.
+The ranking fields are:
+
+- `impact_score`
+- `relevance_score`
+- `trust_score`
+
+These three fields drive the current `priority_score` calculation and latest Top 5 ordering.
+
+Optional review metadata may also be added:
+
+- `review.status`
+- `review.human_review_required`
+- `review.review_notes`
+- `review.scoring.ai_pm_relevance`
+- `review.scoring.hk_relevance`
+- `review.scoring.actionability`
+- `review.scoring.technical_depth`
+- `review.scoring.portfolio_value`
+
+Important notes:
+
+- `review.*` is optional, so older daily JSON files continue to work.
+- `review.*` is human-reviewed metadata for editorial clarity and portfolio framing.
+- `review.scoring` does not affect ranking.
+- `priority_score` still uses only `impact_score`, `relevance_score`, and `trust_score`.
+- Human review remains the core design principle; this project does not claim full automation.
 
 ## 7. Content workflow
 
@@ -187,20 +223,19 @@ Optional prompt files in `prompts/` support a semi-automated drafting workflow, 
 
 ## 8. Validation workflow
 
-Run the daily JSON validator before build:
+Run the validation checks before build:
 
 ```bash
+npm run validate:data
 npm run validate:daily
 ```
 
-The validator checks:
+The validators check:
 
-- `date` exists
-- `articles` is an array
-- required article fields exist
-- `tags` is an array
-- `impact_score`, `relevance_score`, and `trust_score` are numbers
-- `source_url` is a non-empty string
+- daily file shape
+- required article fields
+- score fields and URL fields
+- duplicate source URLs across the current dataset
 
 Then build the static site:
 
@@ -233,13 +268,14 @@ http://localhost:3000
 Recommended pre-deployment check:
 
 ```bash
+npm run validate:data
 npm run validate:daily
 npm run build
 ```
 
 ## 10. Deployment readiness
 
-The project has a documented public demo and is prepared for static hosting through Cloudflare Pages or Firebase Hosting.
+The project is prepared for static hosting through Cloudflare Pages or Firebase Hosting.
 
 Current demo:
 
@@ -253,13 +289,27 @@ Latest local verification evidence is documented in:
 docs/LOCAL_VERIFICATION_2026-07-01.md
 ```
 
+### Launch checklist
+
+- [ ] Confirm `README.md` links open correctly in GitHub
+- [ ] Set the production URL in the README placeholder if a custom domain is ready
+- [ ] Run `npm run validate:data`
+- [ ] Run `npm run validate:daily`
+- [ ] Run `npm run build`
+- [ ] Confirm `out/` is the publish directory
+- [ ] Confirm the latest daily JSON file is present and intentional
+- [ ] Review homepage, archive filter, and one article page on a phone-sized viewport
+- [ ] Confirm `review.*` is treated as optional display metadata, not ranking logic
+- [ ] Confirm source links open correctly after deployment
+
 ### Cloudflare Pages
 
 1. Push this folder to a Git repository.
 2. In Cloudflare Pages, choose `Next.js (Static HTML Export)`.
 3. Use:
-   - Build command: `npx next build`
+   - Build command: `npm run validate:data && npm run validate:daily && npm run build`
    - Build output directory: `out`
+4. Verify the deployed home page, archive page, and one article detail page.
 
 Official guide:
 - [Cloudflare Pages static Next.js guide](https://developers.cloudflare.com/pages/framework-guides/nextjs/deploy-a-static-nextjs-site/)
@@ -270,8 +320,9 @@ Official guide:
 2. Login: `firebase login`
 3. Inside this project run: `firebase init hosting`
 4. When asked for the public directory, use `out`
-5. Build first: `npm run build`
+5. Build first: `npm run validate:data && npm run validate:daily && npm run build`
 6. Deploy: `firebase deploy`
+7. Verify the deployed home page, archive page, and one article detail page.
 
 Official guide:
 - [Firebase Hosting quickstart](https://firebase.google.com/docs/hosting/quickstart)
@@ -318,9 +369,11 @@ This project demonstrates practical AI PM skills rather than only technical impl
 - There is no backend, user account system, CMS, or personalized recommendation feature.
 - The current content set is still small and should be expanded before public launch.
 - Source quality still depends on manual selection and review.
+- Mobile QA has been checked at the CSS/layout level and should still be verified on a real phone-sized viewport before wider promotion.
 
 ## Notes
 
 - Source links intentionally open in a new tab with `rel="noopener noreferrer"`.
 - The footer includes the required disclaimer.
 - No API keys are used in the frontend.
+- `review.*` is optional display metadata only. It supports human review visibility but does not change ranking.

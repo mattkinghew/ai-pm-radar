@@ -16,7 +16,19 @@
       "published_at": "YYYY-MM-DDTHH:MM:SSZ",
       "impact_score": 1,
       "relevance_score": 1,
-      "trust_score": 1
+      "trust_score": 1,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": true,
+        "review_notes": "Optional short note about audience fit, caution, or reuse value.",
+        "scoring": {
+          "ai_pm_relevance": 1,
+          "hk_relevance": 1,
+          "actionability": 1,
+          "technical_depth": 1,
+          "portfolio_value": 1
+        }
+      }
     }
   ]
 }

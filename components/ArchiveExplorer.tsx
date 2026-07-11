@@ -31,6 +31,10 @@ export function ArchiveExplorer({
         <div>
           <p className="eyebrow">Category filter</p>
           <h2>Browse by topic</h2>
+          <p className="section-note">
+            {filteredArticles.length} result{filteredArticles.length === 1 ? "" : "s"}
+            {selectedCategory === "All" ? " across all categories" : ` in ${selectedCategory}`}
+          </p>
         </div>
 
         <div className="filter-row" role="tablist" aria-label="Category filter">
@@ -56,11 +60,22 @@ export function ArchiveExplorer({
         </div>
       </div>
 
-      <div className="archive-list">
-        {filteredArticles.map((article) => (
-          <ArticleCard key={article.slug} article={article} expandable />
-        ))}
-      </div>
+      {filteredArticles.length > 0 ? (
+        <div className="archive-list">
+          {filteredArticles.map((article) => (
+            <ArticleCard key={article.slug} article={article} expandable />
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state">
+          <p className="eyebrow">No results</p>
+          <h3>No entries match this category yet</h3>
+          <p>
+            Try switching back to <strong>All</strong> or add a future daily JSON file
+            with this category.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

@@ -25,6 +25,14 @@ const requiredArticleFields = [
 ];
 
 const scoreFields = ["impact_score", "relevance_score", "trust_score"];
+const reviewScoreFields = [
+  "ai_pm_relevance",
+  "hk_relevance",
+  "actionability",
+  "technical_depth",
+  "portfolio_value",
+];
+const allowedReviewStatuses = new Set(["draft", "reviewed"]);
 
 function isNonEmptyString(value) {
   return typeof value === "string" && value.trim().length > 0;
@@ -49,6 +57,14 @@ function isScoreInRange(value) {
 
 function addIssue(collection, file, message) {
   collection.push(`${file}: ${message}`);
+}
+
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isReviewScoreInRange(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 1 && value <= 5;
 }
 
 async function main() {
@@ -159,6 +175,52 @@ async function main() {
       for (const scoreField of scoreFields) {
         if (!isScoreInRange(article[scoreField])) {
           addIssue(errors, articleLabel, `欄位 ${scoreField} 必須是 1 到 10 之間的數字。`);
+        }
+      }
+
+      if ("review" in article) {
+        if (!isObject(article.review)) {
+          addIssue(errors, articleLabel, "欄位 review 必須是 object。");
+        } else {
+          if (
+            "status" in article.review &&
+            (!isNonEmptyString(article.review.status) || !allowedReviewStatuses.has(article.review.status))
+          ) {
+            addIssue(errors, articleLabel, "欄位 review.status 必須是 draft 或 reviewed。");
+          }
+
+          if (
+            "human_review_required" in article.review &&
+            typeof article.review.human_review_required !== "boolean"
+          ) {
+            addIssue(errors, articleLabel, "欄位 review.human_review_required 必須是 boolean。");
+          }
+
+          if (
+            "review_notes" in article.review &&
+            !isNonEmptyString(article.review.review_notes)
+          ) {
+            addIssue(errors, articleLabel, "欄位 review.review_notes 不可為空。");
+          }
+
+          if ("scoring" in article.review) {
+            if (!isObject(article.review.scoring)) {
+              addIssue(errors, articleLabel, "欄位 review.scoring 必須是 object。");
+            } else {
+              for (const reviewScoreField of reviewScoreFields) {
+                if (
+                  reviewScoreField in article.review.scoring &&
+                  !isReviewScoreInRange(article.review.scoring[reviewScoreField])
+                ) {
+                  addIssue(
+                    errors,
+                    articleLabel,
+                    `欄位 review.scoring.${reviewScoreField} 必須是 1 到 5 之間的數字。`,
+                  );
+                }
+              }
+            }
+          }
         }
       }
 
