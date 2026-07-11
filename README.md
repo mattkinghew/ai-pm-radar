@@ -7,7 +7,7 @@ The project is positioned as an AI Product Manager portfolio case study. It demo
 ## Public links
 
 - Current public demo: [https://ai-pm-radar-pages.pages.dev/](https://ai-pm-radar-pages.pages.dev/)
-- Production URL placeholder: `https://your-domain.example/`
+- Production URL: [https://ai-pm-radar-pages.pages.dev/](https://ai-pm-radar-pages.pages.dev/)
 
 ## Current status
 
@@ -292,7 +292,7 @@ docs/LOCAL_VERIFICATION_2026-07-01.md
 ### Launch checklist
 
 - [ ] Confirm `README.md` links open correctly in GitHub
-- [ ] Set the production URL in the README placeholder if a custom domain is ready
+- [ ] Replace the README production URL if a custom domain is ready in the future
 - [ ] Run `npm run validate:data`
 - [ ] Run `npm run validate:daily`
 - [ ] Run `npm run build`
