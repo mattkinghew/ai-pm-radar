@@ -1,13 +1,19 @@
-export function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-CA", {
+import { defaultLanguage, type Language } from "./i18n";
+
+function getLocale(language: Language) {
+  return language === "zh-HK" ? "zh-HK" : "en-CA";
+}
+
+export function formatDate(value: string, language: Language = defaultLanguage) {
+  return new Intl.DateTimeFormat(getLocale(language), {
     year: "numeric",
     month: "short",
     day: "numeric",
   }).format(new Date(value));
 }
 
-export function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-CA", {
+export function formatDateTime(value: string, language: Language = defaultLanguage) {
+  return new Intl.DateTimeFormat(getLocale(language), {
     year: "numeric",
     month: "short",
     day: "numeric",

@@ -1,57 +1,127 @@
-# SAFETY BOUNDARIES — deal-radar-storage v3.1
+# SAFETY BOUNDARIES — deal-radar-storage
 
-## Core safety principles
+## Core position
 
-此專案是 decision support tool，不是 purchasing bot。所有輸出都只用於輔助人工判斷。
+這是一個小型、規則式、人工主導的 decision support tool，不是交易機器人。
 
-## Explicit boundaries
+所有輸出都只能用來:
+
+- 建 shortlist
+- 找出缺資料欄位
+- 準備向賣家提問
+- 協助人工判斷
+
+不能用來:
+
+- 自動交易
+- 自動登入
+- 繞過平台限制
+
+## Hard boundaries
 
 ### No auto-buying
 
-工具不會自動下單、不會提交購買、不會付款、不會聯絡賣家。
+工具不會:
 
-### No account automation
+- 自動下單
+- 自動付款
+- 自動提交購買流程
+- 自動聯絡賣家
 
-工具不處理平台帳戶流程，也不保存登入狀態或 session data。
+### No login handling
+
+工具不會:
+
+- 讀取帳密
+- 保存登入狀態
+- 使用 cookies / session / token
+- 操作帳戶設定
+
+### No bypass of platform security
+
+工具不會:
+
+- 繞過登入
+- 繞過 CAPTCHA
+- 繞過 anti-bot / anti-scraping 機制
+- 模擬受保護的交易操作
 
 ### No aggressive scraping
 
-工具不會高頻抓取網頁、不會批量讀取平台頁面。Link-only mode、v3 capture mode 和 v3.1 search-capture mode 即使沒有網頁 metadata 也可運作。
+工具不會做高頻抓取、批量抓頁或長時間背景爬取。
 
-### No credentials
+`links only` 模式最多只做保守的 metadata 讀取；如果取不到，就回到 `NEED_MORE_INFO`，而不是加大抓取強度。
 
-專案不需要、也不應保存任何 credentials，包括帳號、密碼、cookies、session tokens。
+### No credentials or secrets
 
-### No API keys
+不要把以下資料放進專案:
 
-專案不需要 API keys。不要把 API key、private token 或 `.env` secret 放入 repository。
+- 帳號
+- 密碼
+- cookie
+- session token
+- API key
+- private token
+- 付款資訊
 
-### Browser-assisted manual capture boundary
+### No hidden automation claims
 
-v3 capture mode 只解析使用者手動複製到 `captures/raw/*.txt` 的本地文字。工具不會自動開頁、不會讀取瀏覽器 session、不會保存 cookies、不會自動聯絡賣家，也不會替使用者付款。
+工具不會假裝知道:
 
-### Search result batch capture boundary
+- 即時市場最低價
+- 賣家是否誠實
+- SMART 截圖是否造假
+- 硬碟未來壽命
+- 平台後續糾紛是否可處理
 
-v3.1 search-capture mode 只解析使用者手動複製到 `captures/raw_search/*.txt` 的本地搜尋結果文字。它只做本地 candidate triage，不會打開 product page、不會讀取平台帳戶資料、不會操作交易流程。
+## Human confirmation is always required
 
-### Human confirmation required before purchase
+即使結果是 `BUY_CANDIDATE`，你仍然必須人工確認:
 
-即使 decision 是 `BUY_CANDIDATE`，仍需人工確認：
+- SMART / CrystalDiskInfo 是否完整
+- 型號、容量、介面是否與需求一致
+- 實物照片是否合理
+- 退換條款是否清楚
+- 賣家評價與交易風險是否可接受
+- 你是否已有備份策略
 
-- SMART 截圖是否完整。
-- 型號、容量、序號或實物照片是否合理。
-- 退換條款是否清楚。
-- 賣家評價和交易風險是否可接受。
-- 自己是否已有備份策略。
+## Safe fallback behavior
 
-### SMART data is advisory, not a health guarantee
+當證據不足時，工具應該:
 
-SMART 資料只能作 advisory evidence。即使所有欄位正常，二手硬碟仍可能故障。工具不保證硬碟壽命、可靠性或資料安全。
+- 優先回傳 `NEED_MORE_INFO`
+- 指出缺少哪些欄位
+- 生成賣家提問
+- 阻止過早付款
 
-## Recommended safe use
+而不是:
 
-- 把工具輸出當作 shortlist 和 seller question generator。
-- 對 `NEED_MORE_INFO` 不要急於購買。
-- 對 hard reject 項目，除非證明原資料錯誤，否則不要嘗試「救回」。
-- 重要資料至少使用 3-2-1 backup strategy；不要把唯一副本放在二手硬碟。
-- 不要把個人帳號、平台 cookie 或付款資料放入任何 CSV / YAML / report。
+- 猜測健康狀態
+- 假裝完成完整評估
+- 輸出過度自信的購買結論
+
+## Recommended usage
+
+### Safe use
+
+- 小批量人工 shortlist
+- 手動複製連結與商品資料
+- 用 requirements YAML 定義搜尋方向
+- 用 reports 協助議價與補證據
+
+### Unsafe use
+
+- 當自動買貨 bot 使用
+- 當大量爬蟲使用
+- 當平台繞過工具使用
+- 當保證交易成功或資料安全的工具使用
+
+## Final reminder
+
+這個專案的目標是降低新手犯錯機率，不是替代交易判斷。
+
+如果 evidence 不完整，最安全的行為不是「想辦法自動補抓」，而是:
+
+1. 停下來
+2. 向賣家補資料
+3. 再重新評估

@@ -1,0 +1,150 @@
+{
+  "project_name": "Career Transition Writing IP Sprint",
+  "client_type": "course_instructor",
+  "business_goal": "Build a clearer instructor IP around practical career writing support and convert more warm enquiries into discovery calls.",
+  "target_audience": [
+    "Early-career professionals who need clearer CV and LinkedIn positioning",
+    "Adult learners preparing for role transitions",
+    "Professionals who want structured writing support without generic templates"
+  ],
+  "positioning": {
+    "summary": "A practical writing mentor who helps career-transition learners turn scattered experience into clearer interview-ready career stories.",
+    "differentiation": "Combines structured teaching, personalized feedback, and realistic portfolio-oriented career writing examples.",
+    "proof_angle": "Focus on practical deliverables, revision quality, and human-reviewed learning support rather than hype."
+  },
+  "main_offer": {
+    "name": "4-week Career Writing Clarity Sprint",
+    "format": "Small-group coaching plus template pack",
+    "outcome": "Participants leave with clearer positioning, usable drafts, and an actionable revision checklist."
+  },
+  "workflow": [
+    {
+      "stage": "Client Briefing",
+      "status": "done",
+      "owner": "PM / Strategist",
+      "deliverable": "Briefing notes with offer goals, constraints, audience signals, and business priorities",
+      "deadline": "2026-07-08",
+      "risk": "Initial business goal may be too broad across multiple learner segments",
+      "next_action": "Confirm one primary audience segment for the first content sprint",
+      "acceptance_check": "Client confirms business goal, offer scope, and target learner segment"
+    },
+    {
+      "stage": "Positioning Analysis",
+      "status": "done",
+      "owner": "PM / Strategist",
+      "deliverable": "Positioning summary with value promise, differentiation, and proof angle",
+      "deadline": "2026-07-09",
+      "risk": "Positioning may overlap with generic career coaches if messaging stays too broad",
+      "next_action": "Test headline options against real learner pain points",
+      "acceptance_check": "Client approves one core positioning direction"
+    },
+    {
+      "stage": "Audience Pain Point Mapping",
+      "status": "done",
+      "owner": "PM / Research",
+      "deliverable": "Pain point map covering confusion, hesitation, and desired outcomes",
+      "deadline": "2026-07-09",
+      "risk": "Pain points may be based on assumptions instead of recent enquiry patterns",
+      "next_action": "Cross-check mapped pain points with recent enquiry notes",
+      "acceptance_check": "Top three audience pain points are agreed and prioritized"
+    },
+    {
+      "stage": "Content Pillar Design",
+      "status": "in_progress",
+      "owner": "Content Strategist",
+      "deliverable": "Content pillar map linked to audience pain points and offer conversion goals",
+      "deadline": "2026-07-10",
+      "risk": "Pillars may become educational but not conversion-oriented",
+      "next_action": "Refine each pillar with one awareness topic and one enquiry-support topic",
+      "acceptance_check": "Each pillar links to a clear learner problem and business objective"
+    },
+    {
+      "stage": "Content Calendar",
+      "status": "in_progress",
+      "owner": "Content Coordinator",
+      "deliverable": "30-day content calendar with short-form topics and CTA direction",
+      "deadline": "2026-07-11",
+      "risk": "Calendar may be too ambitious for the instructor's weekly delivery capacity",
+      "next_action": "Reduce publishing volume to a sustainable weekly rhythm",
+      "acceptance_check": "Client approves cadence and priority topics"
+    },
+    {
+      "stage": "AI-assisted Drafting",
+      "status": "in_progress",
+      "owner": "AI Draft Support",
+      "deliverable": "Draft captions, hooks, and outline suggestions for the first content batch",
+      "deadline": "2026-07-12",
+      "risk": "AI draft tone may sound generic or overstate results",
+      "next_action": "Prepare first draft set for human review with flagged claims",
+      "acceptance_check": "Drafts are usable as starting points and clearly marked for review"
+    },
+    {
+      "stage": "Human Review",
+      "status": "not_started",
+      "owner": "Client + PM",
+      "deliverable": "Approved edits for claims, examples, and publishing language",
+      "deadline": "2026-07-12",
+      "risk": "Without review, drafts may include imprecise claims or non-approved examples",
+      "next_action": "Review the first batch and remove unsupported wording",
+      "acceptance_check": "All approved content is confirmed before publishing"
+    },
+    {
+      "stage": "Publishing",
+      "status": "not_started",
+      "owner": "Client",
+      "deliverable": "Published content batch using approved copy only",
+      "deadline": "2026-07-13",
+      "risk": "Publishing before review could damage trust or misrepresent outcomes",
+      "next_action": "Wait for approved review pack before scheduling posts",
+      "acceptance_check": "Only human-approved content is published"
+    },
+    {
+      "stage": "Enquiry Tracking",
+      "status": "not_started",
+      "owner": "Operations Coordinator",
+      "deliverable": "Tagged enquiry tracker with interest type, objections, and follow-up status",
+      "deadline": "2026-07-14",
+      "risk": "Enquiries may be lost if no simple classification method exists",
+      "next_action": "Set up a manual tracker for first-contact questions and objections",
+      "acceptance_check": "New enquiries can be categorized and followed up consistently"
+    },
+    {
+      "stage": "Weekly Improvement Review",
+      "status": "not_started",
+      "owner": "PM / Strategist",
+      "deliverable": "Weekly summary with content performance, enquiry themes, and next-step adjustments",
+      "deadline": "2026-07-18",
+      "risk": "Without review, the workflow will produce output but not learning",
+      "next_action": "Draft weekly review template after the first publishing cycle",
+      "acceptance_check": "One weekly review is completed with actions assigned"
+    }
+  ],
+  "content_pillars": [
+    {
+      "name": "Career Story Clarity",
+      "focus": "Help learners explain their experience in a clearer, interview-relevant way"
+    },
+    {
+      "name": "Common Writing Mistakes",
+      "focus": "Show avoidable CV, LinkedIn, and application mistakes with simple corrections"
+    },
+    {
+      "name": "Guided Revision Process",
+      "focus": "Explain how structured revision and feedback improve writing outcomes"
+    }
+  ],
+  "risk_controls": [
+    "No exaggerated outcome claims",
+    "No fake testimonials or invented student results",
+    "All public examples must be anonymized",
+    "No publishing before human review is complete",
+    "No sensitive personal data in example content"
+  ],
+  "success_metrics": [
+    "30-day content calendar approved",
+    "First 8 content drafts reviewed and finalized",
+    "All published posts use approved copy only",
+    "Enquiries tagged by question type and follow-up status",
+    "Weekly status report completed with next actions"
+  ]
+}

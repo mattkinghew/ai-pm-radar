@@ -43,6 +43,7 @@ export type ArticleRecord = Article & {
 };
 
 const DATA_DIR = path.join(process.cwd(), "data", "daily");
+const DAILY_FILE_PATTERN = /^\d{4}-\d{2}-\d{2}\.json$/;
 
 function slugify(value: string) {
   return value
@@ -71,18 +72,38 @@ function toRecord(date: string, article: Article): ArticleRecord {
   };
 }
 
+function isValidDailyFilename(file: string) {
+  return DAILY_FILE_PATTERN.test(file);
+}
+
+async function getSortedDailyFiles() {
+  const files = await fs.readdir(DATA_DIR);
+
+  return files
+    .filter((file) => file.endsWith(".json"))
+    .filter(isValidDailyFilename)
+    .sort((a, b) => path.basename(b, ".json").localeCompare(path.basename(a, ".json")));
+}
+
+async function readDailyFile(file: string) {
+  const filePath = path.join(DATA_DIR, file);
+  const raw = await fs.readFile(filePath, "utf8");
+  const parsed = JSON.parse(raw) as DailyFile;
+  const dateFromFile = path.basename(file, ".json");
+
+  return {
+    date: dateFromFile,
+    articles: parsed.articles,
+  };
+}
+
 // Read all local JSON files at build time so the site stays fully static.
 export async function getAllArticles() {
-  const files = (await fs.readdir(DATA_DIR))
-    .filter((file) => file.endsWith(".json"))
-    .sort()
-    .reverse();
+  const files = await getSortedDailyFiles();
 
   const records = await Promise.all(
     files.map(async (file) => {
-      const filePath = path.join(DATA_DIR, file);
-      const raw = await fs.readFile(filePath, "utf8");
-      const parsed = JSON.parse(raw) as DailyFile;
+      const parsed = await readDailyFile(file);
 
       return parsed.articles.map((article) => toRecord(parsed.date, article));
     }),
@@ -98,15 +119,24 @@ export async function getAllArticles() {
 }
 
 export async function getLatestDate() {
-  const articles = await getAllArticles();
-  return articles[0]?.date ?? "";
+  const files = await getSortedDailyFiles();
+  return files[0] ? path.basename(files[0], ".json") : "";
 }
 
 export async function getTopArticles(limit = 5) {
-  const articles = await getAllArticles();
-  const latestDate = articles[0]?.date;
+  const files = await getSortedDailyFiles();
+  const latestFile = files[0];
 
-  return articles.filter((article) => article.date === latestDate).slice(0, limit);
+  if (!latestFile) {
+    return [];
+  }
+
+  const parsed = await readDailyFile(latestFile);
+
+  return parsed.articles
+    .map((article) => toRecord(parsed.date, article))
+    .sort((a, b) => b.priority_score - a.priority_score)
+    .slice(0, limit);
 }
 
 export async function getCategories() {

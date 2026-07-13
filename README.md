@@ -35,6 +35,42 @@ This repository also includes documentation samples for IT Project Coordinator /
 
 These documents show how the project can be discussed not only as an AI PM case study, but also as evidence of project lifecycle support, UAT coordination, documentation discipline, stakeholder reporting and AI-assisted workflow improvement.
 
+## Internal AI Marketing Operations Demo
+
+This repository also includes a static interview demo showing how the same lightweight architecture can be adapted into an internal AI-assisted marketing operations dashboard.
+
+- Static demo route: `/marketing-ops-demo`
+- [docs/MARKETING_OPS_DEMO.md](docs/MARKETING_OPS_DEMO.md)
+- [data/marketing-ops/sample-campaign.json](data/marketing-ops/sample-campaign.json)
+- Validation command: `npm run validate:marketing-ops`
+
+Scope boundaries:
+
+- portfolio demo only
+- anonymised sample data only
+- no backend
+- no database
+- no login
+- no API keys committed
+- no auto-publishing
+
+## AI-assisted IP Workflow Tracker
+
+This repository also includes a small portfolio demo showing how the same static workflow approach can support service-client IP building, workflow tracking, and AI-assisted coordination without turning the project into a SaaS product.
+
+- [docs/IP_WORKFLOW_SYSTEM.md](docs/IP_WORKFLOW_SYSTEM.md) — scope, workflow, AI role, review gates, deliverables, and risk controls
+- [data/ip-projects/sample-instructor.json](data/ip-projects/sample-instructor.json) — anonymized sample workflow data for a course instructor use case
+- Validation command: `npm run validate:ip`
+- Static demo route: `/ip-workflow`
+
+Portfolio demo only:
+
+- static local JSON
+- no backend
+- no database
+- no login
+- no external service integration
+
 Verified baseline:
 
 - Next.js production build passes
@@ -220,6 +256,19 @@ The current workflow is human-in-the-loop:
 6. Run validation and build checks before deployment.
 
 Optional prompt files in `prompts/` support a semi-automated drafting workflow, but final source selection and review remain manual.
+
+## Demo refresh note
+
+The Home page selects the latest daily radar from the newest valid `data/daily/YYYY-MM-DD.json` filename at build time.
+
+If the deployed page looks stale after a new build:
+
+1. Confirm the newest file exists under `data/daily/`.
+2. Run `npm run validate:data` and `npm run build`.
+3. Redeploy the generated static output.
+4. Hard refresh the browser or open the page in a private window to bypass cached HTML.
+
+This project does not use a service worker for offline caching.
 
 ## 8. Validation workflow
 

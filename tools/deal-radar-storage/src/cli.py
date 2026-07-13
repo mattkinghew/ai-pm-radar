@@ -1,4 +1,4 @@
-"""Optional command-line interface for deal-radar-storage v2.8.
+"""Optional command-line interface for deal-radar-storage.
 
 This CLI is a thin beginner-friendly wrapper around the existing scripts.
 It does not change the scoring engine and does not add scraping, buying,
@@ -92,16 +92,22 @@ def run_validate(args: argparse.Namespace) -> None:
 
 def run_quick_command(args: argparse.Namespace) -> None:
     links_path = as_path(args.links) if args.links else None
+    manual_csv_path = as_path(args.listings) if args.listings else None
     requirement_files = [as_path(path) for path in args.requirements] if args.requirements else None
     output_dir = as_path(args.output_dir)
     try:
-        summary = run_quick(links_path=links_path, requirement_files=requirement_files, output_dir=output_dir)
+        summary = run_quick(
+            links_path=links_path,
+            manual_csv_path=manual_csv_path,
+            requirement_files=requirement_files,
+            output_dir=output_dir,
+        )
     except FileNotFoundError as error:
         print(f"Quick analyze could not start: {error}")
         print("Try one of these commands:")
         print("- python3 src/cli.py quick --links data/links.txt")
         print("- python3 src/cli.py quick --requirements config/requirements.ssd.yml")
-        print("- python3 src/cli.py quick --requirements config/requirements.ssd.yml --links data/links.txt")
+        print("- python3 src/cli.py quick --links data/links.txt --listings data/listings.csv --requirements config/requirements.ssd.yml")
         return
     print_quick_summary(summary)
 
@@ -189,6 +195,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--links",
         default=None,
         help=f"Links text file. If omitted with no requirements, defaults to {QUICK_LINKS_TXT.relative_to(Path(__file__).resolve().parents[1])} when available.",
+    )
+    quick_parser.add_argument(
+        "--listings",
+        default=None,
+        help="Optional listings CSV with manual title/price/SMART metadata for the same URLs. Default: data/listings.csv when links are used.",
     )
     quick_parser.add_argument(
         "--requirements",

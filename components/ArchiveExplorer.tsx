@@ -5,20 +5,24 @@ import { useMemo, useState } from "react";
 import type { ArticleRecord } from "@/lib/articles";
 
 import { ArticleCard } from "./ArticleCard";
+import { useLanguage } from "./LanguageProvider";
 
 type ArchiveExplorerProps = {
   articles: ArticleRecord[];
   categories: string[];
 };
 
+const ALL_CATEGORIES = "__all__";
+
 export function ArchiveExplorer({
   articles,
   categories,
 }: ArchiveExplorerProps) {
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const { t } = useLanguage();
+  const [selectedCategory, setSelectedCategory] = useState(ALL_CATEGORIES);
 
   const filteredArticles = useMemo(() => {
-    if (selectedCategory === "All") {
+    if (selectedCategory === ALL_CATEGORIES) {
       return articles;
     }
 
@@ -29,21 +33,26 @@ export function ArchiveExplorer({
     <section className="stack-lg">
       <div className="filter-panel">
         <div>
-          <p className="eyebrow">Category filter</p>
-          <h2>Browse by topic</h2>
+          <p className="eyebrow">{t("categoryFilter")}</p>
+          <h2>{t("browseByTopic")}</h2>
           <p className="section-note">
-            {filteredArticles.length} result{filteredArticles.length === 1 ? "" : "s"}
-            {selectedCategory === "All" ? " across all categories" : ` in ${selectedCategory}`}
+            {filteredArticles.length}{" "}
+            {filteredArticles.length === 1 ? t("resultSingle") : t("resultPlural")}{" "}
+            {selectedCategory === ALL_CATEGORIES
+              ? t("acrossAllCategories")
+              : `${t("inCategory")} ${selectedCategory}`}
           </p>
         </div>
 
         <div className="filter-row" role="tablist" aria-label="Category filter">
           <button
             type="button"
-            className={selectedCategory === "All" ? "filter-chip active" : "filter-chip"}
-            onClick={() => setSelectedCategory("All")}
+            className={
+              selectedCategory === ALL_CATEGORIES ? "filter-chip active" : "filter-chip"
+            }
+            onClick={() => setSelectedCategory(ALL_CATEGORIES)}
           >
-            All
+            {t("all")}
           </button>
           {categories.map((category) => (
             <button
@@ -68,12 +77,9 @@ export function ArchiveExplorer({
         </div>
       ) : (
         <div className="empty-state">
-          <p className="eyebrow">No results</p>
-          <h3>No entries match this category yet</h3>
-          <p>
-            Try switching back to <strong>All</strong> or add a future daily JSON file
-            with this category.
-          </p>
+          <p className="eyebrow">{t("noResults")}</p>
+          <h3>{t("noEntriesMatch")}</h3>
+          <p>{t("switchBackToAll")}</p>
         </div>
       )}
     </section>

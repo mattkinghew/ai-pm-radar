@@ -1,0 +1,3 @@
+# One URL per line.
+# This file is enough to run quick mode in links-only workflow.
+https://example.com/item/portable-ssd-unknown

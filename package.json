@@ -6,6 +6,8 @@
     "dev": "next dev",
     "validate:data": "node scripts/validate_daily_data.mjs",
     "validate:daily": "node scripts/validate-daily-json.mjs",
+    "validate:ip": "node scripts/validate-ip-project.mjs",
+    "validate:marketing-ops": "node scripts/validate-marketing-ops.mjs",
     "build": "next build",
     "start": "next start",
     "agent:status": "node ai-agent/executor.mjs status",

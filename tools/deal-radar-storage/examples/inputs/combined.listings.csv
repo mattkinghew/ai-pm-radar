@@ -1,0 +1,3 @@
+url,title,price,description,intended_use,health_percent,power_on_hours,host_writes_tb,reallocated_sector_count,current_pending_sector,offline_uncorrectable,media_integrity_errors,critical_warning,supports_return
+https://example.com/item/ssd-good,SN740 2TB NVMe TLC SSD,820,健康良好 M.2 NVMe SSD 可用作筆電升級,main_work_drive,98,1200,45,,,,0,0,yes
+https://example.com/item/ssd-reject,PM9A1 2TB NVMe SSD,250,SMART 有 critical warning 需要小心,test_only,88,5000,260,,,,3,1,no

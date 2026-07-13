@@ -16,7 +16,19 @@
       "published_at": "2026-07-02T09:00:00Z",
       "impact_score": 9,
       "relevance_score": 9,
-      "trust_score": 8
+      "trust_score": 8,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": false,
+        "review_notes": "Reviewed as a strong AI PM sample because it connects rollout readiness, human review checkpoints, and operational scope control.",
+        "scoring": {
+          "ai_pm_relevance": 5,
+          "hk_relevance": 4,
+          "actionability": 5,
+          "technical_depth": 3,
+          "portfolio_value": 5
+        }
+      }
     },
     {
       "question_title": "Why should AI product teams treat evaluation as part of the product, not an afterthought?",
@@ -33,7 +45,19 @@
       "published_at": "2026-07-02T08:30:00Z",
       "impact_score": 9,
       "relevance_score": 10,
-      "trust_score": 8
+      "trust_score": 8,
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Keep for human review before publication reuse because evaluation terminology should be checked against current product QA practice.",
+        "scoring": {
+          "ai_pm_relevance": 5,
+          "hk_relevance": 3,
+          "actionability": 4,
+          "technical_depth": 4,
+          "portfolio_value": 5
+        }
+      }
     },
     {
       "question_title": "How can education and NGO teams use AI without building a full custom platform first?",

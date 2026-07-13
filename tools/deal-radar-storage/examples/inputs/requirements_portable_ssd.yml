@@ -1,0 +1,11 @@
+preferred_models:
+  - SN740
+  - PM9A1
+capacities:
+  - 2TB
+interfaces:
+  - NVMe
+keywords:
+  - SSD
+  - M.2
+  - TLC

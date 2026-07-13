@@ -139,6 +139,23 @@ Use this format for future tasks:
     - npm run validate:daily
     - npm run build
 
+- id: TASK-007
+  title: Add 2026-07-03 daily radar sample
+  type: docs
+  priority: high
+  status: pending
+  scope: ai-pm-radar
+  risk: low
+  approval_required: true
+  input: |
+    Add data/daily/2026-07-03.json with 5 to 6 AI PM Radar entries.
+    Use reviewed sources and keep source_url, business_angle, ai_pm_angle,
+    and risk_note complete.
+  validation:
+    - npm run validate:data
+    - npm run validate:daily
+    - npm run build
+
 ## Safety Constraint
 
 The agent MUST NOT:

@@ -1,574 +1,168 @@
-# deal-radar-storage v3.1
+# deal-radar-storage
 
-A beginner-friendly, rule-based storage deal helper with optional SMART checks, purchase decisions, suggested price ranges, use-case fit evaluation, seller questions, evidence checklists, sample validation, a portfolio-ready documentation package, an optional argparse CLI, a quick analyze mode, discovery preparation from requirements YAML, v2.9 real market screening rules, v3 browser-assisted manual capture, and v3.1 search result batch capture triage for second-hand SSD purchase trials.
+一個小型、規則式 (rule-based)、beginner-friendly 的二手儲存裝置決策輔助工具。
 
-It supports three workflows:
+它的工作不是幫你買東西，而是把你手上的商品連結、需求 YAML 與手動整理的商品資料，轉成:
 
-1. **Link-only mode**: paste product links into `data/links.txt`.
-2. **Requirements-only mode**: edit `config/requirements.ssd.yml` and `config/requirements.hdd.yml`.
-3. **Combined mode**: use links plus manually pasted title / price / description / SMART / intended use in `data/listings.csv`.
-4. **Decision mode**: review `decision`, `suggested_price_min`, `suggested_price_max`, `price_comment`, `use_case_fit`, and `use_case_comment` before messaging a seller.
-5. **Seller question mode**: use `next_action`, `seller_questions`, and `evidence_required` to ask for proof before paying.
-6. **Sample validation mode**: run representative real-world-like examples to check whether rule changes still behave as expected.
-7. **Quick analyze mode**: run one command when you only have links, requirements YAML, or both.
-8. **Discovery preparation mode**: start from requirements YAML and generate manual discovery queries, platform search URLs, and a CSV template for confirmed listings.
-9. **Real market screening mode**: flag weak real-market listings such as SATA / mSATA / NGFF SATA, QVO / QLC, low-trust brands, low-health drives, and suspicious low-price Samsung 990 Pro listings.
-10. **Browser-assisted manual capture mode**: manually copy visible listing text into `captures/raw/*.txt`, then parse it locally into `captures/parsed_listings.csv`.
-11. **Search result batch capture mode**: manually copy visible search result text into `captures/raw_search/*.txt`, then parse and rank candidates before opening product pages.
+- 初步決策: `BUY_CANDIDATE`, `NEGOTIATE_ONLY`, `WATCH_ONLY`, `NEED_MORE_INFO`, `REJECT`
+- 建議下一步
+- 賣家提問清單
+- 需要補齊的證據
+- 手動搜尋用的 query / URL
 
-## Safety boundaries
+## 支援的三種輸入模式
 
-This tool does **not**:
+### 1. Links only
 
-- auto-buy products
-- bypass login
-- bypass platform security
-- use credentials, cookies, API keys, or private tokens
-- aggressively scrape websites
-
-The tool is designed to help you shortlist items and prepare seller questions manually. It never contacts sellers for you.
-
-## v3 Browser-assisted Manual Capture
-
-Use this workflow when manual CSV entry is too slow. You manually open listing pages in your browser and manually copy visible listing text into local `.txt` files under `captures/raw/`. The tool only parses those local text files and converts them into candidate CSV rows.
-
-This is not scraping, browser automation, auto-buying, auto-messaging, login bypass, CAPTCHA bypass, or platform security bypass. It does not store cookies, passwords, tokens, credentials, API keys, or session data.
+只有商品連結也能跑。工具會保守地把資訊不足項目標成 `NEED_MORE_INFO`，提醒你先補資料。
 
 ```bash
-python3 src/cli.py capture
-python3 src/cli.py capture --append-to data/discovered_listings.csv
-python3 src/cli.py evaluate --input data/discovered_listings.csv
+python3 src/cli.py quick \
+  --links examples/inputs/links_only.txt \
+  --output-dir /tmp/deal-radar-links-only
 ```
 
-Outputs:
+### 2. Requirements YAML only
 
-- `captures/parsed_listings.csv`
-- `captures/processed/capture_report.md`
-
-For the full workflow, see [Browser-assisted capture guide](docs/BROWSER_ASSISTED_CAPTURE.md).
-
-## v3.1 Search Result Batch Capture
-
-Use this workflow before opening individual product pages. Manually copy visible search result text into `captures/raw_search/*.txt`, then run local triage:
+只有需求檔也能跑。工具不會假裝已分析真實商品，而是先幫你產生手動搜尋 query、平台搜尋 URL、購買準則與檢查清單。
 
 ```bash
-python3 src/cli.py search-capture
-open reports/candidate_queue.md
-open reports/price_reliability.md
-open reports/seller_risk.md
+python3 src/cli.py quick \
+  --requirements examples/inputs/requirements_portable_ssd.yml \
+  --output-dir /tmp/deal-radar-requirements
 ```
 
-The command outputs `captures/search_candidates.csv` and ranks candidates as `HIGH`, `MEDIUM`, `LOW`, or `SKIP`. It does not scrape, open pages, buy, message sellers, use credentials, or store account/session data.
+### 3. Links + requirements + optional listings metadata
 
-For the full workflow, see [Search result batch capture guide](docs/SEARCH_RESULT_BATCH_CAPTURE.md).
+這是最完整也最適合實際使用的模式。你可以同時提供:
 
-## Real Purchase Trial Quick Start
-
-Use this workflow when you want to manually search real SSD listings, copy promising items into a CSV, and run the local rule-based evaluator before messaging a seller.
+- `--links`: 商品連結
+- `--requirements`: 需求 YAML
+- `--listings`: 與連結對應的手動 metadata CSV，例如 title、price、description、SMART
 
 ```bash
-python3 src/cli.py discover --requirements config/requirements.ssd.yml
-open reports/discovery_urls.md
-open data/discovered_listings.csv
-python3 src/cli.py evaluate --input data/discovered_listings.csv
-open reports/today.md
-open reports/rejects.md
+python3 src/cli.py quick \
+  --links examples/inputs/combined.links.txt \
+  --listings examples/inputs/combined.listings.csv \
+  --requirements examples/inputs/requirements_portable_ssd.yml \
+  --output-dir /tmp/deal-radar-both
 ```
 
-Warning:
+## Quickstart
 
-- The tool does not buy products.
-- It does not verify seller honesty.
-- Final purchase decision still requires checking SMART screenshots, physical photos, seller reputation, and return terms.
+### Prerequisites
 
-For the full workflow, see [Real purchase trial guide](docs/REAL_PURCHASE_TRIAL.md).
+- Python 3.10+ 建議
+- 可選 `PyYAML`
+  - 沒有也能跑，專案有簡化 YAML fallback parser
 
-## v2.9 Real Market Screening Rules
-
-v2.9 is tuned for the current real purchase target: **2TB NVMe TLC SSD for external Mac work drive**, later used with RTL9210B / ASM2362 enclosure. Priority is data safety / reliability first, reasonable price second, speed third.
-
-The evaluator now more strongly warns or rejects:
-
-- SATA / mSATA / NGFF SATA listings that are not NVMe.
-- QVO / QLC drives for high-trust work-drive use.
-- WD Green, WD Blue SATA, SN350, NV1, SA510 and similar low-end SATA-class options.
-- Seller wording such as 不保品牌、只保正常使用、图吧顯示、打包.
-- Low-trust or white-label brands such as 金储星 / 金存星 / 虹舟 unless clearly test-only and very cheap.
-- Suspicious low-price Samsung 990 Pro listings without strong evidence.
-- Health below 90 for `external_mac_drive` or `main_work_drive`.
-
-New generated reports:
-
-- `reports/avoid_patterns.md`: search terms to avoid, better search terms, instant-skip keywords.
-- `reports/search_strategy.md`: next-round manual search strategy.
-
-## Real Listing Evaluation Tips
-
-When using `data/discovered_listings.csv` for a real purchase trial:
-
-- Do not leave unused placeholder rows in `data/discovered_listings.csv`; v2.8.2 skips fully empty rows, but a clean CSV is easier to review.
-- Minimum useful fields are `title`, `price`, `url`, `description`, and `intended_use`.
-- SMART fields improve accuracy, especially `health_percent`, `power_on_hours`, `host_writes_tb`, `critical_warning`, `media_integrity_errors`, and `supports_return`.
-- URL-only rows will be marked `NEED_MORE_INFO` instead of being treated as real rejected listings.
-- Run:
+### 1. 直接跑 sample
 
 ```bash
-python3 src/cli.py evaluate --input data/discovered_listings.csv
+python3 src/cli.py quick \
+  --links examples/inputs/combined.links.txt \
+  --listings examples/inputs/combined.listings.csv \
+  --requirements examples/inputs/requirements_portable_ssd.yml \
+  --output-dir /tmp/deal-radar-demo
 ```
 
-## Project structure
+### 2. 查看輸出
 
-```text
-config/requirements.ssd.yml
-config/requirements.hdd.yml
-data/links.txt
-data/listings.csv
-data/sample_real_listings.csv
-data/discovered_listings.csv
-captures/raw/
-captures/processed/
-captures/raw_search/
-captures/search_processed/
-captures/parsed_listings.csv
-captures/search_candidates.csv
-reports/today.md
-reports/today.csv
-reports/rejects.md
-reports/search_urls.md
-reports/sample_validation.md
-reports/quick_report.md
-reports/quick_report.csv
-reports/quick_questions.md
-reports/buying_criteria.md
-reports/quick_checklist.md
-reports/discovery_queries.md
-reports/discovery_urls.md
-reports/discovery_summary.md
-docs/PRODUCT_BRIEF.md
-docs/CASE_STUDY.md
-docs/RULE_DESIGN.md
-docs/VALIDATION_REPORT.md
-docs/SAFETY_BOUNDARIES.md
-docs/ROADMAP.md
-docs/CONTEXT_SUMMARY.md
-screenshots/
-src/evaluate.py
-src/evaluate_links.py
-src/search_requirements.py
-src/rules.py
-src/report.py
-src/validate_samples.py
-src/validate_capture_samples.py
-src/validate_search_capture_samples.py
-src/cli.py
-src/capture_parse.py
-src/search_capture_parse.py
-src/quick_analyze.py
-src/discover.py
-src/search_queries.py
-src/platform_urls.py
-```
+主要輸出會出現在你指定的 `--output-dir`:
 
+- `quick_report.md`
+- `quick_report.csv`
+- `quick_questions.md`
+- `search_urls.md`
+- `discovery_queries.md`
+- `discovery_urls.md`
+- `buying_criteria.md`
+- `quick_checklist.md`
 
-## Portfolio documentation
+Sample 檔案可參考:
 
-v2.5 added a portfolio-ready documentation package for AI PM / AI Engineer presentation:
+- `examples/inputs/`
+- `examples/outputs/`
 
-- [Product brief](docs/PRODUCT_BRIEF.md): product summary, target users, pain points, MVP scope, non-goals, metrics, risks, and positioning.
-- [Case study](docs/CASE_STUDY.md): Traditional Chinese product case study with AI PM / AI Engineer framing.
-- [Rule design](docs/RULE_DESIGN.md): explanation of category/model/risk/SMART/decision/price/use-case/seller-evidence rules.
-- [Validation report](docs/VALIDATION_REPORT.md): sample validation workflow and current 20/20 matched result after v2.9 real market samples.
-- [Safety boundaries](docs/SAFETY_BOUNDARIES.md): explicit no auto-buying, no login bypass, no aggressive scraping, no credentials, and no API keys.
-- [Roadmap](docs/ROADMAP.md): v2.5 documentation baseline, v2.6 CLI usability baseline, and possible v3 directions.
-- [Context summary](docs/CONTEXT_SUMMARY.md): project state, file structure, completed features, limitations, and next Codex prompts.
+## 常用指令
 
-
-## Quick analyze mode
-
-v2.7 adds a quick workflow for when you are in a hurry and only have links, requirements, or both. It is still local, rule-based, and beginner-friendly. It does not add scraping, auto-buying, credentials, login bypass, API keys, or platform security bypass.
-
-Analyze links only:
+### Quick mode
 
 ```bash
 python3 src/cli.py quick --links data/links.txt
-```
-
-Analyze requirements only:
-
-```bash
 python3 src/cli.py quick --requirements config/requirements.ssd.yml
+python3 src/cli.py quick --links data/links.txt --listings data/listings.csv --requirements config/requirements.ssd.yml
 ```
 
-Analyze requirements and links together:
+### Evaluate a prepared CSV
 
 ```bash
-python3 src/cli.py quick --requirements config/requirements.ssd.yml --links data/links.txt
+python3 src/cli.py evaluate --input data/listings.csv
 ```
 
-Run with default files when available:
+### Generate manual search URLs only
 
 ```bash
-python3 src/cli.py quick
+python3 src/cli.py search --requirements config/requirements.ssd.yml
 ```
 
-Quick mode outputs:
-
-- `reports/quick_report.md`: Traditional Chinese summary, candidate list, need-more-info list, reject list, next action, seller questions, and evidence required.
-- `reports/quick_report.csv`: spreadsheet-friendly quick analysis table.
-- `reports/quick_questions.md`: copy-and-paste seller messages for SSD, HDD, and enclosure listings.
-- `reports/search_urls.md`: manual search URLs generated from requirements YAML.
-- `reports/discovery_queries.md` and `reports/discovery_urls.md`: discovery preparation outputs generated when quick mode includes requirements.
-- `reports/buying_criteria.md`: preferred models, search keywords, reject keywords, price bands, and seller question template.
-- `reports/quick_checklist.md`: before buying checklist, seller evidence checklist, after receiving checklist, and red flags.
-
-
-## Discovery preparation mode
-
-v2.8 adds a safe discovery preparation workflow for when you only have a requirements YAML and want to search faster manually. It generates search phrases, clickable platform search URLs, and a CSV template for manual confirmation. It does not fetch, scrape, log in, store cookies, buy items, or bypass platform security.
-
-Prepare SSD discovery:
-
-```bash
-python3 src/cli.py discover --requirements config/requirements.ssd.yml
-```
-
-Prepare HDD discovery with a custom output directory:
-
-```bash
-python3 src/cli.py discover --requirements config/requirements.hdd.yml --output-dir reports
-```
-
-Discovery mode outputs:
-
-- `reports/discovery_queries.md`: human-readable search queries such as `SN740 2TB 閒魚` or `HC620 14T 普通 SATA 閒魚`.
-- `reports/discovery_urls.md`: Goofish / Taobao / JD search URLs for manual clicking.
-- `reports/discovery_summary.md`: requirement summary for target category, capacity, interface, budget, preferred models, and reject keywords.
-- `data/discovered_listings.csv`: blank manual-fill template for listings discovered from those searches.
-
-Recommended workflow:
-
-1. Run `python3 src/cli.py discover --requirements config/requirements.ssd.yml`.
-2. Open `reports/discovery_urls.md` manually.
-3. Copy promising title / price / URL / SMART details into `data/discovered_listings.csv` or `data/listings.csv`.
-4. Run `python3 src/cli.py evaluate --input data/discovered_listings.csv`.
-
-
-## Optional CLI usage
-
-v2.6 added an optional `argparse` CLI for users who want one entry point. The original beginner commands still work, so you do not need to use the CLI if the direct scripts are easier.
-
-Evaluate manually maintained listings:
-
-```bash
-python3 src/cli.py evaluate
-```
-
-Use a custom input file or output directory:
-
-```bash
-python3 src/cli.py evaluate --input data/listings.csv --output-dir reports
-```
-
-Evaluate product links:
-
-```bash
-python3 src/cli.py links
-```
-
-Generate manual search URLs from default requirement files:
-
-```bash
-python3 src/cli.py search
-```
-
-Generate search URLs from one or more custom YAML files:
-
-```bash
-python3 src/cli.py search --requirements config/requirements.ssd.yml config/requirements.hdd.yml --output-dir reports
-```
-
-Validate representative sample listings:
+### Validate rule behavior
 
 ```bash
 python3 src/cli.py validate
+python3 -m unittest discover -s tests -p 'test_*.py'
 ```
 
-Prepare discovery queries and manual listing template:
+## 檔案說明
 
-```bash
-python3 src/cli.py discover --requirements config/requirements.ssd.yml
-```
+### Main inputs
 
-The CLI remains local and rule-based. It does not add scraping, auto-buying, credentials, login bypass, API keys, or platform security bypass.
+- `data/links.txt`: 真實使用時的一行一個商品連結
+- `data/listings.csv`: 手動整理的商品 metadata
+- `config/requirements.ssd.yml`
+- `config/requirements.hdd.yml`
 
-## Commands
+### Sample inputs
 
-Generate manual search URLs from requirements:
+- `examples/inputs/links_only.txt`
+- `examples/inputs/requirements_portable_ssd.yml`
+- `examples/inputs/combined.links.txt`
+- `examples/inputs/combined.listings.csv`
 
-```bash
-python3 src/search_requirements.py
-```
+### Core outputs
 
-Evaluate manually maintained listings:
+- `reports/quick_report.md`
+- `reports/quick_report.csv`
+- `reports/search_urls.md`
+- `reports/discovery_queries.md`
+- `reports/discovery_urls.md`
+- `reports/buying_criteria.md`
+- `reports/quick_checklist.md`
 
-```bash
-python3 src/evaluate.py
-```
+## 安全邊界摘要
 
-Evaluate links from `data/links.txt`:
+這個工具明確不做以下事情:
 
-```bash
-python3 src/evaluate_links.py
-```
+- 不自動下單
+- 不代替你付款
+- 不登入平台或繞過登入
+- 不保存帳號、密碼、cookie、token、API key
+- 不做 aggressive scraping
+- 不繞過平台安全或反爬限制
 
-Validate representative sample listings:
+完整說明見 [docs/SAFETY_BOUNDARIES.md](docs/SAFETY_BOUNDARIES.md)。
 
-```bash
-python3 src/validate_samples.py
-```
+## 已知限制
 
-## Input files
+- 規則與價格帶是啟發式，不是即時市場報價。
+- `links only` 模式在 metadata 缺少時會偏保守，常回傳 `NEED_MORE_INFO`。
+- `requirements only` 模式只生成手動搜尋與判斷輔助，不會自動找到商品。
+- SMART 資料只屬 advisory evidence，不保證硬碟壽命或真實健康。
+- 專案不評估賣家誠信、物流風險、平台糾紛處理品質。
 
-### `data/links.txt`
+## 文件
 
-Paste one URL per line. Lines starting with `#` are ignored.
-
-### `data/listings.csv`
-
-Optional manual metadata. Recommended columns:
-
-```csv
-url,title,price,description,intended_use,health_percent,power_on_hours,host_writes_tb,reallocated_sector_count,current_pending_sector,offline_uncorrectable,media_integrity_errors,critical_warning,supports_return
-```
-
-`intended_use` is optional. Supported values:
-
-- `main_work_drive`
-- `docker_cache`
-- `cold_storage`
-- `backup_drive`
-- `test_only`
-- `external_mac_drive`
-
-SMART columns are optional. Leave unknown values blank. The tool only applies SMART rules when values are provided. Missing SMART values can produce `NEED_MORE_INFO` instead of a buy decision.
-
-Simple meaning:
-
-- `health_percent`: SSD health percentage, for example `98`
-- `power_on_hours`: power-on hours
-- `host_writes_tb`: SSD total host writes in TB
-- `reallocated_sector_count`: HDD reallocated sectors
-- `current_pending_sector`: HDD pending sectors
-- `offline_uncorrectable`: HDD offline uncorrectable count
-- `media_integrity_errors`: SSD media/data integrity error count
-- `critical_warning`: SSD critical warning value
-- `supports_return`: `yes` / `no`, or `支持` / `不支持`
-
-If a URL in `data/links.txt` also appears in `data/listings.csv`, the manual title / price / description / SMART / intended use are used.
-
-
-### `data/sample_real_listings.csv`
-
-v2.4.1 adds representative sample listings for regression checks. The file includes examples such as:
-
-- good NVMe TLC SSD
-- PM9A1 with 91% health
-- overpriced PM9A1 with 90% health
-- SN750 with high writes
-- KC3000 missing SMART
-- WD Blue SATA with high power-on hours
-- WD Green SATA overpriced
-- suspicious / fake SN770
-- HC620 Feiniu / Windows cannot use
-- normal SATA enterprise HDD
-- RTL9210B enclosure
-
-Extra validation columns:
-
-- `expected_decision`: the expected rule-engine decision
-- `expected_comment`: short human explanation of the expected result
-
-Run this after changing rules:
-
-```bash
-python3 src/validate_samples.py
-```
-
-It creates `reports/sample_validation.md` with total samples, matched count, mismatch count, per-row comparison, and mismatch explanations.
-
-### `config/requirements.*.yml`
-
-Supported simple fields:
-
-```yaml
-preferred_models:
-  - SN740
-capacities:
-  - 1TB
-interfaces:
-  - NVMe
-keywords:
-  - SSD
-```
-
-`pyyaml` is supported when installed. A very small fallback parser is included for simple key/list YAML.
-
-## Seller questions and evidence checklist
-
-v2.4 adds three output fields:
-
-- `next_action`: what to do next, for example ask for proof, negotiate only, watch only, or reject.
-- `seller_questions`: copyable questions to ask the seller.
-- `evidence_required`: screenshots or written confirmations you should collect before paying.
-
-For `NEED_MORE_INFO`, the tool asks questions based on missing fields such as SMART values, price, or return support.
-
-SSD questions usually ask for:
-
-- CrystalDiskInfo full screenshot
-- `Critical Warning = 0`
-- `Media/Data Integrity Errors = 0`
-- Total Host Writes
-- Power On Hours
-- Health / Percentage Used
-- whether return/testing is supported
-
-HDD questions usually ask for:
-
-- CrystalDiskInfo or `smartctl -a` full screenshot
-- `Reallocated Sector Count = 0`
-- `Current Pending Sector = 0`
-- `Offline Uncorrectable = 0`
-- Power On Hours
-- confirmation that it is normal SATA, not Feiniu-only, not ZBC, not PC3000 modified, and not capacity-shielded
-- whether USB dock / Windows / macOS can identify it
-
-Enclosure questions usually ask for:
-
-- controller chip confirmation: `RTL9210B` or `ASM2362`
-- whether TRIM, UASP, and SMART passthrough are supported
-
-For rejected listings, `rejects.md` also explains whether any seller answer could rescue the listing. A SMART hard reject should normally not be rescued unless the seller proves the original data was wrong.
-
-## Use-case fit rules
-
-The `use_case_fit` and `use_case_comment` fields explain whether the listing fits the selected `intended_use`.
-
-### `main_work_drive`
-
-- Prefer NVMe TLC / known NVMe models.
-- Strongly penalize or warn against SATA, QLC, unknown brand, health < 95, or missing SMART.
-- Intended for your primary work drive, so the rule is intentionally conservative.
-
-### `docker_cache`
-
-- Allows SSD health around 90–95 when the price is low.
-- Rejects or warns against hard SMART failures such as `critical_warning` or `media_integrity_errors`.
-
-### `cold_storage`
-
-- HDD is allowed when danger SMART fields are provided and equal to 0.
-- SATA SSD is allowed only when it is a known brand/model and low price.
-- Do not store the only copy of important data on one second-hand drive.
-
-### `backup_drive`
-
-- Warns that one second-hand drive is not a complete backup strategy.
-- Requires relevant SMART fields.
-- Treat it as one backup layer only, not the full backup plan.
-
-### `test_only`
-
-- Allows weak or unknown listings only when the suggested price is very low.
-- This is for experiments, compatibility testing, or learning, not important data.
-
-### `external_mac_drive`
-
-- Prefer NVMe plus reliable enclosure / bridge chip clues such as `RTL9210B` or `ASM2362`.
-- Penalize high heat, unknown brand, QLC, and missing SMART.
-
-## Purchase decision values
-
-- `BUY_CANDIDATE`: score is strong and no hard reject exists. Still ask the seller for proof before paying.
-- `NEGOTIATE_ONLY`: possible candidate, but only worth discussing at the right price.
-- `WATCH_ONLY`: weak candidate; keep it on a watchlist rather than buying immediately.
-- `REJECT`: hard reject exists or score is too low.
-- `NEED_MORE_INFO`: key information is missing, such as SMART fields or price.
-
-Decision rules:
-
-1. Hard reject exists → `REJECT`
-2. Missing key information and score is not already rejected → `NEED_MORE_INFO`
-3. Score >= 80 → `BUY_CANDIDATE`
-4. Score 60–79 → `NEGOTIATE_ONLY`
-5. Score 40–59 → `WATCH_ONLY`
-6. Score < 40 → `REJECT`
-
-## Suggested price rules
-
-The tool outputs rough CNY ranges only. These are negotiation references, not live market prices.
-
-- PM9A1 2TB:
-  - health >= 95: 800–950 CNY
-  - health 90–94: 550–700 CNY
-  - health < 90: reject or <= 500 CNY for test-only use
-- SN750 2TB:
-  - health >= 95 and host_writes_tb < 100: 700–850 CNY
-  - health 85–94 or host_writes_tb > 200: 500–650 CNY
-- SN730 / SN740 / Micron 3400 / KC3000 2TB:
-  - health >= 95: 750–900 CNY
-  - health 90–94: 550–750 CNY
-- Low-end SATA / QLC 2TB:
-  - 300–650 CNY depending on model
-  - reject if price > 750 CNY
-- Unknown brand / white-label SSD:
-  - reject unless price <= 350 CNY and clearly marked as test-only
-
-## SMART scoring rules
-
-SSD rules:
-
-- `health_percent >= 95`: add score
-- `health_percent < 90`: strong penalty
-- `host_writes_tb > 200`: penalty
-- `critical_warning != 0`: reject
-- `media_integrity_errors != 0`: reject
-
-HDD rules:
-
-- `reallocated_sector_count != 0`: reject
-- `current_pending_sector != 0`: reject
-- `offline_uncorrectable != 0`: reject
-
-Return support:
-
-- `supports_return = yes` / `支持`: small score bonus
-- `supports_return = no` / `不支持`: small score penalty
-
-These checks are basic triage only. Always ask the seller for screenshots and verify manually before buying.
-
-## Scoring guide
-
-- 80–100: worth asking seller
-- 60–79: maybe, negotiate
-- 40–59: weak
-- 0–39: reject
-
-## Reports
-
-- `reports/today.md`: sorted candidate list in Traditional Chinese, including decision, suggested price range, SMART summary, and use-case fit
-- `reports/today.csv`: spreadsheet-friendly summary with decision, suggested price, and use-case fields
-- `reports/rejects.md`: rejected / high-risk items with exact reject reasons, price comments, and use-case comments
-- `reports/search_urls.md`: generated search URLs from requirements
-
-
-## Sample validation workflow
-
-Use this when changing `src/rules.py`. It helps catch accidental behavior changes before you rely on the reports.
-
-```bash
-python3 src/validate_samples.py
-python3 -m compileall src
-```
-
-The validation report is written to `reports/sample_validation.md`. A mismatch does not automatically mean the code is wrong; it means either the rule changed intentionally and `expected_decision` should be updated, or the rule introduced an unintended regression.
+- [docs/PRODUCT_BRIEF.md](docs/PRODUCT_BRIEF.md)
+- [docs/SAFETY_BOUNDARIES.md](docs/SAFETY_BOUNDARIES.md)
+- [docs/RULE_DESIGN.md](docs/RULE_DESIGN.md)
+- [docs/CASE_STUDY.md](docs/CASE_STUDY.md)

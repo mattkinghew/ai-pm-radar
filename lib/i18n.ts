@@ -1,0 +1,103 @@
+export const languages = ["en", "zh-HK"] as const;
+
+export type Language = (typeof languages)[number];
+
+export const defaultLanguage: Language = "en";
+
+export const translations = {
+  en: {
+    home: "Home",
+    archive: "Archive",
+    marketingOpsDemo: "Marketing Ops Demo",
+    about: "About",
+    languageLabel: "Language",
+    staticDailyBrief: "Static daily brief",
+    heroTitle: "Daily AI radar for practical AI PM learning and SME awareness",
+    heroCopy:
+      "Track the five most relevant signals each day without needing a backend, API key, or technical research workflow.",
+    browseArchive: "Browse archive",
+    aboutMvp: "About this MVP",
+    todaysFocus: "Today's focus",
+    todaysTop5: "Today's Top 5",
+    lastUpdated: "Last updated",
+    noDataYet: "No data yet",
+    score: "Score",
+    risk: "Risk",
+    category: "Category",
+    review: "Review",
+    top5Daily: "Top 5 daily",
+    highestPrioritySignals: "Highest-priority signals from the latest file",
+    homeSectionNote:
+      "Ranked with the existing weighted score based on impact, relevance, and trust, with optional review metadata shown when present.",
+    openSource: "Open source",
+    readDetail: "Read detail",
+    expandAnalysis: "Expand analysis",
+    hideAnalysis: "Hide analysis",
+    aiPmAngle: "AI PM angle",
+    businessAngle: "Business angle",
+    riskNote: "Risk note",
+    whyItMatters: "Why it matters",
+    reviewScoring: "Review scoring",
+    reviewNote: "Review note",
+    categoryFilter: "Category filter",
+    browseByTopic: "Browse by topic",
+    all: "All",
+    acrossAllCategories: "across all categories",
+    inCategory: "in",
+    resultSingle: "result",
+    resultPlural: "results",
+    noResults: "No results",
+    noEntriesMatch: "No entries match this category yet",
+    switchBackToAll:
+      "Try switching back to All or add a future daily JSON file with this category.",
+  },
+  "zh-HK": {
+    home: "首頁",
+    archive: "歷史紀錄",
+    marketingOpsDemo: "行銷營運示範",
+    about: "關於",
+    languageLabel: "語言",
+    staticDailyBrief: "靜態每日摘要",
+    heroTitle: "每日 AI 雷達：聚焦實用 AI PM 學習與中小企決策訊號",
+    heroCopy:
+      "不用後端、API key 或複雜研究流程，也能每日快速掌握最值得追蹤的五個 AI 訊號。",
+    browseArchive: "瀏覽歷史",
+    aboutMvp: "關於此 MVP",
+    todaysFocus: "今日焦點",
+    todaysTop5: "今日五大重點",
+    lastUpdated: "最後更新",
+    noDataYet: "尚未有資料",
+    score: "分數",
+    risk: "風險",
+    category: "分類",
+    review: "審核",
+    top5Daily: "每日五大重點",
+    highestPrioritySignals: "最新檔案中的最高優先訊號",
+    homeSectionNote:
+      "沿用既有 impact、relevance、trust 加權分數排序，若有 review metadata 亦會同步顯示。",
+    openSource: "查看來源",
+    readDetail: "閱讀詳情",
+    expandAnalysis: "展開分析",
+    hideAnalysis: "收起分析",
+    aiPmAngle: "AI PM 角度",
+    businessAngle: "商業角度",
+    riskNote: "風險提示",
+    whyItMatters: "重要原因",
+    reviewScoring: "審核評分",
+    reviewNote: "審核備註",
+    categoryFilter: "分類篩選",
+    browseByTopic: "依主題瀏覽",
+    all: "全部",
+    acrossAllCategories: "跨所有分類",
+    inCategory: "位於分類",
+    resultSingle: "筆結果",
+    resultPlural: "筆結果",
+    noResults: "沒有結果",
+    noEntriesMatch: "目前沒有符合此分類的條目",
+    switchBackToAll: "可先切回「全部」，或在未來新增同分類的 daily JSON 檔案。",
+  },
+} as const;
+
+export function isLanguage(value: string): value is Language {
+  return languages.includes(value as Language);
+}

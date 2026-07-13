@@ -6,6 +6,8 @@ import { useId, useState } from "react";
 import type { ArticleRecord } from "@/lib/articles";
 import { formatDateTime } from "@/lib/format";
 
+import { useLanguage } from "./LanguageProvider";
+
 type ArticleCardProps = {
   article: ArticleRecord;
   expandable?: boolean;
@@ -14,6 +16,7 @@ type ArticleCardProps = {
 export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const panelId = useId();
+  const { language, t } = useLanguage();
   const reviewScores = article.review?.scoring
     ? compactScoreEntries([
         ["AI PM", article.review.scoring.ai_pm_relevance],
@@ -28,15 +31,21 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
     <article className="article-card">
       <div className="card-head">
         <div className="meta-row">
-          <span className="category-pill">{article.category}</span>
-          <span className="score-pill">Score {article.priority_score}</span>
+          <span className="category-pill">
+            {t("category")}: {article.category}
+          </span>
+          <span className="score-pill">
+            {t("score")} {article.priority_score}
+          </span>
           {article.review?.status ? (
-            <span className="review-pill">Review {formatReviewStatus(article.review.status)}</span>
+            <span className="review-pill">
+              {t("review")} {formatReviewStatus(article.review.status)}
+            </span>
           ) : null}
         </div>
         <h3>{article.question_title}</h3>
         <p className="muted">
-          {article.source_name} · {formatDateTime(article.published_at)}
+          {article.source_name} · {formatDateTime(article.published_at, language)}
         </p>
       </div>
 
@@ -49,9 +58,9 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
       </div>
 
       <div className="scan-grid" aria-label="Quick article scan">
-        <DetailBlock title="AI PM angle" body={article.ai_pm_angle} compact />
-        <DetailBlock title="Business angle" body={article.business_angle} compact />
-        <DetailBlock title="Risk note" body={article.risk_note} compact />
+        <DetailBlock title={t("aiPmAngle")} body={article.ai_pm_angle} compact />
+        <DetailBlock title={t("businessAngle")} body={article.business_angle} compact />
+        <DetailBlock title={t("riskNote")} body={article.risk_note} compact />
       </div>
 
       <div className="tag-row" aria-label="Article tags">
@@ -71,18 +80,18 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
             aria-controls={panelId}
             onClick={() => setIsOpen((value) => !value)}
           >
-            {isOpen ? "Hide analysis" : "Expand analysis"}
+            {isOpen ? t("hideAnalysis") : t("expandAnalysis")}
           </button>
 
           {isOpen ? (
             <div id={panelId} className="detail-grid">
-              <DetailBlock title="Why it matters" body={article.why_it_matters} />
-              <DetailBlock title="Business angle" body={article.business_angle} />
-              <DetailBlock title="AI PM angle" body={article.ai_pm_angle} />
-              <DetailBlock title="Risk note" body={article.risk_note} />
+              <DetailBlock title={t("whyItMatters")} body={article.why_it_matters} />
+              <DetailBlock title={t("businessAngle")} body={article.business_angle} />
+              <DetailBlock title={t("aiPmAngle")} body={article.ai_pm_angle} />
+              <DetailBlock title={t("riskNote")} body={article.risk_note} />
               {reviewScores.length > 0 ? (
                 <section className="detail-panel">
-                  <h4>Review scoring</h4>
+                  <h4>{t("reviewScoring")}</h4>
                   <div className="score-grid" aria-label="Review scoring dimensions">
                     {reviewScores.map(([label, value]) => (
                       <ScoreBadge key={label} label={label} value={value} />
@@ -91,7 +100,7 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
                 </section>
               ) : null}
               {article.review?.review_notes ? (
-                <DetailBlock title="Review note" body={article.review.review_notes} />
+                <DetailBlock title={t("reviewNote")} body={article.review.review_notes} />
               ) : null}
             </div>
           ) : null}
@@ -105,10 +114,10 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
           rel="noopener noreferrer"
           className="text-link"
         >
-          Open source
+          {t("openSource")}
         </a>
         <Link href={`/article/${article.slug}`} className="primary-button">
-          Read detail
+          {t("readDetail")}
         </Link>
       </div>
     </article>

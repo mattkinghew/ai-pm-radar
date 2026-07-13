@@ -1,0 +1,83 @@
+{
+  "demo_name": "Internal AI Marketing Operations Demo",
+  "audience_segments": [
+    "Course instructors",
+    "Hair salons",
+    "Image consultants",
+    "Coaches and service professionals"
+  ],
+  "positioning": "Static interview demo showing how AI PM Radar can be adapted into an internal campaign operations and creative review workspace without adding backend complexity.",
+  "campaign_name": "July lead-generation pilot for service-business webinar offers",
+  "demo_boundaries": [
+    "Portfolio demo only, not a production SaaS platform.",
+    "Uses anonymised sample data stored in local JSON.",
+    "No backend, no login, no live client data, and no auto-publishing."
+  ],
+  "funnel_metrics": {
+    "reach": 24800,
+    "clicks": 1680,
+    "group_joins": 412,
+    "messages_received": 236,
+    "messages_replied": 189,
+    "registrations": 121,
+    "attendance": 74,
+    "spend": 960
+  },
+  "creative_analysis": [
+    {
+      "creative_id": "CR-01",
+      "format": "Short-form video",
+      "hook_text": "Why are leads watching but not booking?",
+      "caption": "Three fixes service businesses can test this week before paying for more traffic.",
+      "visual_description": "Presenter talking to camera with a clean metric overlay and webinar promise banner.",
+      "first_3_seconds_description": "Fast cut from ad spend screenshot to close-up question headline.",
+      "performance_summary": "High click-through rate, but weak group-join conversion after the first landing step.",
+      "possible_issue": "The promise is clear, but the transition from click to join may feel too operational and not outcome-led.",
+      "ai_suggestion": "Test a second variant that shows a real customer scenario before the admin checklist.",
+      "next_action": "Draft a more benefit-first opening and compare join rate over the next 3 days."
+    },
+    {
+      "creative_id": "CR-02",
+      "format": "Static image carousel",
+      "hook_text": "Can one checklist improve message reply consistency?",
+      "caption": "A simple AI-assisted reply framework for salons, coaches, and course businesses.",
+      "visual_description": "Three-panel carousel with inbox screenshots, checklist cards, and CTA card.",
+      "first_3_seconds_description": "First card shows unread messages and response delay pain point.",
+      "performance_summary": "Lower clicks than video, but stronger message quality once prospects reach the admin team.",
+      "possible_issue": "The CTA card may be too text-heavy on mobile and could reduce swipe completion.",
+      "ai_suggestion": "Shorten CTA copy and add a clearer before-versus-after proof frame.",
+      "next_action": "Create a lighter final panel and review completion rate in the next carousel batch."
+    }
+  ],
+  "ai_outputs": {
+    "weekly_report_draft": [
+      "Traffic quality is acceptable, but the main drop-off still happens between click and group join.",
+      "Reply discipline is relatively strong once prospects message the team, suggesting admin workflow support is more urgent than more traffic volume.",
+      "Next weekly experiment should compare outcome-led creative framing against process-led framing."
+    ],
+    "ad_copy_ideas": [
+      "Your leads are clicking. The problem starts after the click. Here is the admin workflow fix.",
+      "One AI-assisted reply checklist for coaches, salons, and instructors who need faster follow-up without messy automation.",
+      "Before buying more traffic, fix the join-to-message handoff."
+    ],
+    "ppt_outline": [
+      "Campaign objective and audience segments",
+      "Funnel performance snapshot and derived KPIs",
+      "Creative findings and likely bottlenecks",
+      "Recommended next experiments and human review gates"
+    ],
+    "follow_up_suggestions": [
+      "Review message templates with a human operator before reuse.",
+      "Log which creative variants improve group join rate, not only click-through rate.",
+      "Keep personally identifiable data out of prompt examples and dashboards."
+    ]
+  },
+  "risk_controls": [
+    "Human review required before any copy is published or sent.",
+    "No sensitive personal data is stored in this demo.",
+    "No auto-publishing or auto-sending actions are enabled.",
+    "All sample data is anonymised for interview-safe discussion.",
+    "API keys are not committed to the repository.",
+    "Role-based access is recommended if this concept is rebuilt for production."
+  ]
+}
