@@ -52,9 +52,9 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
       <p>{article.summary}</p>
 
       <div className="score-grid" aria-label="Core article scores">
-        <ScoreBadge label="Impact" value={article.impact_score} />
-        <ScoreBadge label="Relevance" value={article.relevance_score} />
-        <ScoreBadge label="Trust" value={article.trust_score} />
+        <ScoreBadge label={t("impact")} value={article.impact_score} />
+        <ScoreBadge label={t("relevance")} value={article.relevance_score} />
+        <ScoreBadge label={t("trust")} value={article.trust_score} />
       </div>
 
       <div className="scan-grid" aria-label="Quick article scan">
@@ -114,10 +114,10 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
           rel="noopener noreferrer"
           className="text-link"
         >
-          {t("openSource")}
+          {t("source")}
         </a>
         <Link href={`/article/${article.slug}`} className="primary-button">
-          {t("readDetail")}
+          {t("readMore")}
         </Link>
       </div>
     </article>

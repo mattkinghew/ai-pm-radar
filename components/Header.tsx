@@ -24,7 +24,7 @@ export function Header({ currentPath }: HeaderProps) {
           <span className="brand-mark">AI</span>
           <div>
             <strong>AI PM Radar</strong>
-            <p>Daily AI and business signals for practical decision-making</p>
+            <p>{t("brandTagline")}</p>
           </div>
         </Link>
 

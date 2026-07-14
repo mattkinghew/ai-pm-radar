@@ -1,3 +1,7 @@
+"use client";
+
+import { useLanguage } from "./LanguageProvider";
+
 type FunnelMetrics = {
   reach: number;
   clicks: number;
@@ -41,71 +45,92 @@ export type MarketingOpsData = {
   risk_controls: string[];
 };
 
-const metricLabels: Array<[keyof FunnelMetrics, string]> = [
-  ["reach", "Reach"],
-  ["clicks", "Clicks"],
-  ["group_joins", "Group joins"],
-  ["messages_received", "Messages received"],
-  ["messages_replied", "Messages replied"],
-  ["registrations", "Registrations"],
-  ["attendance", "Attendance"],
-  ["spend", "Spend"],
-];
-
 export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
+  const { language, t } = useLanguage();
+  const metricLabels: Array<[keyof FunnelMetrics, string]> = [
+    ["reach", t("marketingMetricReach")],
+    ["clicks", t("marketingMetricClicks")],
+    ["group_joins", t("marketingMetricGroupJoins")],
+    ["messages_received", t("marketingMetricMessagesReceived")],
+    ["messages_replied", t("marketingMetricMessagesReplied")],
+    ["registrations", t("marketingMetricRegistrations")],
+    ["attendance", t("marketingMetricAttendance")],
+    ["spend", t("marketingMetricSpend")],
+  ];
   const derivedMetrics = [
     {
-      label: "Group join rate",
+      label: t("marketingDerivedGroupJoinRate"),
       value: asPercent(demo.funnel_metrics.group_joins, demo.funnel_metrics.clicks),
     },
     {
-      label: "Message reply rate",
+      label: t("marketingDerivedMessageReplyRate"),
       value: asPercent(
         demo.funnel_metrics.messages_replied,
         demo.funnel_metrics.messages_received,
       ),
     },
     {
-      label: "Registration rate",
+      label: t("marketingDerivedRegistrationRate"),
       value: asPercent(demo.funnel_metrics.registrations, demo.funnel_metrics.messages_received),
     },
     {
-      label: "Attendance rate",
+      label: t("marketingDerivedAttendanceRate"),
       value: asPercent(demo.funnel_metrics.attendance, demo.funnel_metrics.registrations),
     },
     {
-      label: "Cost per lead",
-      value: asCurrency(demo.funnel_metrics.spend, demo.funnel_metrics.registrations),
+      label: t("marketingDerivedCostPerLead"),
+      value: asCurrency(demo.funnel_metrics.spend, demo.funnel_metrics.registrations, language),
     },
     {
-      label: "Cost per attendee",
-      value: asCurrency(demo.funnel_metrics.spend, demo.funnel_metrics.attendance),
+      label: t("marketingDerivedCostPerAttendee"),
+      value: asCurrency(demo.funnel_metrics.spend, demo.funnel_metrics.attendance, language),
     },
   ];
+  const audienceSegments =
+    language === "zh-HK"
+      ? ["課程導師", "髮型屋", "形象顧問", "教練與服務專業人士"]
+      : demo.audience_segments;
+  const riskControls =
+    language === "zh-HK"
+      ? [
+          "任何文案發布或發送前都必須先經人手審核。",
+          "此示範不儲存敏感個人資料。",
+          "未啟用自動發布或自動發送動作。",
+          "所有示範資料均已匿名化，適合面試展示。",
+          "API key 不會提交到儲存庫。",
+          "若重建為正式產品，建議加入角色權限管理。",
+        ]
+      : demo.risk_controls;
+  const demoBoundaries =
+    language === "zh-HK"
+      ? [
+          "僅為作品集示範，不是正式 SaaS 平台。",
+          "使用儲存在本地 JSON 的匿名化示範資料。",
+          "不含後端、登入、即時客戶資料或自動發布。",
+        ]
+      : demo.demo_boundaries;
 
   return (
     <div className="stack-xl">
       <section className="marketing-hero">
         <div className="marketing-hero-copy stack-md">
-          <p className="eyebrow">Interview demo</p>
-          <h1>{demo.demo_name}</h1>
-          <p className="lead">{demo.positioning}</p>
+          <p className="eyebrow">{t("marketingEyebrow")}</p>
+          <h1>{t("marketingHeroTitle")}</h1>
+          <p className="lead">{t("marketingHeroBody")}</p>
           <div className="meta-row">
-            <span className="category-pill">Static JSON dashboard</span>
-            <span className="score-pill">Human review required</span>
-            <span className="review-pill">No auto-publishing</span>
+            <span className="category-pill">{t("marketingStaticBadge")}</span>
+            <span className="score-pill">{t("marketingHumanReviewBadge")}</span>
+            <span className="review-pill">{t("marketingNoAutoPublishingBadge")}</span>
           </div>
         </div>
 
         <div className="info-panel stack-md marketing-summary-panel">
-          <h2>{demo.campaign_name}</h2>
-          <p>
-            This page shows how AI PM Radar can be repositioned as an internal
-            marketing operations dashboard for service businesses without adding a
-            backend or exposing client data.
-          </p>
+          <p className="eyebrow">{t("marketingSummaryTitle")}</p>
+          <h2>{t("marketingCampaignName")}</h2>
+          <p>{t("marketingSummaryBody")}</p>
+          <p className="section-note">{t("marketingClientType")}</p>
           <div className="tag-row">
-            {demo.audience_segments.map((segment) => (
+            {audienceSegments.map((segment) => (
               <span key={segment} className="tag">
                 {segment}
               </span>
@@ -118,13 +143,10 @@ export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
         <article className="info-panel">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Admin metrics</p>
-              <h2>Campaign funnel snapshot</h2>
+              <p className="eyebrow">{t("marketingFunnelEyebrow")}</p>
+              <h2>{t("marketingFunnelTitle")}</h2>
             </div>
-            <p className="section-note">
-              Lightweight operations metrics for admin follow-up, response quality,
-              and attendance tracking.
-            </p>
+            <p className="section-note">{t("marketingFunnelNote")}</p>
           </div>
 
           <div className="metrics-grid">
@@ -133,8 +155,8 @@ export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
                 <span className="metric-label">{label}</span>
                 <strong className="metric-value">
                   {key === "spend"
-                    ? formatMoney(demo.funnel_metrics[key])
-                    : formatInteger(demo.funnel_metrics[key])}
+                    ? formatMoney(demo.funnel_metrics[key], language)
+                    : formatInteger(demo.funnel_metrics[key], language)}
                 </strong>
               </div>
             ))}
@@ -144,13 +166,10 @@ export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
         <article className="info-panel">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Derived metrics</p>
-              <h2>Operational health indicators</h2>
+              <p className="eyebrow">{t("marketingDerivedEyebrow")}</p>
+              <h2>{t("marketingDerivedTitle")}</h2>
             </div>
-            <p className="section-note">
-              Interview-safe examples of the KPI layer a PM could define before any
-              full system build-out.
-            </p>
+            <p className="section-note">{t("marketingDerivedNote")}</p>
           </div>
 
           <div className="metrics-grid">
@@ -167,13 +186,10 @@ export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
       <section className="info-panel stack-lg">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Flow view</p>
-            <h2>Funnel handoff map</h2>
+            <p className="eyebrow">{t("marketingFlowEyebrow")}</p>
+            <h2>{t("marketingFlowTitle")}</h2>
           </div>
-          <p className="section-note">
-            Clear enough for an interview demo, still honest about the static MVP
-            boundary.
-          </p>
+          <p className="section-note">{t("marketingFlowNote")}</p>
         </div>
 
         <div className="funnel-flow" aria-label="Marketing funnel flow">
@@ -182,8 +198,8 @@ export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
               <span className="funnel-step-label">{label}</span>
               <strong className="funnel-step-value">
                 {key === "spend"
-                  ? formatMoney(demo.funnel_metrics[key])
-                  : formatInteger(demo.funnel_metrics[key])}
+                  ? formatMoney(demo.funnel_metrics[key], language)
+                  : formatInteger(demo.funnel_metrics[key], language)}
               </strong>
             </div>
           ))}
@@ -193,13 +209,10 @@ export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
       <section className="stack-lg">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Creative analysis</p>
-            <h2>AI-assisted creative review board</h2>
+            <p className="eyebrow">{t("marketingCreativeEyebrow")}</p>
+            <h2>{t("marketingCreativeTitle")}</h2>
           </div>
-          <p className="section-note">
-            Sample analysis only. Suggestions are drafted outputs that still require
-            human approval before reuse.
-          </p>
+          <p className="section-note">{t("marketingCreativeNote")}</p>
         </div>
 
         <div className="marketing-card-grid">
@@ -215,28 +228,30 @@ export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
 
               <div className="stack-md">
                 <p>
-                  <strong>Hook:</strong> {creative.hook_text}
+                  <strong>{t("marketingCreativeHook")}:</strong> {creative.hook_text}
                 </p>
                 <p>
-                  <strong>Caption:</strong> {creative.caption}
+                  <strong>{t("marketingCreativeCaption")}:</strong> {creative.caption}
                 </p>
                 <p>
-                  <strong>Visual:</strong> {creative.visual_description}
+                  <strong>{t("marketingCreativeVisual")}:</strong> {creative.visual_description}
                 </p>
                 <p>
-                  <strong>First 3 seconds:</strong> {creative.first_3_seconds_description}
+                  <strong>{t("marketingCreativeFirstThreeSeconds")}:</strong>{" "}
+                  {creative.first_3_seconds_description}
                 </p>
                 <p>
-                  <strong>Performance summary:</strong> {creative.performance_summary}
+                  <strong>{t("marketingCreativePerformanceSummary")}:</strong>{" "}
+                  {creative.performance_summary}
                 </p>
                 <p>
-                  <strong>Possible issue:</strong> {creative.possible_issue}
+                  <strong>{t("marketingCreativePossibleIssue")}:</strong> {creative.possible_issue}
                 </p>
                 <p>
-                  <strong>AI suggestion:</strong> {creative.ai_suggestion}
+                  <strong>{t("marketingCreativeAiSuggestion")}:</strong> {creative.ai_suggestion}
                 </p>
                 <p>
-                  <strong>Next action:</strong> {creative.next_action}
+                  <strong>{t("marketingCreativeNextAction")}:</strong> {creative.next_action}
                 </p>
               </div>
             </article>
@@ -246,19 +261,19 @@ export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
 
       <section className="grid-two marketing-grid-wide">
         <article className="info-panel stack-md">
-          <h2>AI output preview</h2>
+          <h2>{t("marketingOutputTitle")}</h2>
           <OutputBlock
-            title="Weekly report draft"
+            title={t("marketingWeeklyReport")}
             items={demo.ai_outputs.weekly_report_draft}
           />
-          <OutputBlock title="Ad copy ideas" items={demo.ai_outputs.ad_copy_ideas} />
+          <OutputBlock title={t("marketingAdCopyIdeas")} items={demo.ai_outputs.ad_copy_ideas} />
         </article>
 
         <article className="info-panel stack-md">
-          <h2>Deck and follow-up support</h2>
-          <OutputBlock title="PPT outline" items={demo.ai_outputs.ppt_outline} />
+          <h2>{t("marketingDeckTitle")}</h2>
+          <OutputBlock title={t("marketingPptOutline")} items={demo.ai_outputs.ppt_outline} />
           <OutputBlock
-            title="Follow-up suggestions"
+            title={t("marketingFollowUpSuggestions")}
             items={demo.ai_outputs.follow_up_suggestions}
           />
         </article>
@@ -266,18 +281,18 @@ export function MarketingOpsDemo({ demo }: { demo: MarketingOpsData }) {
 
       <section className="grid-two marketing-grid-wide">
         <article className="info-panel">
-          <h2>Risk controls</h2>
+          <h2>{t("marketingRiskControlsTitle")}</h2>
           <ul className="check-list">
-            {demo.risk_controls.map((item) => (
+            {riskControls.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </article>
 
         <article className="info-panel">
-          <h2>Demo boundaries</h2>
+          <h2>{t("marketingDemoBoundariesTitle")}</h2>
           <ul className="bullet-list">
-            {demo.demo_boundaries.map((item) => (
+            {demoBoundaries.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
@@ -308,24 +323,28 @@ function asPercent(value: number, total: number) {
   return `${((value / total) * 100).toFixed(1)}%`;
 }
 
-function asCurrency(value: number, total: number) {
+function asCurrency(value: number, total: number, language: "en" | "zh-HK") {
   if (total <= 0) {
-    return formatMoney(0);
+    return formatMoney(0, language);
   }
 
-  return formatMoney(value / total);
+  return formatMoney(value / total, language);
 }
 
-function formatMoney(value: number) {
-  return new Intl.NumberFormat("en-US", {
+function getNumberLocale(language: "en" | "zh-HK") {
+  return language === "zh-HK" ? "zh-HK" : "en-US";
+}
+
+function formatMoney(value: number, language: "en" | "zh-HK") {
+  return new Intl.NumberFormat(getNumberLocale(language), {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 2,
   }).format(value);
 }
 
-function formatInteger(value: number) {
-  return new Intl.NumberFormat("en-US", {
+function formatInteger(value: number, language: "en" | "zh-HK") {
+  return new Intl.NumberFormat(getNumberLocale(language), {
     maximumFractionDigits: 0,
   }).format(value);
 }

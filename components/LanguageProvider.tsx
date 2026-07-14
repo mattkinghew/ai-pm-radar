@@ -36,6 +36,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
   const value = useMemo<LanguageContextValue>(() => {
     return {
       language,

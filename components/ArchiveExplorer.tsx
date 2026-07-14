@@ -66,6 +66,13 @@ export function ArchiveExplorer({
               {category}
             </button>
           ))}
+          <button
+            type="button"
+            className="filter-chip"
+            onClick={() => setSelectedCategory(ALL_CATEGORIES)}
+          >
+            {t("resetFilters")}
+          </button>
         </div>
       </div>
 
@@ -79,7 +86,13 @@ export function ArchiveExplorer({
         <div className="empty-state">
           <p className="eyebrow">{t("noResults")}</p>
           <h3>{t("noEntriesMatch")}</h3>
-          <p>{t("switchBackToAll")}</p>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={() => setSelectedCategory(ALL_CATEGORIES)}
+          >
+            {t("switchBackToAll")}
+          </button>
         </div>
       )}
     </section>
