@@ -90,6 +90,26 @@ export const translations = {
     aboutPortfolioTitle: "Portfolio value",
     aboutPortfolioBody:
       "This project demonstrates how a lightweight AI product can be scoped, documented, validated, and deployed without over-engineering.",
+    aboutWorkflowTitle: "Safer daily update workflow",
+    aboutWorkflowBody:
+      "The update flow stays static and review-first: curated sources, structured notes, human review, validation, then build.",
+    aboutWorkflowStepOneTitle: "1. Curate sources",
+    aboutWorkflowStepOneBody:
+      "Start with approved news, official docs, or research links instead of uncontrolled scraping.",
+    aboutWorkflowStepTwoTitle: "2. Draft structured notes",
+    aboutWorkflowStepTwoBody:
+      "Convert each source into summary, business angle, AI PM angle, and risk fields that match the JSON schema.",
+    aboutWorkflowStepThreeTitle: "3. Human review",
+    aboutWorkflowStepThreeBody:
+      "Check wording, scoring, and source fit before anything is treated as publish-ready.",
+    aboutWorkflowStepFourTitle: "4. Validate and build",
+    aboutWorkflowStepFourBody:
+      "Run the existing validation and static build commands before deployment to keep the demo stable.",
+    aboutSafetyTitle: "Safety boundaries",
+    aboutSafetyOne: "No paywall or login bypass.",
+    aboutSafetyTwo: "No uncontrolled scraping or external AI API calls in the helper script.",
+    aboutSafetyThree: "Source links are required before publish.",
+    aboutSafetyFour: "Human review stays in the loop before any final JSON is used.",
     marketingEyebrow: "Interview demo",
     marketingHeroTitle: "Internal AI Marketing Operations Demo",
     marketingHeroBody:
@@ -233,6 +253,26 @@ export const translations = {
     aboutPortfolioTitle: "作品集價值",
     aboutPortfolioBody:
       "這個專案展示如何在不過度工程化的情況下，規劃、記錄、驗證並部署一個輕量 AI 產品。",
+    aboutWorkflowTitle: "更安全的每日更新流程",
+    aboutWorkflowBody:
+      "更新流程維持靜態與 review-first：先整理來源、再寫結構化筆記、做人手審核、跑驗證，最後才建置。",
+    aboutWorkflowStepOneTitle: "1. 篩選來源",
+    aboutWorkflowStepOneBody:
+      "先從核准新聞、官方文件或研究連結開始，而不是做不受控的 scraping。",
+    aboutWorkflowStepTwoTitle: "2. 整理結構化筆記",
+    aboutWorkflowStepTwoBody:
+      "把每個來源轉成符合 JSON schema 的 summary、business angle、AI PM angle 與 risk 欄位。",
+    aboutWorkflowStepThreeTitle: "3. 人手審核",
+    aboutWorkflowStepThreeBody:
+      "在視為可發布前，先檢查文字、分數與來源是否合適。",
+    aboutWorkflowStepFourTitle: "4. 驗證與建置",
+    aboutWorkflowStepFourBody:
+      "部署前先跑既有驗證與靜態 build，維持示範穩定。",
+    aboutSafetyTitle: "安全邊界",
+    aboutSafetyOne: "不繞過付費牆或登入限制。",
+    aboutSafetyTwo: "helper script 不做不受控 scraping，也不呼叫外部 AI API。",
+    aboutSafetyThree: "正式發布前，每一則內容都必須保留來源連結。",
+    aboutSafetyFour: "最終 JSON 進站前，必須保留人手審核。",
     marketingEyebrow: "面試示範",
     marketingHeroTitle: "內部 AI 行銷營運示範",
     marketingHeroBody: "一個兩個月內可落地的 MVP 概念，用於減少行政、報告及創意工作的重複人手。",

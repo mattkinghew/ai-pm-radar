@@ -1,0 +1,66 @@
+[
+  {
+    "source_name": "Reuters",
+    "source_type": "reputable-news",
+    "url": "https://www.reuters.com/",
+    "topic_area": "AI business shifts and enterprise operations",
+    "trust_level": "high",
+    "notes": "Use for current business and workforce signals. Keep summaries conservative and avoid copying article text."
+  },
+  {
+    "source_name": "AP News",
+    "source_type": "reputable-news",
+    "url": "https://apnews.com/",
+    "topic_area": "Infrastructure, policy, macro business impact",
+    "trust_level": "high",
+    "notes": "Useful for broad operating context such as energy, pricing, and regulation signals."
+  },
+  {
+    "source_name": "arXiv",
+    "source_type": "research-paper",
+    "url": "https://arxiv.org/",
+    "topic_area": "AI engineering, workflow, enterprise software",
+    "trust_level": "medium",
+    "notes": "Treat as preprint evidence unless peer-reviewed status is separately confirmed."
+  },
+  {
+    "source_name": "Google Cloud Blog",
+    "source_type": "official-company-blog",
+    "url": "https://cloud.google.com/blog",
+    "topic_area": "Enterprise AI products and rollout patterns",
+    "trust_level": "high",
+    "notes": "Strong for first-party launch detail, but still distinguish product claims from independent validation."
+  },
+  {
+    "source_name": "Microsoft Learn",
+    "source_type": "official-documentation",
+    "url": "https://learn.microsoft.com/",
+    "topic_area": "AI copilots, governance, implementation guidance",
+    "trust_level": "high",
+    "notes": "Good for workflow and governance guidance, especially for beginner-friendly references."
+  },
+  {
+    "source_name": "NIST",
+    "source_type": "standards-guidance",
+    "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+    "topic_area": "AI risk management and governance",
+    "trust_level": "high",
+    "notes": "Useful when daily updates need a governance or review framing rather than product launch coverage."
+  },
+  {
+    "source_name": "OpenAI Platform Docs",
+    "source_type": "official-documentation",
+    "url": "https://platform.openai.com/docs",
+    "topic_area": "Evals, AI product design, usage patterns",
+    "trust_level": "high",
+    "notes": "Use for source-aware product guidance, not for claims about wider market adoption."
+  },
+  {
+    "source_name": "Anthropic Engineering",
+    "source_type": "official-company-blog",
+    "url": "https://www.anthropic.com/engineering",
+    "topic_area": "AI engineering workflows and safety practices",
+    "trust_level": "high",
+    "notes": "Useful for practical engineering and safety workflow examples when they fit the radar audience."
+  }
+]

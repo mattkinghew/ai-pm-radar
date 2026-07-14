@@ -1,0 +1,150 @@
+{
+  "date": "2026-07-14",
+  "articles": [
+    {
+      "question_title": "How should AI rollout planning handle workforce redesign instead of treating automation as a simple tooling upgrade?",
+      "short_title": "AI restructuring and role shift",
+      "summary": "A Reuters report on Thomson Reuters described a small reduction in some engineering roles while demand increased for more senior and AI-specialized work. The signal is less about simple replacement and more about how AI adoption changes team shape, review load, and hiring priorities.",
+      "why_it_matters": "Interview stakeholders can read this as a practical reminder that AI adoption changes operating models, not only software choices.",
+      "business_angle": "Leaders may need to rebalance hiring, documentation, quality review, and change-management support as AI-assisted workflows expand.",
+      "ai_pm_angle": "AI PMs should scope role redesign, approval ownership, and governance checkpoints as part of rollout planning rather than treating them as downstream HR issues.",
+      "risk_note": "It would be misleading to frame this as automatic headcount replacement; the harder work is managing transition risk, capability gaps, and accountability.",
+      "category": "Workforce Strategy",
+      "tags": ["ai-adoption", "workforce", "change-management"],
+      "source_name": "Reuters",
+      "source_url": "https://www.reuters.com/legal/litigation/thomson-reuters-cut-small-number-engineering-jobs-2026-07-13/",
+      "published_at": "2026-07-13T00:00:00Z",
+      "impact_score": 8,
+      "relevance_score": 9,
+      "trust_score": 9,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": false,
+        "review_notes": "Kept conservative for interview use: focused on workforce planning and governance implications rather than headline simplification.",
+        "scoring": {
+          "ai_pm_relevance": 5,
+          "hk_relevance": 3,
+          "actionability": 4,
+          "technical_depth": 2,
+          "portfolio_value": 5
+        }
+      }
+    },
+    {
+      "question_title": "Why do enterprise AI launches need safety, localization, and education plans alongside model capability?",
+      "short_title": "Enterprise AI needs trust layers",
+      "summary": "Coverage of Google I/O Connect India 2026 emphasized enterprise AI deployment, safety tooling, data localization, and education programs rather than capability headlines alone. The message is that adoption quality depends on operating trust, local constraints, and user readiness.",
+      "why_it_matters": "This is a useful interview example because it shows mature AI adoption is increasingly about deployment conditions, not only feature demos.",
+      "business_angle": "Regional expansion plans may require different compliance assumptions, onboarding materials, and change-enablement support by market.",
+      "ai_pm_angle": "AI PMs should translate localization, trust, and user education into explicit product requirements, rollout stages, and success criteria.",
+      "risk_note": "Even technically strong AI products can stall if governance, training, or market-specific requirements are treated as afterthoughts.",
+      "category": "Enterprise AI",
+      "tags": ["enterprise-ai", "safety", "localization"],
+      "source_name": "The Economic Times",
+      "source_url": "https://m.economictimes.com/magazines/panache/google-doubles-down-on-indias-ai-ambitions-with-enterprise-ai-safety-tools-and-education-push-at-i/o-connect-2026/articleshow/132386529.cms",
+      "published_at": "2026-07-14T00:00:00Z",
+      "impact_score": 8,
+      "relevance_score": 9,
+      "trust_score": 7,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": false,
+        "review_notes": "Framed for AI PM learning: trust, localization, and training were kept distinct from general AI ambition messaging.",
+        "scoring": {
+          "ai_pm_relevance": 5,
+          "hk_relevance": 4,
+          "actionability": 4,
+          "technical_depth": 2,
+          "portfolio_value": 4
+        }
+      }
+    },
+    {
+      "question_title": "How should AI product planning account for electricity, hardware, and cost pressure instead of assuming cheap scale?",
+      "short_title": "AI infrastructure cost pressure",
+      "summary": "An AP report linked the current AI infrastructure buildout to higher pressure on semiconductors, devices, and electricity costs. The practical signal is that AI demand can affect pricing, margin assumptions, and infrastructure availability outside the model layer itself.",
+      "why_it_matters": "This helps keep AI product strategy grounded in operating reality, especially for SMEs that cannot absorb open-ended compute cost shocks.",
+      "business_angle": "Teams may need smaller pilots, clearer unit economics, and stricter pricing assumptions before promising always-on AI features at scale.",
+      "ai_pm_angle": "AI PMs should include cost, latency, and sustainability assumptions in product scope reviews instead of treating infrastructure as invisible backend detail.",
+      "risk_note": "If compute and power assumptions are weak, a demo-friendly feature can become financially fragile in production or during heavy usage periods.",
+      "category": "AI Infrastructure",
+      "tags": ["infrastructure", "cost", "energy"],
+      "source_name": "AP News",
+      "source_url": "https://apnews.com/article/434f02e62a02f9b92e57995d9375df57",
+      "published_at": "2026-07-14T00:00:00Z",
+      "impact_score": 9,
+      "relevance_score": 9,
+      "trust_score": 8,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": false,
+        "review_notes": "Useful for pricing and rollout discussions because it connects infrastructure growth to visible business cost pressure.",
+        "scoring": {
+          "ai_pm_relevance": 5,
+          "hk_relevance": 4,
+          "actionability": 4,
+          "technical_depth": 3,
+          "portfolio_value": 4
+        }
+      }
+    },
+    {
+      "question_title": "What happens when AI coding output grows faster than review capacity in a real enterprise workflow?",
+      "short_title": "Review becomes the bottleneck",
+      "summary": "A July 2, 2026 arXiv paper studying an enterprise coding mandate reported that merged pull-request throughput rose while reviewer load roughly doubled and automated review overtook human review. The key lesson is that productivity gains can relocate work into review and governance instead of removing it.",
+      "why_it_matters": "This is a strong interview talking point because it reframes AI productivity from output volume to system throughput and review capacity.",
+      "business_angle": "Organizations may need to redesign review policies, automation thresholds, and quality metrics before scaling mandated AI coding usage.",
+      "ai_pm_angle": "AI PMs should define downstream review cost, revert risk, and approval flow as part of success measurement for developer tooling initiatives.",
+      "risk_note": "Counting generated output as delivery speed can hide review overload and quality bottlenecks if human and automated checks are not planned together.",
+      "category": "Engineering Workflow",
+      "tags": ["ai-coding", "review", "throughput"],
+      "source_name": "arXiv",
+      "source_url": "https://arxiv.org/abs/2607.01904",
+      "published_at": "2026-07-02T09:03:32Z",
+      "impact_score": 9,
+      "relevance_score": 10,
+      "trust_score": 7,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": false,
+        "review_notes": "Summary kept source-aware because the paper presents a case study rather than a universal causal rule.",
+        "scoring": {
+          "ai_pm_relevance": 5,
+          "hk_relevance": 3,
+          "actionability": 5,
+          "technical_depth": 4,
+          "portfolio_value": 5
+        }
+      }
+    },
+    {
+      "question_title": "How should enterprise software design change when AI reshapes role boundaries and shared responsibilities?",
+      "short_title": "AI reshapes software roles",
+      "summary": "A June 24, 2026 arXiv paper on enterprise software user roles found that AI is shifting responsibilities, increasing human-AI collaboration, and creating pressure to revise existing role frameworks. The broader signal is that AI-native systems need updated ownership models, not only new features.",
+      "why_it_matters": "This supports a more realistic interview narrative about AI transformation: workflows, role definitions, and oversight structures all need redesign.",
+      "business_angle": "Internal tools may need clearer approval boundaries, new handoff rules, and revised training materials as operational roles evolve.",
+      "ai_pm_angle": "AI PMs should map who owns prompts, approvals, exceptions, and audit responsibility when redefining internal product workflows.",
+      "risk_note": "If automation expands without clear role ownership, teams can create confusion, duplicated work, and accountability gaps.",
+      "category": "Enterprise Software",
+      "tags": ["enterprise-software", "roles", "governance"],
+      "source_name": "arXiv",
+      "source_url": "https://arxiv.org/abs/2606.25525",
+      "published_at": "2026-06-24T08:04:30Z",
+      "impact_score": 8,
+      "relevance_score": 9,
+      "trust_score": 7,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": false,
+        "review_notes": "Good portfolio fit because it connects AI-native design to responsibility mapping and governance design.",
+        "scoring": {
+          "ai_pm_relevance": 5,
+          "hk_relevance": 3,
+          "actionability": 4,
+          "technical_depth": 3,
+          "portfolio_value": 5
+        }
+      }
+    }
+  ]
+}

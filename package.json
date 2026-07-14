@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prepare:daily": "node scripts/prepare-daily-brief.mjs",
     "validate:data": "node scripts/validate_daily_data.mjs",
     "validate:daily": "node scripts/validate-daily-json.mjs",
     "validate:ip": "node scripts/validate-ip-project.mjs",
