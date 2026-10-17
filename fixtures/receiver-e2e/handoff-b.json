@@ -1,0 +1,56 @@
+{
+  "id": "handoff_content_candidate_33b1e13f",
+  "type": "content_candidate",
+  "schema_version": 2,
+  "source_record_id": "src_0a1f427a",
+  "source_fingerprint": "{\"record_version\":2,\"id\":\"src_0a1f427a\",\"platform\":\"manual\",\"source_type\":\"text\",\"source_url\":\"https://example.org/radar-receiver-e2e\",\"source_url_original\":\"https://example.org/radar-receiver-e2e\",\"source_url_final\":\"https://example.org/radar-receiver-e2e\",\"creator\":\"Synthetic Research Group\",\"title\":\"Synthetic classification review pilot\",\"description\":null,\"published_at\":null,\"captured_at\":\"2026-10-10T09:00:00.000Z\",\"language\":\"en\",\"raw_text\":\"Synthetic pilot: a human reviewer caught two mislabeled items in a ten-item classification exercise. The pilot measured no time, satisfaction, or revenue outcomes.\",\"transcript\":null,\"transcript_origin\":\"none\",\"access_method\":\"direct_input\",\"summary\":\"A synthetic ten-item exercise reports two mislabeled items caught by human review; outcome impact was not measured.\",\"key_points\":[\"Human review caught two mislabeled items in the exercise.\"],\"key_claims\":[{\"claim\":\"Human review caught two mislabeled items in the exercise.\",\"evidence\":[{\"source\":\"https://example.org/radar-receiver-e2e\",\"timestamp\":null,\"text_reference\":\"a human reviewer caught two mislabeled items in a ten-item classification exercise\"}]}],\"timestamps\":[],\"visual_moments\":[],\"story_patterns\":[],\"style_features\":[],\"why_it_matters\":null,\"business_implication\":null,\"ai_pm_implication\":null,\"video_implication\":null,\"content_ideas\":[],\"case_candidate\":false,\"library_targets\":[],\"trend_tags\":[],\"topic_tags\":[],\"confidence\":0,\"evidence_grade\":\"ungraded\",\"evidence\":[{\"source\":\"https://example.org/radar-receiver-e2e\",\"timestamp\":null,\"text_reference\":\"a human reviewer caught two mislabeled items in a ten-item classification exercise\"}],\"uncertainties\":[],\"rights_note\":\"Synthetic fixture; no third-party content.\",\"material_status\":\"captured\",\"analysis\":{\"version\":1,\"status\":\"not_requested\",\"provider\":\"none\",\"model\":null,\"analyzed_at\":null,\"input_chars\":0,\"usage\":null,\"error_code\":null,\"source_facts\":[],\"inferences\":[],\"use_cases\":[],\"method_or_teaching_points\":[]}}",
+  "created_at": "2026-10-10T09:03:00.000Z",
+  "updated_at": "2026-10-10T09:10:00.000Z",
+  "target_product": "content_ops",
+  "source_url": "https://example.org/radar-receiver-e2e",
+  "source_provenance": {
+    "source_url_original": "https://example.org/radar-receiver-e2e",
+    "source_url_final": "https://example.org/radar-receiver-e2e",
+    "captured_at": "2026-10-10T09:00:00.000Z",
+    "access_method": "direct_input"
+  },
+  "source_facts": [
+    {
+      "text": "Human review caught two mislabeled items in the exercise.",
+      "evidence_reference_ids": [
+        "src_0a1f427a:e0"
+      ]
+    }
+  ],
+  "evidence_references": [
+    {
+      "id": "src_0a1f427a:e0",
+      "source_record_id": "src_0a1f427a",
+      "evidence_index": 0,
+      "text_reference": "a human reviewer caught two mislabeled items in a ten-item classification exercise",
+      "source": "https://example.org/radar-receiver-e2e",
+      "timestamp": null
+    }
+  ],
+  "derived_analysis": {
+    "target_audience": "Product teams evaluating human review steps.",
+    "content_angles": [
+      "Why a small exercise is not evidence of business impact"
+    ],
+    "key_source_backed_claims": [
+      "Human review caught two mislabeled items."
+    ],
+    "hooks": [],
+    "content_themes": [],
+    "suggested_formats": [],
+    "platform_considerations": [],
+    "unknowns_and_risks": [
+      "No time, satisfaction, or revenue outcomes were measured."
+    ]
+  },
+  "human_notes": "Synthetic acceptance fixture revision B; A remains an immutable older package.",
+  "status": "approved",
+  "reviewed_at": "2026-10-10T09:09:00.000Z",
+  "approved_at": "2026-10-10T09:10:00.000Z",
+  "approval_fingerprint": "f92403867ff31e9d"
+}

@@ -1,0 +1,80 @@
+{
+  "name": "paste-text-complete",
+  "input": {
+    "kind": "paste_text",
+    "value": "Example Research Lab's synthetic case note says the team piloted a meeting-summary workflow with a human approval step. The note reports that reviewers checked source links before external sharing. It does not report a measured time saving or production deployment.",
+    "sourceUrl": "https://example.com/ai-pm/review-checkpoints",
+    "creator": "Example Research Lab",
+    "title": "A small AI team adds review checkpoints before rollout",
+    "publishedAt": "2026-09-18T10:00:00.000Z",
+    "language": "en"
+  },
+  "manual_enrichment": {
+    "summary": "The synthetic case note describes a meeting-summary pilot that kept a human approval step and source-link checks before external sharing.",
+    "key_points": [
+      "The workflow was described as a pilot.",
+      "A human approval step was used before external sharing.",
+      "The note does not provide a measured time saving or production deployment result."
+    ],
+    "key_claims": [
+      {
+        "claim": "The pilot used a human approval step before external sharing.",
+        "evidence": [
+          {
+            "source": "https://example.com/ai-pm/review-checkpoints",
+            "timestamp": null,
+            "text_reference": "The note says the team piloted a meeting-summary workflow with a human approval step."
+          }
+        ]
+      },
+      {
+        "claim": "The source does not report a measured time saving or production deployment.",
+        "evidence": [
+          {
+            "source": "https://example.com/ai-pm/review-checkpoints",
+            "timestamp": null,
+            "text_reference": "It does not report a measured time saving or production deployment."
+          }
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "source": "https://example.com/ai-pm/review-checkpoints",
+        "timestamp": null,
+        "text_reference": "A human approval step was used before external sharing."
+      }
+    ],
+    "why_it_matters": "This is a useful AI PM pattern because the workflow boundary and review owner are explicit even before a production claim is made.",
+    "business_implication": "Small teams can test a narrow workflow while limiting the risk of sending unreviewed summaries to external stakeholders.",
+    "ai_pm_implication": "The product requirement is not only summarisation quality; it also includes source attribution, approval ownership, and a measurable pilot plan.",
+    "video_implication": "A case-study walkthrough should show the source, the draft output, the approval checkpoint, and the boundary between pilot evidence and outcome claims.",
+    "content_ideas": [
+      "A checklist for human approval gates in AI summary workflows",
+      "What a pilot can prove before a team claims production impact"
+    ],
+    "case_candidate": true,
+    "library_targets": ["case", "content_idea"],
+    "trend_tags": ["human-in-the-loop", "source-attribution"],
+    "topic_tags": ["ai-pm", "workflow", "governance"],
+    "confidence": 0.86,
+    "evidence_grade": "B",
+    "uncertainties": [
+      "The synthetic note does not provide independent verification.",
+      "No time-saving measurement or production deployment evidence is available."
+    ]
+  },
+  "review": {
+    "review_status": "reviewed",
+    "approval_status": "approved"
+  },
+  "daily": {
+    "question_title": "What can an AI PM learn from a pilot that keeps human approval explicit?",
+    "short_title": "Human approval in AI pilots",
+    "category": "AI PM Learning",
+    "tags": ["ai-pm", "workflow", "governance"],
+    "impact_score": 8,
+    "relevance_score": 9,
+    "trust_score": 7
+  }
+}

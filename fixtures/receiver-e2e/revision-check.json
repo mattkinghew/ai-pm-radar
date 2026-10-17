@@ -1,0 +1,10 @@
+{
+  "source_record_id": "src_0a1f427a",
+  "package_a_id": "delivery_content_candidate_a9f48cb23f7d4861",
+  "package_a_fingerprint": "0848e95e5d14803c",
+  "package_a_status_after_revision_b": "outdated",
+  "package_b_id": "delivery_content_candidate_2587cd39438f0eef",
+  "package_b_fingerprint": "2eae723eb4dc7c82",
+  "package_b_status": "exported",
+  "receiver_revision_rule": "Both package identities must remain distinct; receiver stores them as separate source records under the same source_record_id metadata."
+}

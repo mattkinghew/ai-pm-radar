@@ -1,0 +1,85 @@
+{
+  "name": "srt-complete",
+  "input": {
+    "kind": "srt",
+    "value": "1\n00:00:01,000 --> 00:00:03,500\nThe demo starts with a pasted source note.\n\n2\n00:00:05,000 --> 00:00:08,000\nA reviewer links each claim to a source sentence.\n\n3\n00:00:09,500 --> 00:00:12,500\nThe presenter says this is a workflow prototype, not a measured production result.",
+    "sourceUrl": "https://example.com/video/source-aware-review",
+    "creator": "Example Video Lab",
+    "title": "Demo: source-aware AI workflow review",
+    "publishedAt": "2026-09-17T14:30:00.000Z",
+    "language": "en"
+  },
+  "manual_enrichment": {
+    "summary": "The synthetic demo shows a pasted source note, claim-level source links, and an explicit boundary between a workflow prototype and measured production results.",
+    "key_points": [
+      "The demo begins with a pasted source note.",
+      "Claims are linked to source sentences.",
+      "The presenter labels the demo as a prototype rather than a measured production result."
+    ],
+    "key_claims": [
+      {
+        "claim": "The review flow links each claim to a source sentence.",
+        "evidence": [
+          {
+            "source": "https://example.com/video/source-aware-review",
+            "timestamp": "00:00:05.000",
+            "text_reference": "A reviewer links each claim to a source sentence."
+          }
+        ]
+      },
+      {
+        "claim": "The demo is not evidence of measured production impact.",
+        "evidence": [
+          {
+            "source": "https://example.com/video/source-aware-review",
+            "timestamp": "00:00:09.500",
+            "text_reference": "The presenter says this is a workflow prototype, not a measured production result."
+          }
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "source": "https://example.com/video/source-aware-review",
+        "timestamp": "00:00:05.000",
+        "text_reference": "A reviewer links each claim to a source sentence."
+      },
+      {
+        "source": "https://example.com/video/source-aware-review",
+        "timestamp": "00:00:09.500",
+        "text_reference": "The presenter says this is a workflow prototype, not a measured production result."
+      }
+    ],
+    "why_it_matters": "Timestamped evidence makes it easier to review whether a video demonstrates a workflow pattern or merely makes an outcome claim.",
+    "business_implication": "Teams can use a small prototype to align on review ownership before spending effort on production integration.",
+    "ai_pm_implication": "An AI PM should define evidence capture and evaluation boundaries as part of the product workflow, not as post-publication cleanup.",
+    "video_implication": "A useful explainer can pause on the two evidence moments and contrast demonstrated workflow behaviour with unmeasured impact.",
+    "content_ideas": [
+      "How to annotate video evidence for AI product case studies",
+      "Prototype demo versus production proof: a review guide"
+    ],
+    "case_candidate": true,
+    "library_targets": ["case", "video_reference", "content_idea"],
+    "trend_tags": ["provenance", "human-review"],
+    "topic_tags": ["ai-pm", "video", "evaluation"],
+    "confidence": 0.9,
+    "evidence_grade": "A",
+    "uncertainties": [
+      "The video does not provide an independent production metric.",
+      "The synthetic example does not establish whether the workflow scales beyond the demo."
+    ]
+  },
+  "review": {
+    "review_status": "reviewed",
+    "approval_status": "approved"
+  },
+  "daily": {
+    "question_title": "How should AI PMs separate a workflow demo from production evidence?",
+    "short_title": "Prototype versus production proof",
+    "category": "Product Strategy",
+    "tags": ["evaluation", "provenance", "video"],
+    "impact_score": 8,
+    "relevance_score": 9,
+    "trust_score": 8
+  }
+}

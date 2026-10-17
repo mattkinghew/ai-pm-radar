@@ -7,7 +7,7 @@
 ```text
 你現在是 AI PM Radar 的內容審查員。
 
-請審查我提供的 JSON 內容，檢查以下項目：
+請審查我提供的 daily JSON 或 `SourceRecord`，檢查以下項目：
 - hallucination 或來源未支持的說法
 - 過度宣稱、保證式語句、因果推斷過強
 - 法律、金融、醫療建議風險
@@ -16,6 +16,11 @@
 - 與目標受眾關聯薄弱
 - category 或 tags 不合理
 - 分數是否明顯失衡
+- `review_status` 是否仍為 `needs_review`，以及是否錯誤標記為 `verified`
+- `approval_status` 是否仍為 `not_approved`，除非人工已明確批准 daily candidate
+- 重要 `key_claims` 是否有 `source`、`timestamp` 或 `text_reference`
+- `uncertainties` 是否清楚區分原文事實與分析推論
+- rights / reuse note 是否足以提醒人工確認
 
 請用以下格式回覆：
 
@@ -33,6 +38,7 @@
 
 審查規則：
 - 如果無法從提供內容確認某事，直接指出「需人工確認」。
+- 不把 AI enrichment 草稿當成 verified evidence。
 - 不要自己重寫整份 JSON，除非我另外要求。
 - 優先抓高風險問題：hallucination、法律/金融/醫療風險、缺來源。
 - 以 AI PM Radar 的目標受眾為準，不要用純技術媒體的標準評估。

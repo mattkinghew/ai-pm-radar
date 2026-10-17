@@ -1,0 +1,72 @@
+{
+  "package_id": "delivery_creative_reference_ca5188390811218a",
+  "package_version": 1,
+  "contract_version": 1,
+  "target_product": "storyworld",
+  "handoff_type": "creative_reference",
+  "handoff_id": "handoff_creative_reference_1cf73949",
+  "handoff_fingerprint": "7f0aea6a08fd62b2",
+  "source_record_id": "src_8ba60c36",
+  "source_record_fingerprint": "cc6d14cec1cdcd63",
+  "created_at": "2026-10-01T00:04:00.000Z",
+  "manifest": {
+    "format": "ai-pm-radar.delivery-package",
+    "package_version": 1,
+    "contract_version": 1,
+    "created_at": "2026-10-01T00:04:00.000Z",
+    "source_review_status": "reviewed",
+    "source_approval_status": "approved",
+    "handoff_status": "approved",
+    "handoff_reviewed_at": "2026-10-01T00:02:00.000Z",
+    "handoff_approved_at": "2026-10-01T00:03:00.000Z"
+  },
+  "source_snapshot": {
+    "title": "Synthetic review workflow study",
+    "source_url": "https://example.org/synthetic-delivery-study",
+    "facts": [
+      "Human review caught two classification errors in the test."
+    ]
+  },
+  "provenance": {
+    "source_url": "https://example.org/synthetic-delivery-study",
+    "source_url_original": "https://example.org/synthetic-delivery-study",
+    "source_url_final": "https://example.org/synthetic-delivery-study",
+    "captured_at": "2026-10-01T00:00:00.000Z",
+    "access_method": "direct_input"
+  },
+  "source_facts": [
+    {
+      "text": "Human review caught two classification errors in the test.",
+      "evidence_reference_ids": [
+        "src_8ba60c36:e0"
+      ]
+    }
+  ],
+  "evidence_references": [
+    {
+      "id": "src_8ba60c36:e0",
+      "source_record_id": "src_8ba60c36",
+      "evidence_index": 0,
+      "text_reference": "human review caught two classification errors in a ten-item test",
+      "source": "https://example.org/synthetic-delivery-study",
+      "timestamp": null
+    }
+  ],
+  "payload": {
+    "derived_analysis": {
+      "themes": [],
+      "concepts": [],
+      "visual_motifs": [],
+      "tone": "",
+      "story_possibilities": [],
+      "character_or_worldbuilding_inspiration": [],
+      "factual_anchors": [],
+      "usage_notes": [],
+      "uncertainty": [
+        "Unknown — not assessed"
+      ]
+    },
+    "human_notes": ""
+  },
+  "package_fingerprint": "da2122bee0adcae3"
+}

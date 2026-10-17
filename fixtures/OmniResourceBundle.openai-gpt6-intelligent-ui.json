@@ -1,0 +1,69 @@
+{
+  "bundleId": "omni_38658961822f0f026066",
+  "createdAtIso": "2026-10-15T10:00:00.000Z",
+  "sourceCategory": "AI_TECH_NEWS",
+  "sourceUrlOrFileName": "https://openai.com/index/gpt-6-for-everyone/",
+  "canonicalSha256": "38658961822f0f026066e024af7ae3bfa450a9f81fe3cf5813be9ca94dfb96c9",
+  "humanApproved": false,
+  "reviewStatus": "needs_review",
+  "sourcePayloadDigestInput": {
+    "title": "GPT-6 and Intelligent UI for everyone",
+    "publishedAt": "2026-10-07",
+    "excerpts": [
+      "Introducing Intelligent UI",
+      "fully interactive user interfaces",
+      "Free and Go tiers"
+    ]
+  },
+  "dailyDigestCard": {
+    "headline": "OpenAI rolls out GPT-6 with interactive UI features in ChatGPT",
+    "threeBulletTakeaways": [
+      "Responses may include visual and interactive components chosen for the task.",
+      "The release includes learning explanations and small tools users can interact with.",
+      "The Oct 7 rollout covered paid plans; Free and Go expansion was scheduled for Oct 8."
+    ],
+    "actionUrgency": "HIGH_TRAFFIC_TOPIC"
+  },
+  "exactEvidenceChunks": [
+    {
+      "chunkId": "news-1",
+      "exactQuote": "Introducing Intelligent UI",
+      "locator": "OpenAI article, section: Introducing Intelligent UI"
+    },
+    {
+      "chunkId": "news-2",
+      "exactQuote": "fully interactive user interfaces",
+      "locator": "OpenAI article, lines 42-43"
+    },
+    {
+      "chunkId": "news-3",
+      "exactQuote": "Free and Go tiers",
+      "locator": "OpenAI article, section: Availability"
+    }
+  ],
+  "contentOpsPayload": {
+    "targetBusinessLine": "PERSONAL_AI_BRAND",
+    "coreHookAngle": "Explain when an AI answer benefits from an interactive interface instead of plain text.",
+    "platformAngles": {
+      "linkedinConsultingPost": "Discuss how task-specific interfaces can reduce handoff friction in knowledge workflows, while clearly separating the vendor claim from independent validation.",
+      "threadsIgViralCarousel": "A short explainer: when should an AI answer become a visual, interactive tool?"
+    },
+    "suggestedVisualEvidenceDesc": "Use a labeled crop of the source article's Intelligent UI examples, with source and date visible."
+  },
+  "cyberKumaPayload": {
+    "domainTag": "AI_PRODUCT_DESIGN",
+    "tacticalEncounters": [
+      {
+        "conceptId": "task-fit-interface",
+        "evidenceChunkId": "news-1",
+        "enemyTelegraphAttack": "Every answer should use the same chat layout.",
+        "correctTacticalCounter": "Choose the interaction format based on the user's task and retain plain text when it is clearest.",
+        "distractorActions": [
+          "Always add charts and buttons.",
+          "Remove text from every explanation."
+        ],
+        "explanationAfterCombat": "The source describes choosing text, visuals, or interactive components according to the question; this is a product claim and still needs independent evaluation."
+      }
+    ]
+  }
+}

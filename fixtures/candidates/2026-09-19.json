@@ -1,0 +1,61 @@
+{
+  "date": "2026-09-19",
+  "articles": [
+    {
+      "question_title": "What can an AI PM learn from a pilot that keeps human approval explicit?",
+      "short_title": "Human approval in AI pilots",
+      "summary": "The synthetic case note describes a meeting-summary pilot that kept a human approval step and source-link checks before external sharing.",
+      "why_it_matters": "This is a useful AI PM pattern because the workflow boundary and review owner are explicit even before a production claim is made.",
+      "business_angle": "Small teams can test a narrow workflow while limiting the risk of sending unreviewed summaries to external stakeholders.",
+      "ai_pm_angle": "The product requirement is not only summarisation quality; it also includes source attribution, approval ownership, and a measurable pilot plan.",
+      "risk_note": "未確定事項：The synthetic note does not provide independent verification. No time-saving measurement or production deployment evidence is available.",
+      "category": "AI PM Learning",
+      "tags": [
+        "ai-pm",
+        "workflow",
+        "governance",
+        "human-in-the-loop",
+        "source-attribution"
+      ],
+      "source_name": "Example Research Lab",
+      "source_url": "https://example.com/ai-pm/review-checkpoints",
+      "published_at": "2026-09-18T10:00:00.000Z",
+      "impact_score": 8,
+      "relevance_score": 9,
+      "trust_score": 7,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": false,
+        "review_notes": "人工批准只表示通過候選輸出 gate；不代表來源事實已被獨立驗證。完整 provenance 保留在 SourceRecord。"
+      }
+    },
+    {
+      "question_title": "How should AI PMs separate a workflow demo from production evidence?",
+      "short_title": "Prototype versus production proof",
+      "summary": "The synthetic demo shows a pasted source note, claim-level source links, and an explicit boundary between a workflow prototype and measured production results.",
+      "why_it_matters": "Timestamped evidence makes it easier to review whether a video demonstrates a workflow pattern or merely makes an outcome claim.",
+      "business_angle": "Teams can use a small prototype to align on review ownership before spending effort on production integration.",
+      "ai_pm_angle": "An AI PM should define evidence capture and evaluation boundaries as part of the product workflow, not as post-publication cleanup.",
+      "risk_note": "未確定事項：The video does not provide an independent production metric. The synthetic example does not establish whether the workflow scales beyond the demo.",
+      "category": "Product Strategy",
+      "tags": [
+        "evaluation",
+        "provenance",
+        "video",
+        "ai-pm",
+        "human-review"
+      ],
+      "source_name": "Example Video Lab",
+      "source_url": "https://example.com/video/source-aware-review",
+      "published_at": "2026-09-17T14:30:00.000Z",
+      "impact_score": 8,
+      "relevance_score": 9,
+      "trust_score": 8,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": false,
+        "review_notes": "人工批准只表示通過候選輸出 gate；不代表來源事實已被獨立驗證。完整 provenance 保留在 SourceRecord。"
+      }
+    }
+  ]
+}

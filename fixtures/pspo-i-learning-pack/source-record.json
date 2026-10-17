@@ -1,0 +1,124 @@
+{
+  "record_version": 2,
+  "id": "src_a232aa13",
+  "platform": "manual",
+  "source_type": "text",
+  "source_url": "https://scrumguides.org/scrum-guide.html",
+  "source_url_original": "https://scrumguides.org/scrum-guide.html",
+  "source_url_final": "https://scrumguides.org/scrum-guide.html",
+  "creator": "Ken Schwaber and Jeff Sutherland",
+  "title": "The Scrum Guide (November 2020) — selected Product Owner and Product Goal passages",
+  "description": null,
+  "published_at": null,
+  "captured_at": "2026-10-11T06:00:00.000Z",
+  "language": "en",
+  "raw_text": "maximizing the value of the product\nDeveloping and explicitly communicating the Product Goal\nOrdering Product Backlog items\nfuture state of the product",
+  "transcript": null,
+  "transcript_origin": "none",
+  "access_method": "direct_input",
+  "summary": "Selected official Scrum Guide passages about Product Owner accountability, Product Backlog management, and Product Goal.",
+  "key_points": [
+    "The Product Owner is accountable for maximizing product value.",
+    "Product Backlog management includes communicating the Product Goal and ordering Product Backlog items.",
+    "The Product Goal describes a future product state for planning."
+  ],
+  "key_claims": [
+    {
+      "claim": "The Product Owner is accountable for maximizing product value.",
+      "evidence": [
+        {
+          "source": "https://scrumguides.org/scrum-guide.html",
+          "timestamp": null,
+          "text_reference": "maximizing the value of the product"
+        }
+      ]
+    },
+    {
+      "claim": "Product Backlog management includes communicating the Product Goal and ordering items.",
+      "evidence": [
+        {
+          "source": "https://scrumguides.org/scrum-guide.html",
+          "timestamp": null,
+          "text_reference": "Developing and explicitly communicating the Product Goal"
+        },
+        {
+          "source": "https://scrumguides.org/scrum-guide.html",
+          "timestamp": null,
+          "text_reference": "Ordering Product Backlog items"
+        }
+      ]
+    },
+    {
+      "claim": "The Product Goal describes a future product state.",
+      "evidence": [
+        {
+          "source": "https://scrumguides.org/scrum-guide.html",
+          "timestamp": null,
+          "text_reference": "future state of the product"
+        }
+      ]
+    }
+  ],
+  "timestamps": [],
+  "visual_moments": [],
+  "story_patterns": [],
+  "style_features": [],
+  "why_it_matters": null,
+  "business_implication": null,
+  "ai_pm_implication": null,
+  "video_implication": null,
+  "content_ideas": [],
+  "case_candidate": false,
+  "library_targets": [],
+  "trend_tags": [],
+  "topic_tags": [],
+  "confidence": 0,
+  "evidence_grade": "ungraded",
+  "evidence": [
+    {
+      "source": "https://scrumguides.org/scrum-guide.html",
+      "timestamp": null,
+      "text_reference": "maximizing the value of the product"
+    },
+    {
+      "source": "https://scrumguides.org/scrum-guide.html",
+      "timestamp": null,
+      "text_reference": "Developing and explicitly communicating the Product Goal"
+    },
+    {
+      "source": "https://scrumguides.org/scrum-guide.html",
+      "timestamp": null,
+      "text_reference": "Ordering Product Backlog items"
+    },
+    {
+      "source": "https://scrumguides.org/scrum-guide.html",
+      "timestamp": null,
+      "text_reference": "future state of the product"
+    }
+  ],
+  "uncertainties": [],
+  "rights_note": "Official November 2020 Scrum Guide; scrumguides.org states CC BY-SA 4.0. Preserve attribution and ShareAlike for adaptations.",
+  "material_status": "captured",
+  "analysis": {
+    "version": 1,
+    "status": "not_requested",
+    "provider": "none",
+    "model": null,
+    "analyzed_at": null,
+    "input_chars": 0,
+    "usage": null,
+    "error_code": null,
+    "source_facts": [
+      "The Product Owner is accountable for maximizing product value.",
+      "Product Backlog management includes communicating the Product Goal and ordering items.",
+      "The Product Goal describes a future product state."
+    ],
+    "inferences": [
+      "Study prompts and the illustrative scenario are manual instructional synthesis, not Scrum Guide quotations."
+    ],
+    "use_cases": [],
+    "method_or_teaching_points": []
+  },
+  "review_status": "reviewed",
+  "approval_status": "approved"
+}

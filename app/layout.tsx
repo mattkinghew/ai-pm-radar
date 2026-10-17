@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Footer } from "@/components/Footer";
+import { LanguageProvider } from "@/components/LanguageProvider";
 
 import "./globals.css";
 
@@ -16,10 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-Hant" data-scroll-behavior="smooth">
       <body>
-        {children}
-        <Footer />
+        <LanguageProvider>
+          {children}
+          <Footer />
+        </LanguageProvider>
       </body>
     </html>
   );

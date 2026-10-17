@@ -1,9 +1,20 @@
 {
   "name": "ai-pm-radar",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "node scripts/run-local.mjs",
+    "build:mobile": "node scripts/build-mobile.mjs",
+    "start:mobile": "node scripts/run-mobile.mjs",
+    "tunnel:mobile": "node scripts/run-radar-tunnel.mjs",
+    "health:mobile": "node scripts/mobile-health.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:phase-1.5d": "node --experimental-strip-types --test tests/approval-integrity.test.ts tests/universal-ingestor.test.ts tests/daily-radar-collector.test.mjs tests/cloud-sync-capability-gate.test.ts tests/secure-handoff-delivery.test.ts tests/intake-evidence-preview.test.ts",
+    "test": "node --experimental-strip-types --test tests/cloud-sync-contract.test.ts tests/cloud-workbench-sync.test.ts tests/synthetic-full-field.test.ts tests/phase13-real-pilot-preflight.test.ts tests/pilot-source-reconciliation.test.ts tests/pilot-controlled-update.test.ts tests/cloud-sync-capability-gate.test.ts tests/cloud-d1-schema.test.mjs tests/source-inbox.test.ts tests/source-library.test.ts tests/intelligence-routing.test.ts tests/daily-candidate.test.ts tests/source-fetch-helper.test.mjs tests/source-feed.test.ts tests/research-runtime.test.mjs tests/research-runner.test.mjs tests/research-schedule.test.mjs tests/i18n.test.ts tests/companion-api.test.ts tests/cloudflare-access.test.mjs tests/mobile-production-server.test.mjs tests/approval-integrity.test.ts tests/universal-ingestor.test.ts tests/daily-radar-collector.test.mjs tests/secure-handoff-delivery.test.ts tests/intake-evidence-preview.test.ts",
+    "source:candidate": "node --experimental-strip-types scripts/build-source-candidate.mjs",
+    "research:run": "node --experimental-strip-types scripts/research-runner.mjs",
+    "research:schedule": "node --experimental-strip-types scripts/research-schedule.mjs",
     "validate:data": "node scripts/validate_daily_data.mjs",
     "validate:daily": "node scripts/validate-daily-json.mjs",
     "build": "next build",
@@ -15,6 +26,7 @@
     "daily:new": "node scripts/create-daily-update.mjs"
   },
   "dependencies": {
+    "fast-xml-parser": "5.11.1",
     "next": "16.2.9",
     "react": "latest",
     "react-dom": "latest"

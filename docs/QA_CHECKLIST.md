@@ -49,3 +49,16 @@
 - 部署後 `/`、`/archive`、`/about`、`/article/...` 路由可開啟
 - 靜態部署後樣式檔正常載入
 - 外部連結與 disclaimer 在正式站仍存在
+
+## Review metadata post-launch QA — 2026-07-11
+- Cloudflare Pages preview: `https://23df7705.ai-pm-radar-pages.pages.dev`
+- `/article/2026-07-02-copilot-rollout-readiness/` 顯示 `Review Reviewed`、`Review metadata`、review scoring、review note。
+- `/article/2026-07-02-evaluation-as-product-work/` 顯示 `Review Draft`、`Review metadata`、review scoring、review note。
+- `review.*` 只作 optional human-reviewed metadata 顯示；未改動 `priority_score` 計算或排序邏輯。
+
+## Review metadata stable production QA — 2026-07-11
+- Stable production URL: `https://ai-pm-radar-pages.pages.dev/`
+- `/` 回傳 HTTP 200，並顯示 review badge evidence：`Review Reviewed` 與 `Review Draft`。
+- `/article/2026-07-02-copilot-rollout-readiness/` 回傳 HTTP 200，並顯示 `Review Reviewed`、`Review metadata`、review scoring dimensions、review note。
+- `/article/2026-07-02-evaluation-as-product-work/` 回傳 HTTP 200，並顯示 `Review Draft`、`Review metadata`、review scoring dimensions、review note。
+- Stable production QA confirms `review.*` remains optional human-reviewed metadata and does not affect `priority_score` ranking logic.

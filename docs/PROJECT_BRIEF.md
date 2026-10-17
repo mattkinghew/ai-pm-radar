@@ -6,6 +6,14 @@ AI PM Radar
 ## 一句話摘要
 一個以靜態網站形式發布的每日 AI / business radar，幫助非技術背景讀者快速理解重要 AI 動向、商業意義與產品管理思考。
 
+目前產品方向正由 `Daily AI News Summary` 逐步延伸至 `AI Research`、`Trend Intelligence`、`Case Library` 與 `Content Intelligence`。本輪只建立 Universal Source Inbox 與 Normalised Source Schema，不改造現有 daily publishing app。
+
+來源層採用統一流程：
+
+```text
+Source -> Adapter -> Normaliser -> SourceRecord -> Enrichment -> Review -> Library
+```
+
 ## 目標用戶
 - 非技術 AI PM 學習者
 - NGO / 教育實務工作者
@@ -28,6 +36,9 @@ AI PM Radar
 - Article detail 頁面顯示完整摘要與產品思考欄位
 - Source link 以新分頁開啟
 - 固定 disclaimer，避免被誤用為金融、法律或醫療建議
+- Source Inbox 支援 manual URL、paste text、paste transcript、Markdown、TXT、SRT、VTT
+- 所有來源先轉成 `SourceRecord`，再進入 AI enrichment 與人工 review
+- Logical collections：Trend Library、Case Library、Creator Library、Video Reference Library、Content Idea Library
 
 ## 非目標
 - 不做即時新聞抓取
@@ -35,6 +46,9 @@ AI PM Radar
 - 不做付費牆、CMS 後台或多人編輯流程
 - 不做投資研究、法律判斷或醫療建議產品
 - 不在前端放 API key 或秘密資料
+- 不把 X、YouTube、Bilibili、Telegram 寫成四套獨立 pipeline
+- 不把 browser cookies、SESSDATA 或 private login session 當成必要 ingestion 條件
+- 不在本輪加入 RAG、Agent、Vector DB 或 social publishing automation
 
 ## 成功指標
 - 能穩定以 `data/daily/YYYY-MM-DD.json` 發布每日內容

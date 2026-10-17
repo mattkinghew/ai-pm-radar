@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import type { ArticleRecord } from "@/lib/articles";
+import { useLanguage } from "@/components/LanguageProvider";
 
 import { ArticleCard } from "./ArticleCard";
 
@@ -15,6 +16,8 @@ export function ArchiveExplorer({
   articles,
   categories,
 }: ArchiveExplorerProps) {
+  const { messages } = useLanguage();
+  const copy = messages.archive;
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const filteredArticles = useMemo(() => {
@@ -29,21 +32,20 @@ export function ArchiveExplorer({
     <section className="stack-lg">
       <div className="filter-panel">
         <div>
-          <p className="eyebrow">Category filter</p>
-          <h2>Browse by topic</h2>
+          <p className="eyebrow">{copy.filterEyebrow}</p>
+          <h2>{copy.browse}</h2>
           <p className="section-note">
-            {filteredArticles.length} result{filteredArticles.length === 1 ? "" : "s"}
-            {selectedCategory === "All" ? " across all categories" : ` in ${selectedCategory}`}
+            {filteredArticles.length} {selectedCategory === "All" ? copy.resultAll : `${copy.resultIn} ${selectedCategory}`}
           </p>
         </div>
 
-        <div className="filter-row" role="tablist" aria-label="Category filter">
+        <div className="filter-row" role="tablist" aria-label={copy.filterEyebrow}>
           <button
             type="button"
             className={selectedCategory === "All" ? "filter-chip active" : "filter-chip"}
             onClick={() => setSelectedCategory("All")}
           >
-            All
+            {copy.all}
           </button>
           {categories.map((category) => (
             <button
@@ -68,12 +70,9 @@ export function ArchiveExplorer({
         </div>
       ) : (
         <div className="empty-state">
-          <p className="eyebrow">No results</p>
-          <h3>No entries match this category yet</h3>
-          <p>
-            Try switching back to <strong>All</strong> or add a future daily JSON file
-            with this category.
-          </p>
+          <p className="eyebrow">{copy.noResults}</p>
+          <h3>{copy.noResultsTitle}</h3>
+          <p>{copy.noResultsHint}</p>
         </div>
       )}
     </section>

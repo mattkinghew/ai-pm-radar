@@ -8,6 +8,7 @@ The project is positioned as an AI Product Manager portfolio case study. It demo
 
 - Current public demo: [https://ai-pm-radar-pages.pages.dev/](https://ai-pm-radar-pages.pages.dev/)
 - Production URL: [https://ai-pm-radar-pages.pages.dev/](https://ai-pm-radar-pages.pages.dev/)
+- Private mobile access is deployed at [radar.lamlab.cc](https://radar.lamlab.cc/); access is protected by Cloudflare Access. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the local-origin setup and current status.
 
 ## Current status
 
@@ -276,6 +277,8 @@ npm run build
 ## 10. Deployment readiness
 
 The project is prepared for static hosting through Cloudflare Pages or Firebase Hosting.
+
+The public Pages demo is separate from the private phone-access service. The private route uses a Cloudflare Access application, an exact-identity policy, and a dedicated tunnel. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 Current demo:
 

@@ -1,0 +1,18 @@
+{
+  "name": "url-only-manual-recovery",
+  "input": {
+    "kind": "manual_url",
+    "value": "https://example.com/sources/missing-transcript",
+    "creator": "Example Archive",
+    "title": "URL-only source awaiting recovery",
+    "publishedAt": "2026-09-16T08:00:00.000Z",
+    "language": "en"
+  },
+  "recovery_expected": [
+    "Paste transcript",
+    "Paste text",
+    "Upload subtitle",
+    "Add notes"
+  ],
+  "expected_result": "blocked_until_source_body_and_evidence_are_added"
+}

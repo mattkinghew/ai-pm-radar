@@ -1,0 +1,48 @@
+{
+  "packageType": "content-ops-handoff",
+  "version": 1,
+  "sourceSystem": "ai_pm_radar",
+  "exportedAt": "2026-10-10T09:07:00.000Z",
+  "items": [
+    {
+      "externalId": "delivery_content_candidate_a9f48cb23f7d4861",
+      "kind": "content_candidate",
+      "title": "Synthetic classification review pilot",
+      "url": "https://example.org/radar-receiver-e2e",
+      "text": "{\n  \"source_facts\": [\n    {\n      \"text\": \"Human review caught two mislabeled items in the exercise.\",\n      \"evidence_reference_ids\": [\n        \"src_0a1f427a:e0\"\n      ]\n    }\n  ],\n  \"derived_analysis\": {\n    \"target_audience\": \"Product teams evaluating human review steps.\",\n    \"content_angles\": [\n      \"What the ten-item synthetic exercise can and cannot show\"\n    ],\n    \"key_source_backed_claims\": [\n      \"Human review caught two mislabeled items.\"\n    ],\n    \"hooks\": [],\n    \"content_themes\": [],\n    \"suggested_formats\": [],\n    \"platform_considerations\": [],\n    \"unknowns_and_risks\": [\n      \"No time, satisfaction, or revenue outcomes were measured.\"\n    ]\n  },\n  \"human_notes\": \"Synthetic acceptance fixture revision A.\"\n}",
+      "createdAt": "2026-10-10T09:07:00.000Z",
+      "metadata": {
+        "radarDelivery": {
+          "package_id": "delivery_content_candidate_a9f48cb23f7d4861",
+          "package_version": 1,
+          "contract_version": 1,
+          "package_fingerprint": "0848e95e5d14803c",
+          "source_record_id": "src_0a1f427a",
+          "source_record_fingerprint": "faef90355634083c",
+          "handoff_id": "handoff_content_candidate_33b1e13f",
+          "handoff_fingerprint": "059c8c260f7e80fd",
+          "provenance": {
+            "source_url": "https://example.org/radar-receiver-e2e",
+            "source_url_original": "https://example.org/radar-receiver-e2e",
+            "source_url_final": "https://example.org/radar-receiver-e2e",
+            "captured_at": "2026-10-10T09:00:00.000Z",
+            "access_method": "direct_input"
+          },
+          "evidence_references": [
+            {
+              "id": "src_0a1f427a:e0",
+              "source_record_id": "src_0a1f427a",
+              "evidence_index": 0,
+              "text_reference": "a human reviewer caught two mislabeled items in a ten-item classification exercise",
+              "source": "https://example.org/radar-receiver-e2e",
+              "timestamp": null
+            }
+          ],
+          "source_approval": "approved",
+          "handoff_reviewed_at": "2026-10-10T09:05:00.000Z",
+          "handoff_approved_at": "2026-10-10T09:06:00.000Z"
+        }
+      }
+    }
+  ]
+}

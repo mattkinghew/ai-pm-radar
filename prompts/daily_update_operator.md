@@ -31,13 +31,15 @@ Project context:
   3. SME decision-makers
   4. AI workflow builders
 - Current workflow:
-  1. select 5 to 6 reliable sources
-  2. generate daily JSON
-  3. review quality and risks
-  4. save data/daily/{{DATE}}.json
-  5. run Level 3 agent validation gate
-  6. manually review git diff
-  7. commit only relevant files
+  1. send manual URL, pasted text/transcript, Markdown, TXT, SRT, or VTT into Universal Source Inbox
+  2. normalise every input into SourceRecord
+  3. select 5 to 6 reliable sources
+  4. generate daily JSON from reviewed-enough SourceRecord drafts
+  5. review quality, evidence, rights, and risks
+  6. save data/daily/{{DATE}}.json
+  7. run Level 3 agent validation gate
+  8. manually review git diff
+  9. commit only relevant files
 
 Safety rules:
 - Do not invent facts not supported by the provided sources.
@@ -47,6 +49,9 @@ Safety rules:
 - Prefer conservative wording when the source is broad or incomplete.
 - Every entry must include source_name and source_url.
 - Every entry must include a practical risk_note.
+- Every SourceRecord starts as `needs_review` and `approval_status=not_approved`; never call AI output `verified`.
+- Only an explicitly human-approved (`review_status=reviewed`, `approval_status=approved`) SourceRecord may become a daily candidate.
+- If an adapter fails, preserve the source and offer: Paste transcript, Paste text, Upload subtitle, Add notes.
 
 Task:
 Based on the candidate sources below, produce the following sections.
@@ -93,6 +98,7 @@ Check:
 - category consistency
 - score reasonableness
 - sensitive data risk
+- SourceRecord provenance and review_status
 
 Section 4: Local Execution Plan
 Give the exact commands I should run:

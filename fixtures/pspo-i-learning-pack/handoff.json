@@ -1,0 +1,117 @@
+{
+  "id": "handoff_learning_pack_a6145c06",
+  "type": "learning_pack",
+  "schema_version": 2,
+  "source_record_id": "src_a232aa13",
+  "source_fingerprint": "{\"record_version\":2,\"id\":\"src_a232aa13\",\"platform\":\"manual\",\"source_type\":\"text\",\"source_url\":\"https://scrumguides.org/scrum-guide.html\",\"source_url_original\":\"https://scrumguides.org/scrum-guide.html\",\"source_url_final\":\"https://scrumguides.org/scrum-guide.html\",\"creator\":\"Ken Schwaber and Jeff Sutherland\",\"title\":\"The Scrum Guide (November 2020) — selected Product Owner and Product Goal passages\",\"description\":null,\"published_at\":null,\"captured_at\":\"2026-10-11T06:00:00.000Z\",\"language\":\"en\",\"raw_text\":\"maximizing the value of the product\\nDeveloping and explicitly communicating the Product Goal\\nOrdering Product Backlog items\\nfuture state of the product\",\"transcript\":null,\"transcript_origin\":\"none\",\"access_method\":\"direct_input\",\"summary\":\"Selected official Scrum Guide passages about Product Owner accountability, Product Backlog management, and Product Goal.\",\"key_points\":[\"The Product Owner is accountable for maximizing product value.\",\"Product Backlog management includes communicating the Product Goal and ordering Product Backlog items.\",\"The Product Goal describes a future product state for planning.\"],\"key_claims\":[{\"claim\":\"The Product Owner is accountable for maximizing product value.\",\"evidence\":[{\"source\":\"https://scrumguides.org/scrum-guide.html\",\"timestamp\":null,\"text_reference\":\"maximizing the value of the product\"}]},{\"claim\":\"Product Backlog management includes communicating the Product Goal and ordering items.\",\"evidence\":[{\"source\":\"https://scrumguides.org/scrum-guide.html\",\"timestamp\":null,\"text_reference\":\"Developing and explicitly communicating the Product Goal\"},{\"source\":\"https://scrumguides.org/scrum-guide.html\",\"timestamp\":null,\"text_reference\":\"Ordering Product Backlog items\"}]},{\"claim\":\"The Product Goal describes a future product state.\",\"evidence\":[{\"source\":\"https://scrumguides.org/scrum-guide.html\",\"timestamp\":null,\"text_reference\":\"future state of the product\"}]}],\"timestamps\":[],\"visual_moments\":[],\"story_patterns\":[],\"style_features\":[],\"why_it_matters\":null,\"business_implication\":null,\"ai_pm_implication\":null,\"video_implication\":null,\"content_ideas\":[],\"case_candidate\":false,\"library_targets\":[],\"trend_tags\":[],\"topic_tags\":[],\"confidence\":0,\"evidence_grade\":\"ungraded\",\"evidence\":[{\"source\":\"https://scrumguides.org/scrum-guide.html\",\"timestamp\":null,\"text_reference\":\"maximizing the value of the product\"},{\"source\":\"https://scrumguides.org/scrum-guide.html\",\"timestamp\":null,\"text_reference\":\"Developing and explicitly communicating the Product Goal\"},{\"source\":\"https://scrumguides.org/scrum-guide.html\",\"timestamp\":null,\"text_reference\":\"Ordering Product Backlog items\"},{\"source\":\"https://scrumguides.org/scrum-guide.html\",\"timestamp\":null,\"text_reference\":\"future state of the product\"}],\"uncertainties\":[],\"rights_note\":\"Official November 2020 Scrum Guide; scrumguides.org states CC BY-SA 4.0. Preserve attribution and ShareAlike for adaptations.\",\"material_status\":\"captured\",\"analysis\":{\"version\":1,\"status\":\"not_requested\",\"provider\":\"none\",\"model\":null,\"analyzed_at\":null,\"input_chars\":0,\"usage\":null,\"error_code\":null,\"source_facts\":[\"The Product Owner is accountable for maximizing product value.\",\"Product Backlog management includes communicating the Product Goal and ordering items.\",\"The Product Goal describes a future product state.\"],\"inferences\":[\"Study prompts and the illustrative scenario are manual instructional synthesis, not Scrum Guide quotations.\"],\"use_cases\":[],\"method_or_teaching_points\":[]}}",
+  "created_at": "2026-10-11T06:03:00.000Z",
+  "updated_at": "2026-10-11T06:06:00.000Z",
+  "target_product": "cyber_kuma",
+  "source_url": "https://scrumguides.org/scrum-guide.html",
+  "source_provenance": {
+    "source_url_original": "https://scrumguides.org/scrum-guide.html",
+    "source_url_final": "https://scrumguides.org/scrum-guide.html",
+    "captured_at": "2026-10-11T06:00:00.000Z",
+    "access_method": "direct_input"
+  },
+  "source_facts": [
+    {
+      "text": "The Product Owner is accountable for maximizing product value.",
+      "evidence_reference_ids": [
+        "src_a232aa13:e0"
+      ]
+    },
+    {
+      "text": "Product Backlog management includes communicating the Product Goal and ordering items.",
+      "evidence_reference_ids": [
+        "src_a232aa13:e1",
+        "src_a232aa13:e2"
+      ]
+    },
+    {
+      "text": "The Product Goal describes a future product state.",
+      "evidence_reference_ids": [
+        "src_a232aa13:e3"
+      ]
+    }
+  ],
+  "evidence_references": [
+    {
+      "id": "src_a232aa13:e0",
+      "source_record_id": "src_a232aa13",
+      "evidence_index": 0,
+      "text_reference": "maximizing the value of the product",
+      "source": "https://scrumguides.org/scrum-guide.html",
+      "timestamp": null
+    },
+    {
+      "id": "src_a232aa13:e1",
+      "source_record_id": "src_a232aa13",
+      "evidence_index": 1,
+      "text_reference": "Developing and explicitly communicating the Product Goal",
+      "source": "https://scrumguides.org/scrum-guide.html",
+      "timestamp": null
+    },
+    {
+      "id": "src_a232aa13:e2",
+      "source_record_id": "src_a232aa13",
+      "evidence_index": 2,
+      "text_reference": "Ordering Product Backlog items",
+      "source": "https://scrumguides.org/scrum-guide.html",
+      "timestamp": null
+    },
+    {
+      "id": "src_a232aa13:e3",
+      "source_record_id": "src_a232aa13",
+      "evidence_index": 3,
+      "text_reference": "future state of the product",
+      "source": "https://scrumguides.org/scrum-guide.html",
+      "timestamp": null
+    }
+  ],
+  "derived_analysis": {
+    "learning_objectives": [
+      "用自己的語言說明 Product Owner 對最大化產品價值及 Product Backlog management 的 accountability。",
+      "解釋 Product Goal 如何描述未來狀態，並作為 Product Backlog 演進與規劃的目標。",
+      "以來源 evidence 區分 Scrum Guide 明確陳述與個人情境推論。"
+    ],
+    "concepts": [
+      "Product Owner accountability：可委派工作，但 accountability 仍由 Product Owner 承擔。",
+      "Product Backlog management：包括 Product Goal、清楚溝通 backlog items、排序，以及保持透明、可見、可理解。",
+      "Product Goal：Product Backlog 的 commitment；描述產品未來狀態，供 Scrum Team 規劃。"
+    ],
+    "definitions": [
+      "Product Goal（意譯）：Scrum Team 的長期目標，描述產品未來狀態，供團隊規劃；完成或放棄一個目標後才轉向下一個。",
+      "Product Backlog（意譯）：為改善產品所需工作的持續演進、有序清單，也是 Scrum Team 所承擔工作的單一來源。"
+    ],
+    "examples": [
+      "Illustrative scenario (not a Guide fact): a team reorders two backlog items after learning that one better supports its current Product Goal; explain the trade-off and make the ordering rationale visible."
+    ],
+    "misconceptions": [
+      "誤解：Product Owner 必須親自完成所有 backlog 管理工作。修正：部分工作可委派，但 accountability 不轉移。",
+      "誤解：Product Goal 是 Sprint Goal 的別名。修正：兩者時間範圍與所屬 artifact commitment 不同。",
+      "誤解：Product Owner 是由多位 stakeholder 組成的 committee。修正：Scrum Guide 將其定義為一個人，可代表多方需要。"
+    ],
+    "question_seeds": [
+      "你會用哪些可觀察 evidence 判斷一個 backlog 順序是否支援現行 Product Goal？",
+      "哪些 Product Backlog 工作可委派，哪些 accountability 仍不能委派？",
+      "若新資訊令原 Product Goal 不再有價值，團隊應如何檢視與調整？請指出需要核對的 Scrum Guide 段落。"
+    ],
+    "difficulty_suggestion": "Foundational to intermediate; focus on applying accountabilities and artifact commitments, not memorizing exam answers.",
+    "review_focus": [
+      "逐項核對 source_facts 與 Scrum Guide 原文；definitions 是中文意譯，不是逐字引文。",
+      "確認 illustrative scenario 被標示為教學推演，不是 Guide 案例。",
+      "對照 Scrum.org 最新公開 PSPO I learning objectives 前，勿把本包視為完整 assessment blueprint。"
+    ],
+    "unknowns": [
+      "本包只涵蓋 Scrum Guide 中與 Product Owner／Product Goal 相關的選段，並非完整 PSPO I 課程或考試範圍。",
+      "沒有使用、重製或推測任何受保護考題；question seeds 是自編開放式學習提示。",
+      "Scrum Guide 為 November 2020 版本；若官方發布新版，需重新核對內容與引用。"
+    ]
+  },
+  "human_notes": "Manually curated learning handoff; instructional synthesis is not a Scrum Guide quotation or official Scrum.org course. Source: Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020), https://scrumguides.org/scrum-guide.html. The official page states CC BY-SA 4.0; attribution and ShareAlike apply to adaptations. No exam dumps or protected question-bank items included.",
+  "status": "approved",
+  "reviewed_at": "2026-10-11T06:05:00.000Z",
+  "approved_at": "2026-10-11T06:06:00.000Z",
+  "approval_fingerprint": "da666745b7d06351"
+}

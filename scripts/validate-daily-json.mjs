@@ -1,7 +1,12 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
-const dailyDir = path.join(process.cwd(), "data", "daily");
+const dailyDir = process.argv[2]
+  ? path.resolve(process.cwd(), process.argv[2])
+  : path.join(process.cwd(), "data", "daily");
+const displayRoot = process.argv[2]
+  ? path.relative(process.cwd(), dailyDir) || "."
+  : path.join("data", "daily");
 
 const requiredArticleFields = [
   "question_title",
@@ -49,7 +54,7 @@ function isBoolean(value) {
 async function validateDailyFile(fileName) {
   const issues = [];
   const filePath = path.join(dailyDir, fileName);
-  const relativePath = path.join("data", "daily", fileName);
+  const relativePath = path.join(displayRoot, fileName);
 
   let parsed;
 
@@ -151,7 +156,7 @@ async function main() {
   let articleCount = 0;
 
   if (jsonFiles.length === 0) {
-    addIssue(allIssues, "data/daily", "No daily JSON files found.");
+    addIssue(allIssues, displayRoot, "No daily JSON files found.");
   }
 
   for (const fileName of jsonFiles) {

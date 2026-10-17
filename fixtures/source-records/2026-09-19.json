@@ -1,0 +1,292 @@
+[
+  {
+    "record_version": 2,
+    "id": "src_2bd12615",
+    "platform": "manual",
+    "source_type": "text",
+    "source_url": "https://example.com/ai-pm/review-checkpoints",
+    "source_url_original": "https://example.com/ai-pm/review-checkpoints",
+    "source_url_final": "https://example.com/ai-pm/review-checkpoints",
+    "creator": "Example Research Lab",
+    "title": "A small AI team adds review checkpoints before rollout",
+    "description": null,
+    "published_at": "2026-09-18T10:00:00.000Z",
+    "captured_at": "2026-09-19T00:00:00.000Z",
+    "language": "en",
+    "raw_text": "Example Research Lab's synthetic case note says the team piloted a meeting-summary workflow with a human approval step. The note reports that reviewers checked source links before external sharing. It does not report a measured time saving or production deployment.",
+    "transcript": null,
+    "transcript_origin": "none",
+    "access_method": "direct_input",
+    "summary": "The synthetic case note describes a meeting-summary pilot that kept a human approval step and source-link checks before external sharing.",
+    "key_points": [
+      "The workflow was described as a pilot.",
+      "A human approval step was used before external sharing.",
+      "The note does not provide a measured time saving or production deployment result."
+    ],
+    "key_claims": [
+      {
+        "claim": "The pilot used a human approval step before external sharing.",
+        "evidence": [
+          {
+            "source": "https://example.com/ai-pm/review-checkpoints",
+            "timestamp": null,
+            "text_reference": "The note says the team piloted a meeting-summary workflow with a human approval step."
+          }
+        ]
+      },
+      {
+        "claim": "The source does not report a measured time saving or production deployment.",
+        "evidence": [
+          {
+            "source": "https://example.com/ai-pm/review-checkpoints",
+            "timestamp": null,
+            "text_reference": "It does not report a measured time saving or production deployment."
+          }
+        ]
+      }
+    ],
+    "timestamps": [],
+    "visual_moments": [],
+    "story_patterns": [],
+    "style_features": [],
+    "why_it_matters": "This is a useful AI PM pattern because the workflow boundary and review owner are explicit even before a production claim is made.",
+    "business_implication": "Small teams can test a narrow workflow while limiting the risk of sending unreviewed summaries to external stakeholders.",
+    "ai_pm_implication": "The product requirement is not only summarisation quality; it also includes source attribution, approval ownership, and a measurable pilot plan.",
+    "video_implication": "A case-study walkthrough should show the source, the draft output, the approval checkpoint, and the boundary between pilot evidence and outcome claims.",
+    "content_ideas": [
+      "A checklist for human approval gates in AI summary workflows",
+      "What a pilot can prove before a team claims production impact"
+    ],
+    "case_candidate": true,
+    "library_targets": [
+      "case",
+      "content_idea"
+    ],
+    "trend_tags": [
+      "human-in-the-loop",
+      "source-attribution"
+    ],
+    "topic_tags": [
+      "ai-pm",
+      "workflow",
+      "governance"
+    ],
+    "confidence": 0.86,
+    "evidence_grade": "B",
+    "evidence": [
+      {
+        "source": "https://example.com/ai-pm/review-checkpoints",
+        "timestamp": null,
+        "text_reference": "A human approval step was used before external sharing."
+      }
+    ],
+    "uncertainties": [
+      "The synthetic note does not provide independent verification.",
+      "No time-saving measurement or production deployment evidence is available."
+    ],
+    "rights_note": "Rights and reuse permissions not assessed; review before publishing or repurposing.",
+    "material_status": "captured",
+    "analysis": {
+      "version": 1,
+      "status": "not_requested",
+      "provider": "none",
+      "model": null,
+      "analyzed_at": null,
+      "input_chars": 0,
+      "usage": null,
+      "error_code": null,
+      "source_facts": [],
+      "inferences": [],
+      "use_cases": [],
+      "method_or_teaching_points": []
+    },
+    "review_status": "reviewed",
+    "approval_status": "approved"
+  },
+  {
+    "record_version": 2,
+    "id": "src_9d7c3f59",
+    "platform": "manual",
+    "source_type": "srt",
+    "source_url": "https://example.com/video/source-aware-review",
+    "source_url_original": "https://example.com/video/source-aware-review",
+    "source_url_final": "https://example.com/video/source-aware-review",
+    "creator": "Example Video Lab",
+    "title": "Demo: source-aware AI workflow review",
+    "description": null,
+    "published_at": "2026-09-17T14:30:00.000Z",
+    "captured_at": "2026-09-19T00:00:00.000Z",
+    "language": "en",
+    "raw_text": "1\n00:00:01,000 --> 00:00:03,500\nThe demo starts with a pasted source note.\n\n2\n00:00:05,000 --> 00:00:08,000\nA reviewer links each claim to a source sentence.\n\n3\n00:00:09,500 --> 00:00:12,500\nThe presenter says this is a workflow prototype, not a measured production result.",
+    "transcript": "The demo starts with a pasted source note. A reviewer links each claim to a source sentence. The presenter says this is a workflow prototype, not a measured production result.",
+    "transcript_origin": "uploaded_subtitle",
+    "access_method": "direct_input",
+    "summary": "The synthetic demo shows a pasted source note, claim-level source links, and an explicit boundary between a workflow prototype and measured production results.",
+    "key_points": [
+      "The demo begins with a pasted source note.",
+      "Claims are linked to source sentences.",
+      "The presenter labels the demo as a prototype rather than a measured production result."
+    ],
+    "key_claims": [
+      {
+        "claim": "The review flow links each claim to a source sentence.",
+        "evidence": [
+          {
+            "source": "https://example.com/video/source-aware-review",
+            "timestamp": "00:00:05.000",
+            "text_reference": "A reviewer links each claim to a source sentence."
+          }
+        ]
+      },
+      {
+        "claim": "The demo is not evidence of measured production impact.",
+        "evidence": [
+          {
+            "source": "https://example.com/video/source-aware-review",
+            "timestamp": "00:00:09.500",
+            "text_reference": "The presenter says this is a workflow prototype, not a measured production result."
+          }
+        ]
+      }
+    ],
+    "timestamps": [
+      {
+        "label": "The demo starts with a pasted source note.",
+        "start_seconds": 1,
+        "end_seconds": 3.5,
+        "text_reference": "The demo starts with a pasted source note."
+      },
+      {
+        "label": "A reviewer links each claim to a source sentence.",
+        "start_seconds": 5,
+        "end_seconds": 8,
+        "text_reference": "A reviewer links each claim to a source sentence."
+      },
+      {
+        "label": "The presenter says this is a workflow prototype, not a measured production resul",
+        "start_seconds": 9.5,
+        "end_seconds": 12.5,
+        "text_reference": "The presenter says this is a workflow prototype, not a measured production result."
+      }
+    ],
+    "visual_moments": [],
+    "story_patterns": [],
+    "style_features": [],
+    "why_it_matters": "Timestamped evidence makes it easier to review whether a video demonstrates a workflow pattern or merely makes an outcome claim.",
+    "business_implication": "Teams can use a small prototype to align on review ownership before spending effort on production integration.",
+    "ai_pm_implication": "An AI PM should define evidence capture and evaluation boundaries as part of the product workflow, not as post-publication cleanup.",
+    "video_implication": "A useful explainer can pause on the two evidence moments and contrast demonstrated workflow behaviour with unmeasured impact.",
+    "content_ideas": [
+      "How to annotate video evidence for AI product case studies",
+      "Prototype demo versus production proof: a review guide"
+    ],
+    "case_candidate": true,
+    "library_targets": [
+      "case",
+      "video_reference",
+      "content_idea"
+    ],
+    "trend_tags": [
+      "provenance",
+      "human-review"
+    ],
+    "topic_tags": [
+      "ai-pm",
+      "video",
+      "evaluation"
+    ],
+    "confidence": 0.9,
+    "evidence_grade": "A",
+    "evidence": [
+      {
+        "source": "https://example.com/video/source-aware-review",
+        "timestamp": "00:00:05.000",
+        "text_reference": "A reviewer links each claim to a source sentence."
+      },
+      {
+        "source": "https://example.com/video/source-aware-review",
+        "timestamp": "00:00:09.500",
+        "text_reference": "The presenter says this is a workflow prototype, not a measured production result."
+      }
+    ],
+    "uncertainties": [
+      "The video does not provide an independent production metric.",
+      "The synthetic example does not establish whether the workflow scales beyond the demo."
+    ],
+    "rights_note": "Rights and reuse permissions not assessed; review before publishing or repurposing.",
+    "material_status": "captured",
+    "analysis": {
+      "version": 1,
+      "status": "not_requested",
+      "provider": "none",
+      "model": null,
+      "analyzed_at": null,
+      "input_chars": 0,
+      "usage": null,
+      "error_code": null,
+      "source_facts": [],
+      "inferences": [],
+      "use_cases": [],
+      "method_or_teaching_points": []
+    },
+    "review_status": "reviewed",
+    "approval_status": "approved"
+  },
+  {
+    "record_version": 2,
+    "id": "src_585a7e09",
+    "platform": "manual",
+    "source_type": "url",
+    "source_url": "https://example.com/sources/missing-transcript",
+    "source_url_original": "https://example.com/sources/missing-transcript",
+    "source_url_final": "https://example.com/sources/missing-transcript",
+    "creator": "Example Archive",
+    "title": "URL-only source awaiting recovery",
+    "description": null,
+    "published_at": "2026-09-16T08:00:00.000Z",
+    "captured_at": "2026-09-19T00:00:00.000Z",
+    "language": "en",
+    "raw_text": "",
+    "transcript": null,
+    "transcript_origin": "none",
+    "access_method": "direct_input",
+    "summary": null,
+    "key_points": [],
+    "key_claims": [],
+    "timestamps": [],
+    "visual_moments": [],
+    "story_patterns": [],
+    "style_features": [],
+    "why_it_matters": null,
+    "business_implication": null,
+    "ai_pm_implication": null,
+    "video_implication": null,
+    "content_ideas": [],
+    "case_candidate": false,
+    "library_targets": [],
+    "trend_tags": [],
+    "topic_tags": [],
+    "confidence": 0,
+    "evidence_grade": "ungraded",
+    "evidence": [],
+    "uncertainties": [],
+    "rights_note": "Rights and reuse permissions not assessed; review before publishing or repurposing.",
+    "material_status": "needs_manual_input",
+    "analysis": {
+      "version": 1,
+      "status": "not_requested",
+      "provider": "none",
+      "model": null,
+      "analyzed_at": null,
+      "input_chars": 0,
+      "usage": null,
+      "error_code": null,
+      "source_facts": [],
+      "inferences": [],
+      "use_cases": [],
+      "method_or_teaching_points": []
+    },
+    "review_status": "needs_review",
+    "approval_status": "not_approved"
+  }
+]

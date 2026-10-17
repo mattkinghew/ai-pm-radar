@@ -4,7 +4,12 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dailyDir = path.join(__dirname, "..", "data", "daily");
+const dailyDir = process.argv[2]
+  ? path.resolve(process.cwd(), process.argv[2])
+  : path.join(__dirname, "..", "data", "daily");
+const displayRoot = process.argv[2]
+  ? path.relative(process.cwd(), dailyDir) || "."
+  : path.join("data", "daily");
 
 const requiredArticleFields = [
   "question_title",
@@ -83,7 +88,7 @@ async function main() {
   for (const file of files) {
     checkedFiles += 1;
     const filePath = path.join(dailyDir, file);
-    const relativePath = path.join("data", "daily", file);
+    const relativePath = path.join(displayRoot, file);
     let parsed;
 
     try {

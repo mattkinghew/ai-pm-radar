@@ -5,6 +5,7 @@ import { useId, useState } from "react";
 
 import type { ArticleRecord } from "@/lib/articles";
 import { formatDateTime } from "@/lib/format";
+import { useLanguage } from "@/components/LanguageProvider";
 
 type ArticleCardProps = {
   article: ArticleRecord;
@@ -12,15 +13,17 @@ type ArticleCardProps = {
 };
 
 export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
+  const { locale, messages } = useLanguage();
+  const copy = messages.article;
   const [isOpen, setIsOpen] = useState(false);
   const panelId = useId();
   const reviewScores = article.review?.scoring
     ? compactScoreEntries([
-        ["AI PM", article.review.scoring.ai_pm_relevance],
-        ["HK", article.review.scoring.hk_relevance],
-        ["Action", article.review.scoring.actionability],
-        ["Tech", article.review.scoring.technical_depth],
-        ["Portfolio", article.review.scoring.portfolio_value],
+        [copy.aiPmRelevance, article.review.scoring.ai_pm_relevance],
+        [copy.hkRelevance, article.review.scoring.hk_relevance],
+        [copy.actionability, article.review.scoring.actionability],
+        [copy.technicalDepth, article.review.scoring.technical_depth],
+        [copy.portfolioValue, article.review.scoring.portfolio_value],
       ])
     : [];
 
@@ -29,32 +32,32 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
       <div className="card-head">
         <div className="meta-row">
           <span className="category-pill">{article.category}</span>
-          <span className="score-pill">Score {article.priority_score}</span>
+          <span className="score-pill">{copy.score} {article.priority_score}</span>
           {article.review?.status ? (
-            <span className="review-pill">Review {formatReviewStatus(article.review.status)}</span>
+            <span className="review-pill">{copy.review} {article.review.status === "reviewed" ? copy.reviewed : copy.draft}</span>
           ) : null}
         </div>
         <h3>{article.question_title}</h3>
         <p className="muted">
-          {article.source_name} · {formatDateTime(article.published_at)}
+          {article.source_name} {copy.sourceDateSeparator} {formatDateTime(article.published_at, locale)}
         </p>
       </div>
 
       <p>{article.summary}</p>
 
-      <div className="score-grid" aria-label="Core article scores">
-        <ScoreBadge label="Impact" value={article.impact_score} />
-        <ScoreBadge label="Relevance" value={article.relevance_score} />
-        <ScoreBadge label="Trust" value={article.trust_score} />
+      <div className="score-grid" aria-label={copy.coreScores}>
+        <ScoreBadge label={copy.impact} value={article.impact_score} />
+        <ScoreBadge label={copy.relevance} value={article.relevance_score} />
+        <ScoreBadge label={copy.trust} value={article.trust_score} />
       </div>
 
-      <div className="scan-grid" aria-label="Quick article scan">
-        <DetailBlock title="AI PM angle" body={article.ai_pm_angle} compact />
-        <DetailBlock title="Business angle" body={article.business_angle} compact />
-        <DetailBlock title="Risk note" body={article.risk_note} compact />
+      <div className="scan-grid" aria-label={copy.quickScan}>
+        <DetailBlock title={copy.aiPmAngle} body={article.ai_pm_angle} compact />
+        <DetailBlock title={copy.businessAngle} body={article.business_angle} compact />
+        <DetailBlock title={copy.riskNote} body={article.risk_note} compact />
       </div>
 
-      <div className="tag-row" aria-label="Article tags">
+      <div className="tag-row" aria-label={copy.tags}>
         {article.tags.map((tag) => (
           <span key={tag} className="tag">
             #{tag}
@@ -71,19 +74,19 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
             aria-controls={panelId}
             onClick={() => setIsOpen((value) => !value)}
           >
-            {isOpen ? "Hide analysis" : "Expand analysis"}
+            {isOpen ? copy.hide : copy.expand}
           </button>
 
           {isOpen ? (
             <div id={panelId} className="detail-grid">
-              <DetailBlock title="Why it matters" body={article.why_it_matters} />
-              <DetailBlock title="Business angle" body={article.business_angle} />
-              <DetailBlock title="AI PM angle" body={article.ai_pm_angle} />
-              <DetailBlock title="Risk note" body={article.risk_note} />
+              <DetailBlock title={copy.whyItMatters} body={article.why_it_matters} />
+              <DetailBlock title={copy.businessAngle} body={article.business_angle} />
+              <DetailBlock title={copy.aiPmAngle} body={article.ai_pm_angle} />
+              <DetailBlock title={copy.riskNote} body={article.risk_note} />
               {reviewScores.length > 0 ? (
                 <section className="detail-panel">
-                  <h4>Review scoring</h4>
-                  <div className="score-grid" aria-label="Review scoring dimensions">
+                  <h4>{copy.reviewScoring}</h4>
+                  <div className="score-grid" aria-label={copy.reviewScores}>
                     {reviewScores.map(([label, value]) => (
                       <ScoreBadge key={label} label={label} value={value} />
                     ))}
@@ -91,7 +94,7 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
                 </section>
               ) : null}
               {article.review?.review_notes ? (
-                <DetailBlock title="Review note" body={article.review.review_notes} />
+                <DetailBlock title={copy.reviewNote} body={article.review.review_notes} />
               ) : null}
             </div>
           ) : null}
@@ -105,10 +108,10 @@ export function ArticleCard({ article, expandable = false }: ArticleCardProps) {
           rel="noopener noreferrer"
           className="text-link"
         >
-          Open source
+          {copy.openSource}
         </a>
         <Link href={`/article/${article.slug}`} className="primary-button">
-          Read detail
+          {copy.readDetail}
         </Link>
       </div>
     </article>
@@ -139,12 +142,6 @@ function ScoreBadge({ label, value }: { label: string; value: number }) {
       <span>{value}/10</span>
     </span>
   );
-}
-
-function formatReviewStatus(value: string) {
-  return value
-    .replace(/[_-]+/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function compactScoreEntries(
