@@ -4,7 +4,7 @@ import { createHash, generateKeyPairSync, createSign } from "node:crypto";
 
 export function fakeD1() {
   const db = new DatabaseSync(":memory:");
-  db.exec(readFileSync(new URL("../../cloud/migrations/0001_init.sql", import.meta.url), "utf8"));
+  for (const f of ["0001_init.sql", "0002_bilingual_provider_usage.sql"]) db.exec(readFileSync(new URL(`../../cloud/migrations/${f}`, import.meta.url), "utf8"));
   const stmt = (sql, params = []) => ({
     bind: (...p) => stmt(sql, p),
     run: async () => { const r = db.prepare(sql).run(...params); return { meta: { changes: Number(r.changes) } }; },

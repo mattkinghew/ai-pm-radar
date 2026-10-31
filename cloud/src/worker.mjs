@@ -1,11 +1,13 @@
 import { verifyCloudflareAccessOwner } from "./access-jwt.mjs";
-import { summarize } from "./ai.mjs";
+import { summarize, usage } from "./ai.mjs";
 import { runDaily } from "./collector.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
-const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,run_date,created_at,updated_at";
-const shape = (r) => r && ({ ...r, key_points: r.key_points ? JSON.parse(r.key_points) : [] });
+const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at";
+const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
+const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en) });
+const aiErr = (e) => json({ error: e.message === "ai_daily_cap_reached" ? "ai_daily_cap_reached" : "ai_failed", detail: e.message }, e.message === "ai_daily_cap_reached" ? 429 : 502);
 
 // Local-only test hook: lets wrangler dev smoke tests use a mocked JWKS. Ignored unless ENVIRONMENT === "local".
 function authFetch(env) {
@@ -21,7 +23,7 @@ export async function handle(request, env, deps = {}) {
   const db = env.DB; const now = new Date().toISOString(); const m = request.method;
 
   if (url.pathname === "/api/cloud/capabilities" && m === "GET") {
-    return json({ backend: "cloudflare", d1: !!db, ai: { gemini: !!env.GEMINI_API_KEY, fallback: env.AI_FALLBACK_PROVIDER || "none", dailyCap: Number(env.AI_DAILY_CAP || 10) }, cron: "0 0 * * * (08:00 HKT)", humanReviewRequired: true });
+    return json({ backend: "cloudflare", d1: !!db, ai: { gemini: !!env.GEMINI_API_KEY, fallback: env.AI_FALLBACK_PROVIDER || "none", dailyCap: Number(env.AI_DAILY_CAP || 10), usage: await usage(env) }, cron: "0 0 * * * (08:00 HKT)", humanReviewRequired: true });
   }
   if (url.pathname === "/api/library" && m === "GET") {
     const status = url.searchParams.get("status") || "approved";
@@ -36,10 +38,20 @@ export async function handle(request, env, deps = {}) {
     const r = await db.prepare(`SELECT ${ROW} FROM items WHERE kind='daily' AND run_date=? ORDER BY score DESC NULLS LAST`).bind(date ?? "").all();
     return json({ date: date ?? null, items: r.results.map(shape) });
   }
-  const one = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})(?:\/(review|approve|reject))?$/u);
+  const one = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})(?:\/(review|approve|reject|translate))?$/u);
   if (one && m === "GET" && !one[2]) {
     const r = await db.prepare(`SELECT ${ROW},raw_excerpt FROM items WHERE id=?`).bind(one[1]).first();
     return r ? json({ item: shape(r) }) : json({ error: "not_found" }, 404);
+  }
+  if (one && m === "POST" && one[2] === "translate") {
+    // 轉中文 / re-analyze one existing item (incl. imported/unanalyzed). Counts against caps; status unchanged (human review gate kept).
+    const it = await db.prepare("SELECT id,title,url,summary,raw_excerpt FROM items WHERE id=?").bind(one[1]).first();
+    if (!it) return json({ error: "not_found" }, 404);
+    const text = [it.title, it.url, it.raw_excerpt || it.summary || ""].filter(Boolean).join("\n");
+    let ai; try { ai = await summarize(env, text, { fetchImpl: deps.fetchImpl ?? fetch }); } catch (e) { return aiErr(e); }
+    await db.prepare(`UPDATE items SET title_zh=?, title_original=COALESCE(NULLIF(?,''), title), summary=?, summary_en=?, key_points=?, key_points_en=?, score=?, ai_provider=?, updated_at=? WHERE id=?`)
+      .bind(ai.title_zh, ai.title_original, ai.summary, ai.summary_en, JSON.stringify(ai.key_points), JSON.stringify(ai.key_points_en), ai.score, ai.provider, now, it.id).run();
+    return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()) });
   }
   if (one && m === "POST" && one[2]) {
     // Human review gate: approve only after reviewed.
@@ -60,11 +72,12 @@ export async function handle(request, env, deps = {}) {
     if (content.length < 80) return json({ error: "insufficient_content", hint: "影片/社交連結請直接貼字幕或正文" }, 422);
     let ai;
     try { ai = await summarize(env, `${link}\n${content}`, { fetchImpl: deps.fetchImpl ?? fetch }); }
-    catch (e) { return json({ error: e.message === "ai_daily_cap_reached" ? "ai_daily_cap_reached" : "ai_failed", detail: e.message }, e.message === "ai_daily_cap_reached" ? 429 : 502); }
+    catch (e) { return aiErr(e); }
     const id = crypto.randomUUID();
-    await db.prepare(`INSERT INTO items(id,kind,status,title,url,source,category,summary,key_points,score,raw_excerpt,ai_provider,created_at,updated_at)
-      VALUES(?, 'capture', 'draft', ?, ?, 'quick-capture', 'CAPTURE', ?, ?, ?, ?, ?, ?, ?)`)
-      .bind(id, ai.title || link || "Quick Capture", link || null, ai.summary, JSON.stringify(ai.key_points), ai.score, content.slice(0, 4000), ai.provider, now, now).run();
+    await db.prepare(`INSERT INTO items(id,kind,status,title,url,source,category,summary,key_points,score,raw_excerpt,ai_provider,title_zh,title_original,summary_en,key_points_en,created_at,updated_at)
+      VALUES(?, 'capture', 'draft', ?, ?, 'quick-capture', 'CAPTURE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .bind(id, ai.title_original || ai.title || link || "Quick Capture", link || null, ai.summary, JSON.stringify(ai.key_points), ai.score, content.slice(0, 4000), ai.provider,
+        ai.title_zh, ai.title_original || null, ai.summary_en, JSON.stringify(ai.key_points_en), now, now).run();
     return json({ id, status: "draft", ...ai }, 201);
   }
   return json({ error: "api_route_not_found" }, 404);

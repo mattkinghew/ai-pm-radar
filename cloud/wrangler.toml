@@ -32,6 +32,7 @@ OWNER_EMAIL_SHA256 = "e9567eff528ea91c6472e28ec186b9a682d88456facceb65c943dc721d
 AI_PROVIDER = "gemini"
 GEMINI_MODEL = "gemini-3.5-flash-lite"
 AI_FALLBACK_PROVIDER = "workers-ai" # none | workers-ai
-WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+WORKERS_AI_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8" # 4625 neurons/M in, 30475/M out (pricing page 2026-10-20)
+WORKERS_AI_DAILY_CAP = "100" # worst case ~55 neurons/call -> ~5.5k of 10k free neurons/day
 AI_DAILY_CAP = "10"
 # Secrets (wrangler secret put): GEMINI_API_KEY

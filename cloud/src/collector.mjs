@@ -48,8 +48,8 @@ export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = 
     if (!aiOn) continue;
     try {
       const ai = await summarize(env, `${it.title}\n${it.url}\n${it.excerpt}`, { fetchImpl, nowMs });
-      await env.DB.prepare("UPDATE items SET summary=?, key_points=?, score=?, ai_provider=?, updated_at=? WHERE id=?")
-        .bind(ai.summary, JSON.stringify(ai.key_points), ai.score, ai.provider, now, id).run();
+      await env.DB.prepare("UPDATE items SET summary=?, key_points=?, score=?, ai_provider=?, title_zh=?, title_original=?, summary_en=?, key_points_en=?, updated_at=? WHERE id=?")
+        .bind(ai.summary, JSON.stringify(ai.key_points), ai.score, ai.provider, ai.title_zh, it.title, ai.summary_en, JSON.stringify(ai.key_points_en), now, id).run();
       analyzed++;
     } catch (e) { if (e.message === "ai_daily_cap_reached") { error = "cap_reached"; aiOn = false; } }
   }

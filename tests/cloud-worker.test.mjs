@@ -65,3 +65,43 @@ test("unknown api route 404, bad status 400", async () => {
   assert.equal((await handle(req("/api/nope"), env, { authFetch })).status, 404);
   assert.equal((await handle(req("/api/library?status=x"), env, { authFetch })).status, 400);
 });
+
+const BI = { title_original: "OpenAI ships X", title_zh: "OpenAI 推出 X", summary: "中文摘要", summary_en: "English summary", key_points_zh: ["甲", "乙", "丙"], key_points_en: ["a", "b", "c"], score: 7 };
+const wai = (calls = { n: 0 }) => ({ run: async (model, input) => { calls.n++; calls.model = model; return { response: JSON.stringify(BI) }; } });
+const capBody = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "內容".repeat(60) }) };
+
+test("bilingual output stored and returned", async () => {
+  const env = mkEnv(); const d = { authFetch, fetchImpl: gemOk(BI) };
+  const r = await handle(req("/api/capture", capBody), env, d); assert.equal(r.status, 201);
+  const { id } = await r.json();
+  const it = (await handle(req(`/api/items/${id}`), env, d).then((x) => x.json())).item;
+  assert.equal(it.title_zh, "OpenAI 推出 X"); assert.equal(it.title_original, "OpenAI ships X");
+  assert.deepEqual(it.key_points, ["甲", "乙", "丙"]); assert.deepEqual(it.key_points_en, ["a", "b", "c"]); assert.equal(it.summary_en, "English summary");
+});
+
+test("Gemini cap reached -> Workers AI overflow under its own cap; usage per provider", async () => {
+  const calls = { n: 0 }; const env = mkEnv({ AI_DAILY_CAP: "1", WORKERS_AI_DAILY_CAP: "2", AI_FALLBACK_PROVIDER: "workers-ai", AI: wai(calls), WORKERS_AI_MODEL: "@cf/qwen/qwen3-30b-a3b-fp8" });
+  const d = { authFetch, fetchImpl: gemOk(BI) }; const prov = [];
+  for (let i = 0; i < 4; i++) { const r = await handle(req("/api/capture", capBody), env, d); prov.push(r.status === 201 ? (await r.json()).provider : r.status); }
+  assert.deepEqual(prov, ["gemini", "workers-ai", "workers-ai", 429]); assert.equal(calls.model, "@cf/qwen/qwen3-30b-a3b-fp8");
+  const c = await handle(req("/api/cloud/capabilities"), env, d).then((x) => x.json());
+  assert.deepEqual([c.ai.usage.gemini.used, c.ai.usage.gemini.cap, c.ai.usage.workersAi.used, c.ai.usage.workersAi.cap], [1, 1, 2, 2]);
+});
+
+test("Gemini 5xx falls back; 403 does not; fallback disabled means no Workers AI", async () => {
+  const fail = (s) => async () => new Response("x", { status: s });
+  const on = { AI: wai(), AI_FALLBACK_PROVIDER: "workers-ai" };
+  assert.equal((await (await handle(req("/api/capture", capBody), mkEnv(on), { authFetch, fetchImpl: fail(503) })).json()).provider, "workers-ai");
+  assert.equal((await handle(req("/api/capture", capBody), mkEnv(on), { authFetch, fetchImpl: fail(403) })).status, 502);
+  const off = { calls: 0 }; const env = mkEnv({ AI_DAILY_CAP: "0", AI: { run: async () => { off.calls++; } } });
+  assert.equal((await handle(req("/api/capture", capBody), env, { authFetch, fetchImpl: gemOk(BI) })).status, 429); assert.equal(off.calls, 0);
+});
+
+test("轉中文 translate endpoint on imported item keeps status, counts cap", async () => {
+  const env = mkEnv({ AI_DAILY_CAP: "1" }); const d = { authFetch, fetchImpl: gemOk(BI) }; const id = crypto.randomUUID(); const t = new Date().toISOString();
+  await env.DB.prepare("INSERT INTO items(id,kind,status,title,url,raw_excerpt,created_at,updated_at) VALUES(?, 'library', 'approved', 'English title', 'https://e.x/1', 'some english body', ?, ?)").bind(id, t, t).run();
+  const r = await handle(req(`/api/items/${id}/translate`, { method: "POST" }), env, d); assert.equal(r.status, 200);
+  const it = (await r.json()).item; assert.equal(it.title_zh, "OpenAI 推出 X"); assert.equal(it.status, "approved"); assert.equal(it.ai_provider, "gemini");
+  assert.equal((await handle(req(`/api/items/${id}/translate`, { method: "POST" }), env, d)).status, 429);
+  assert.equal((await handle(req(`/api/items/${crypto.randomUUID()}/translate`, { method: "POST" }), env, d)).status, 404);
+});
