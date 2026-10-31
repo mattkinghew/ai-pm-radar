@@ -1,0 +1,12 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a"><link rel="manifest" href="/manifest.webmanifest">
+<title>AI PM Radar</title><link rel="stylesheet" href="/app.css"></head><body>
+<header><h1>AI PM Radar</h1><span id="cap"></span></header>
+<nav><button data-tab="daily" class="on">今日</button><button data-tab="draft">待審核</button><button data-tab="approved">知識庫</button><button data-tab="capture">＋ 擷取</button></nav>
+<main id="view"></main>
+<template id="capture-tpl"><form id="cap-form">
+<label>網址<input name="url" type="url" placeholder="https://…"></label>
+<label>正文 / 字幕 / 貼文<textarea name="text" rows="8" placeholder="影片或社交貼文請直接貼字幕或內容"></textarea></label>
+<button type="submit">AI 整理成知識文章</button><p id="cap-msg" role="status"></p></form></template>
+<script src="/app.js" type="module"></script></body></html>

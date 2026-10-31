@@ -1,0 +1,36 @@
+# AI PM Radar — cloud Worker (Workers + D1 + Cron + static assets)
+# NO real IDs or secrets here. database_id is a placeholder; fill it after `wrangler d1 create` (see docs/cloudflare-deploy-runbook.md).
+name = "ai-pm-radar-cloud"
+main = "src/worker.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = false
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ai-pm-radar"
+database_id = "00000000-0000-4000-8000-000000000000" # PLACEHOLDER
+migrations_dir = "migrations"
+
+[ai]
+binding = "AI" # Workers AI, optional fallback only
+
+[triggers]
+crons = ["0 0 * * *"] # 00:00 UTC = 08:00 HKT
+
+[vars]
+ENVIRONMENT = "production"
+CLOUD_ACCESS_REQUIRED = "true"
+CF_ACCESS_TEAM_DOMAIN = "https://REPLACE-team.cloudflareaccess.com"
+CF_ACCESS_AUD = "REPLACE_WITH_ACCESS_APP_AUD"
+OWNER_EMAIL_SHA256 = "REPLACE_WITH_SHA256_OF_LOWERCASE_OWNER_EMAIL"
+AI_PROVIDER = "gemini"
+GEMINI_MODEL = "gemini-3.5-flash-lite"
+AI_FALLBACK_PROVIDER = "none" # none | workers-ai
+WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct"
+AI_DAILY_CAP = "10"
+# Secrets (wrangler secret put): GEMINI_API_KEY

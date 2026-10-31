@@ -1,0 +1,3 @@
+# Copy to cloud/.dev.vars for `wrangler dev` (never commit). Local only.
+ENVIRONMENT=local
+GEMINI_API_KEY=

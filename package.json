@@ -11,7 +11,7 @@
     "health:mobile": "node scripts/mobile-health.mjs",
     "typecheck": "tsc --noEmit",
     "test:phase-1.5d": "node --experimental-strip-types --test tests/approval-integrity.test.ts tests/universal-ingestor.test.ts tests/daily-radar-collector.test.mjs tests/cloud-sync-capability-gate.test.ts tests/secure-handoff-delivery.test.ts tests/intake-evidence-preview.test.ts",
-    "test": "node --experimental-strip-types --test tests/cloud-sync-contract.test.ts tests/cloud-workbench-sync.test.ts tests/synthetic-full-field.test.ts tests/phase13-real-pilot-preflight.test.ts tests/pilot-source-reconciliation.test.ts tests/pilot-controlled-update.test.ts tests/cloud-sync-capability-gate.test.ts tests/cloud-source-gateway.test.mjs tests/cloud-d1-schema.test.mjs tests/source-inbox.test.ts tests/source-library.test.ts tests/intelligence-routing.test.ts tests/daily-candidate.test.ts tests/source-fetch-helper.test.mjs tests/ai-fallback.test.mjs tests/source-feed.test.ts tests/research-runtime.test.mjs tests/research-runner.test.mjs tests/research-schedule.test.mjs tests/i18n.test.ts tests/companion-api.test.ts tests/cloudflare-access.test.mjs tests/mobile-production-server.test.mjs tests/content-ops-dispatch.test.mjs tests/approval-integrity.test.ts tests/universal-ingestor.test.ts tests/daily-radar-collector.test.mjs tests/secure-handoff-delivery.test.ts tests/intake-evidence-preview.test.ts tests/recovery-r1-owner-uat.test.mjs",
+    "test": "node --experimental-strip-types --test tests/cloud-sync-contract.test.ts tests/cloud-workbench-sync.test.ts tests/synthetic-full-field.test.ts tests/phase13-real-pilot-preflight.test.ts tests/pilot-source-reconciliation.test.ts tests/pilot-controlled-update.test.ts tests/cloud-sync-capability-gate.test.ts tests/cloud-source-gateway.test.mjs tests/cloud-d1-schema.test.mjs tests/source-inbox.test.ts tests/source-library.test.ts tests/intelligence-routing.test.ts tests/daily-candidate.test.ts tests/source-fetch-helper.test.mjs tests/ai-fallback.test.mjs tests/source-feed.test.ts tests/research-runtime.test.mjs tests/research-runner.test.mjs tests/research-schedule.test.mjs tests/i18n.test.ts tests/companion-api.test.ts tests/cloudflare-access.test.mjs tests/mobile-production-server.test.mjs tests/content-ops-dispatch.test.mjs tests/approval-integrity.test.ts tests/universal-ingestor.test.ts tests/daily-radar-collector.test.mjs tests/secure-handoff-delivery.test.ts tests/intake-evidence-preview.test.ts tests/recovery-r1-owner-uat.test.mjs tests/cloud-worker.test.mjs",
     "source:candidate": "node --experimental-strip-types scripts/build-source-candidate.mjs",
     "research:run": "node --experimental-strip-types scripts/research-runner.mjs",
     "research:schedule": "node --experimental-strip-types scripts/research-schedule.mjs",
@@ -23,7 +23,10 @@
     "agent:approve": "node ai-agent/executor.mjs approve",
     "agent:run": "node ai-agent/executor.mjs run",
     "agent:rollback-plan": "node ai-agent/executor.mjs rollback-plan",
-    "daily:new": "node scripts/create-daily-update.mjs"
+    "daily:new": "node scripts/create-daily-update.mjs",
+    "cloud:dev": "cd cloud && wrangler dev --local --test-scheduled",
+    "cloud:export": "node cloud/scripts/export-local-to-d1.mjs",
+    "cloud:smoke": "node cloud/scripts/export-local-to-d1.mjs && node cloud/scripts/local-smoke.mjs"
   },
   "dependencies": {
     "fast-xml-parser": "5.11.1",
@@ -35,6 +38,7 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "wrangler": "^4.156.0"
   }
 }
