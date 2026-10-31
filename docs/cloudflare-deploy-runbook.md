@@ -1,6 +1,6 @@
 # AI PM Radar — Cloudflare 雲端部署 Runbook
 
-狀態：**Planned（未部署）**。以下所有指令都會寫入 Matt 的 Cloudflare 帳戶，必須先得到 Matt 明確批准才執行。
+狀態：**Partial（2026-10-31 18:5x HKT 已部署 Worker + D1 + Cron + custom domain；Access application 未建立，Worker 目前對所有請求回 401）**。
 Branch：`feat/cloudflare-cloud`。代碼在 `cloud/`。Mac 本機流程（`npm run dev:local`、launchd 08:00 收集）不受影響，兩者獨立運作。
 
 ## 架構
@@ -96,3 +96,13 @@ Gemini 免費 key 用量同 Mac 一樣（每日最多 10 次，cron 與 Quick Ca
 - Workers 免費版每日 100k request 用完會回 1027 錯誤，不會收費。
 - 唯一可能產生費用的是：升級 Paid plan、或把 Gemini key 換成付費 key（每日上限 10 次保護）。
 - Gemini 免費版內容會被 Google 用作改善產品（見 Gemini 定價頁）；介意則改用付費 key。
+
+## 實際部署紀錄（2026-10-31）
+- Account：`515af978433a792ecc225a6b080db3f1`
+- Worker：`ai-pm-radar-cloud`，version `5676cd68-8abf-47ff-9892-f3ce70fd198b`，custom domain `radar-cloud.lamlab.cc`，cron `0 0 * * *`
+- D1：`ai-pm-radar`（`fdbc35a5-ba4f-490e-9eeb-33ee80029834`），migration `0001_init` 已套用，匯入 11 篇
+- Secret：`GEMINI_API_KEY`（由 .env.local pipe 入，未落檔）
+- Vars：team domain `https://silent-recipe-9aa6.cloudflareaccess.com`、owner email SHA-256、`AI_FALLBACK_PROVIDER=workers-ai`
+- **未完成**：Access application（Cloudflare MCP 冇 Access 權限）。`CF_ACCESS_AUD` 仍是 placeholder → Worker 預設拒絕（401）。
+  完成方法：Zero Trust dashboard → Access → Applications → Add self-hosted，domain `radar-cloud.lamlab.cc`，policy Allow / Include Emails `lamms280@gmail.com`；複製 AUD → 填入 `wrangler.toml` 的 `CF_ACCESS_AUD` → `cd cloud && npx wrangler deploy`。
+- 未改動：`radar.lamlab.cc`（仍 302 到原 Access 登入）

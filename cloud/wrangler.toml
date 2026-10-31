@@ -1,9 +1,10 @@
 # AI PM Radar — cloud Worker (Workers + D1 + Cron + static assets)
-# NO real IDs or secrets here. database_id is a placeholder; fill it after `wrangler d1 create` (see docs/cloudflare-deploy-runbook.md).
+# No secrets here. Deployed 2026-10-31; OWNER_EMAIL_SHA256 is a hash only.
 name = "ai-pm-radar-cloud"
 main = "src/worker.mjs"
 compatibility_date = "2026-09-01"
 workers_dev = false
+routes = [{ pattern = "radar-cloud.lamlab.cc", custom_domain = true }]
 
 [assets]
 directory = "./public"
@@ -13,7 +14,7 @@ run_worker_first = true
 [[d1_databases]]
 binding = "DB"
 database_name = "ai-pm-radar"
-database_id = "00000000-0000-4000-8000-000000000000" # PLACEHOLDER
+database_id = "fdbc35a5-ba4f-490e-9eeb-33ee80029834"
 migrations_dir = "migrations"
 
 [ai]
@@ -25,12 +26,12 @@ crons = ["0 0 * * *"] # 00:00 UTC = 08:00 HKT
 [vars]
 ENVIRONMENT = "production"
 CLOUD_ACCESS_REQUIRED = "true"
-CF_ACCESS_TEAM_DOMAIN = "https://REPLACE-team.cloudflareaccess.com"
+CF_ACCESS_TEAM_DOMAIN = "https://silent-recipe-9aa6.cloudflareaccess.com"
 CF_ACCESS_AUD = "REPLACE_WITH_ACCESS_APP_AUD"
-OWNER_EMAIL_SHA256 = "REPLACE_WITH_SHA256_OF_LOWERCASE_OWNER_EMAIL"
+OWNER_EMAIL_SHA256 = "e9567eff528ea91c6472e28ec186b9a682d88456facceb65c943dc721d9f5ba3"
 AI_PROVIDER = "gemini"
 GEMINI_MODEL = "gemini-3.5-flash-lite"
-AI_FALLBACK_PROVIDER = "none" # none | workers-ai
+AI_FALLBACK_PROVIDER = "workers-ai" # none | workers-ai
 WORKERS_AI_MODEL = "@cf/meta/llama-3.1-8b-instruct"
 AI_DAILY_CAP = "10"
 # Secrets (wrangler secret put): GEMINI_API_KEY
