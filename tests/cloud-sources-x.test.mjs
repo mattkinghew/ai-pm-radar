@@ -23,7 +23,7 @@ test("sources CRUD (owner), validation, dedupe", async () => {
   assert.equal((await add({ type: "x", value: "bad handle!" })).status, 400);
   const p = await handle(owner(`/api/sources/${source.id}`, { method: "PATCH", headers: J, body: JSON.stringify({ enabled: false }) }), env, d); assert.equal((await p.json()).source.enabled, 0);
   assert.equal((await handle(owner(`/api/sources/${source.id}`, { method: "DELETE" }), env, d)).status, 200);
-  assert.equal((await (await handle(owner("/api/sources"), env, d)).json()).sources.length, 6); // seeded watchlist only
+  assert.equal((await (await handle(owner("/api/sources"), env, d)).json()).sources.length, 11); // seeded watchlist only
 });
 
 test("bearer: only ingest + read sources; wrong/short token or missing secret -> 401", async () => {
@@ -52,7 +52,7 @@ test("X ingest dedups by post_id, rejects bad rows, cron analyzes with reco", as
 test("seeded X watchlist readable by bearer; side_income_new flag stored", async () => {
   const env = mkEnv();
   const xs = (await (await handle(bot("/api/sources?type=x"), env)).json()).sources.map((x) => x.value.toLowerCase());
-  for (const h of ["@wangdaso", "@miles_mazy", "@goan999999", "@haoge6699", "@mileson07", "@laobaishare"]) assert.ok(xs.includes(h), h);
+  for (const h of ["@wangdaso", "@miles_mazy", "@goan999999", "@haoge6699", "@mileson07", "@laobaishare", "@0xluffy_eth", "@dontbesilent", "@ai_dvd6", "@chrishkai", "@zhouluobo"]) assert.ok(xs.includes(h), h);
   const gemSI = async (u) => String(u).includes("generativelanguage") ? new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ ...RECO, side_income_new: true, side_income_reason: "AI 短劇二創接單，成本低" }) }] } }] })) : new Response("x", { status: 404 });
   const r = await handle(owner("/api/capture", { method: "POST", headers: J, body: JSON.stringify({ text: "內容".repeat(60) }) }), env, { authFetch, fetchImpl: gemSI });
   const { id } = await r.json(); const it = (await (await handle(owner(`/api/items/${id}`), env, { authFetch })).json()).item;
