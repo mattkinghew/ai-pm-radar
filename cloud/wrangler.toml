@@ -27,7 +27,7 @@ crons = ["0 0 * * *"] # 00:00 UTC = 08:00 HKT
 ENVIRONMENT = "production"
 CLOUD_ACCESS_REQUIRED = "true"
 CF_ACCESS_TEAM_DOMAIN = "https://silent-recipe-9aa6.cloudflareaccess.com"
-CF_ACCESS_AUD = "REPLACE_WITH_ACCESS_APP_AUD"
+CF_ACCESS_AUD = "56ad83708fd3876e4c3053a7dafe2fef6b134231f2707f82ac3062d6494093c5"
 OWNER_EMAIL_SHA256 = "e9567eff528ea91c6472e28ec186b9a682d88456facceb65c943dc721d9f5ba3"
 AI_PROVIDER = "gemini"
 GEMINI_MODEL = "gemini-3.5-flash-lite"
