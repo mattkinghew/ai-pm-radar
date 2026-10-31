@@ -61,3 +61,24 @@ test("seeded X watchlist readable by bearer; side_income_new flag stored", async
   const it2 = (await (await handle(owner(`/api/items/${(await r2.json()).id}`), env, { authFetch })).json()).item;
   assert.equal(it2.side_income_new, 0); assert.equal(it2.side_income_reason, null);
 });
+
+
+test("review/approve bumps feedback weight; reject lowers; list orders by score+weight", async () => {
+  const env = mkEnv();
+  const gem = async (u) => String(u).includes("generativelanguage")
+    ? new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ ...RECO, score: 9, score_reason: "可轉化為顧問案例", summary: "摘要內容夠長", key_points_zh: ["a","b","c"] }) }] } }] }))
+    : new Response("x", { status: 404 });
+  const r = await handle(owner("/api/capture", { method: "POST", headers: J, body: JSON.stringify({ text: "內容".repeat(60) }) }), env, { authFetch, fetchImpl: gem });
+  const { id } = await r.json();
+  const it0 = (await (await handle(owner(`/api/items/${id}`), env, { authFetch })).json()).item;
+  assert.equal(it0.score, 9); assert.equal(it0.score_reason, "可轉化為顧問案例");
+  assert.equal((await handle(owner(`/api/items/${id}/review`, { method: "POST" }), env, { authFetch })).status, 200);
+  assert.equal((await handle(owner(`/api/items/${id}/approve`, { method: "POST" }), env, { authFetch })).status, 200);
+  const w = await env.DB.prepare("SELECT weight,pos,neg FROM feedback_weights WHERE key=?").bind("quick-capture").first();
+  assert.ok(w.weight >= 0.5); assert.equal(w.pos, 2); assert.equal(w.neg, 0);
+  const r2 = await handle(owner("/api/capture", { method: "POST", headers: J, body: JSON.stringify({ text: ("別的內容").repeat(40) }) }), env, { authFetch, fetchImpl: gem });
+  const id2 = (await r2.json()).id;
+  assert.equal((await handle(owner(`/api/items/${id2}/reject`, { method: "POST" }), env, { authFetch })).status, 200);
+  const w2 = await env.DB.prepare("SELECT weight,neg FROM feedback_weights WHERE key=?").bind("quick-capture").first();
+  assert.ok(w2.weight < w.weight); assert.equal(w2.neg, 1);
+});

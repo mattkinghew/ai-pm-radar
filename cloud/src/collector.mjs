@@ -41,8 +41,8 @@ export async function collect(fetchImpl = fetch, extra = []) {
   return out;
 }
 
-export const AI_UPDATE = "UPDATE items SET summary=?, key_points=?, score=?, ai_provider=?, title_zh=?, title_original=COALESCE(NULLIF(?,''), title_original, title), summary_en=?, key_points_en=?, reco_score=?, reco_reason=?, side_income_new=?, side_income_reason=?, updated_at=? WHERE id=?";
-export const aiBind = (ai, original, now, id) => [ai.summary, JSON.stringify(ai.key_points), ai.score, ai.provider, ai.title_zh, original ?? "", ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, ai.side_income_new ?? 0, ai.side_income_reason ?? null, now, id];
+export const AI_UPDATE = "UPDATE items SET summary=?, key_points=?, score=?, ai_provider=?, title_zh=?, title_original=COALESCE(NULLIF(?,''), title_original, title), summary_en=?, key_points_en=?, reco_score=?, reco_reason=?, side_income_new=?, side_income_reason=?, score_reason=?, updated_at=? WHERE id=?";
+export const aiBind = (ai, original, now, id) => [ai.summary, JSON.stringify(ai.key_points), ai.score, ai.provider, ai.title_zh, original ?? "", ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, ai.side_income_new ?? 0, ai.side_income_reason ?? null, ai.score_reason ?? null, now, id];
 
 // Collect built-in + user RSS, then analyze every un-analyzed item of the day (incl. X posts ingested by Jun) within caps.
 export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = {}) {
@@ -67,7 +67,14 @@ export async function analyzePending(env, { fetchImpl = fetch, nowMs = Date.now(
     try {
       const ai = await summarize(env, `${it.title}\n${it.url}\n${it.raw_excerpt || ""}`, { fetchImpl, nowMs });
       await env.DB.prepare(AI_UPDATE).bind(...aiBind(ai, it.title, now, it.id)).run(); analyzed++;
-    } catch (e) { if (e.message === "ai_daily_cap_reached") { error = "cap_reached"; break; } }
+    } catch (e) {
+      if (e.message === "ai_daily_cap_reached") { error = "cap_reached"; break; }
+      if (e.message === "insufficient_content") {
+        await env.DB.prepare("UPDATE items SET summary=?, score=0, reco_score=0, reco_reason=?, ai_provider='skipped', updated_at=? WHERE id=? AND ai_provider IS NULL")
+          .bind("（內容過短，未能自動摘要；可撳「轉中文」或用「＋擷取」貼完整正文）", "內容過短未能評估", now, it.id).run();
+        analyzed++;
+      }
+    }
   }
   return { analyzed, error };
 }

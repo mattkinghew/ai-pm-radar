@@ -5,7 +5,7 @@ import { hktDay } from "./ai.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
-const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason";
+const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason";
 const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
 const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), metrics: r.metrics ? pj(r.metrics) : null });
 const SRC = "id,type,value,label,enabled,created_at,updated_at";
@@ -86,14 +86,14 @@ export async function handle(request, env, deps = {}) {
   if (url.pathname === "/api/library" && m === "GET") {
     const status = url.searchParams.get("status") || "approved";
     if (!["draft", "reviewed", "approved", "rejected", "all"].includes(status)) return json({ error: "bad_status" }, 400);
-    const q = status === "all" ? db.prepare(`SELECT ${ROW} FROM items ORDER BY updated_at DESC LIMIT 200`)
-      : db.prepare(`SELECT ${ROW} FROM items WHERE status=? ORDER BY updated_at DESC LIMIT 200`).bind(status);
+    const q = status === "all" ? db.prepare(`SELECT ${ROW} FROM items ORDER BY (COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)) DESC, updated_at DESC LIMIT 200`)
+      : db.prepare(`SELECT ${ROW} FROM items WHERE status=? ORDER BY (COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)) DESC, updated_at DESC LIMIT 200`).bind(status);
     return json({ items: (await q.all()).results.map(shape) });
   }
   if (url.pathname === "/api/daily" && m === "GET") {
     const date = url.searchParams.get("date") || (await db.prepare("SELECT MAX(run_date) d FROM items WHERE kind='daily'").first())?.d;
     if (date && !/^\d{4}-\d{2}-\d{2}$/u.test(date)) return json({ error: "bad_date" }, 400);
-    const r = await db.prepare(`SELECT ${ROW} FROM items WHERE kind='daily' AND run_date=? ORDER BY score DESC NULLS LAST`).bind(date ?? "").all();
+    const r = await db.prepare(`SELECT ${ROW} FROM items WHERE kind='daily' AND run_date=? ORDER BY (COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)) DESC, reco_score DESC NULLS LAST, score DESC NULLS LAST`).bind(date ?? "").all();
     return json({ date: date ?? null, items: r.results.map(shape) });
   }
   const one = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})(?:\/(review|approve|reject|translate))?$/u);
@@ -111,10 +111,19 @@ export async function handle(request, env, deps = {}) {
     return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()) });
   }
   if (one && m === "POST" && one[2]) {
-    // Human review gate: approve only after reviewed.
+    // Human review gate: approve only after reviewed. Lightweight feedback: bump source weight for future retrieval.
     const [from, to] = { review: [["draft"], "reviewed"], approve: [["reviewed"], "approved"], reject: [["draft", "reviewed"], "rejected"] }[one[2]];
+    const row = await db.prepare("SELECT source, status FROM items WHERE id=?").bind(one[1]).first();
+    if (!row || !from.includes(row.status)) return json({ error: "invalid_transition" }, 409);
     const res = await db.prepare(`UPDATE items SET status=?, updated_at=? WHERE id=? AND status IN (${from.map(() => "?").join(",")})`).bind(to, now, one[1], ...from).run();
-    return res.meta.changes ? json({ ok: true, status: to }) : json({ error: "invalid_transition" }, 409);
+    if (!res.meta.changes) return json({ error: "invalid_transition" }, 409);
+    if (row.source) {
+      const delta = one[2] === "reject" ? -0.5 : 0.3;
+      await db.prepare(`INSERT INTO feedback_weights(key,weight,pos,neg,updated_at) VALUES(?,?,?,?,?)
+        ON CONFLICT(key) DO UPDATE SET weight=CASE WHEN weight+? > 3 THEN 3 WHEN weight+? < -2 THEN -2 ELSE weight+? END, pos=pos+?, neg=neg+?, updated_at=?`)
+        .bind(row.source, delta, one[2]==="reject"?0:1, one[2]==="reject"?1:0, now, delta, delta, delta, one[2]==="reject"?0:1, one[2]==="reject"?1:0, now).run();
+    }
+    return json({ ok: true, status: to });
   }
   if (url.pathname === "/api/capture" && m === "POST") {
     if (!(request.headers.get("content-type") || "").includes("application/json")) return json({ error: "json_required" }, 415);
@@ -131,10 +140,10 @@ export async function handle(request, env, deps = {}) {
     try { ai = await summarize(env, `${link}\n${content}`, { fetchImpl: deps.fetchImpl ?? fetch }); }
     catch (e) { return aiErr(e); }
     const id = crypto.randomUUID();
-    await db.prepare(`INSERT INTO items(id,kind,status,title,url,source,category,summary,key_points,score,raw_excerpt,ai_provider,title_zh,title_original,summary_en,key_points_en,reco_score,reco_reason,side_income_new,side_income_reason,created_at,updated_at)
-      VALUES(?, 'capture', 'draft', ?, ?, 'quick-capture', 'CAPTURE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    await db.prepare(`INSERT INTO items(id,kind,status,title,url,source,category,summary,key_points,score,raw_excerpt,ai_provider,title_zh,title_original,summary_en,key_points_en,reco_score,reco_reason,side_income_new,side_income_reason,score_reason,created_at,updated_at)
+      VALUES(?, 'capture', 'draft', ?, ?, 'quick-capture', 'CAPTURE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
       .bind(id, ai.title_original || ai.title || link || "Quick Capture", link || null, ai.summary, JSON.stringify(ai.key_points), ai.score, content.slice(0, 4000), ai.provider,
-        ai.title_zh, ai.title_original || null, ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, ai.side_income_new ?? 0, ai.side_income_reason ?? null, now, now).run();
+        ai.title_zh, ai.title_original || null, ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, ai.side_income_new ?? 0, ai.side_income_reason ?? null, ai.score_reason ?? null, now, now).run();
     return json({ id, status: "draft", ...ai }, 201);
   }
   return json({ error: "api_route_not_found" }, 404);

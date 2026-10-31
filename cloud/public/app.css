@@ -35,3 +35,7 @@ select{margin-top:6px;padding:12px;border-radius:4px;border:1px solid #9a9184;ba
 
 .money{background:#ecfdf5;border-left:3px solid #047857;padding:6px 10px;font-size:14px;color:#064e3b!important;overflow-wrap:anywhere}.money b{display:block;font-size:12px;color:#047857}
 .picks .badge{display:inline-block!important;background:#047857;color:#fff!important;font:700 11px var(--sans);padding:2px 6px;border-radius:3px;margin-right:6px}
+
+.score-f{margin-left:8px;font:500 13px var(--sans);color:var(--muted)}.score-f select{margin-left:4px}
+.picks .sc{display:inline-block;min-width:1.5em;font-weight:700;color:#047857;margin-right:6px}
+.score-why{border-left-color:#2563eb;background:#eff6ff}.score-why b{color:#1d4ed8}
