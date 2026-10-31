@@ -5,7 +5,7 @@ import { hktDay } from "./ai.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
-const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics";
+const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason";
 const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
 const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), metrics: r.metrics ? pj(r.metrics) : null });
 const SRC = "id,type,value,label,enabled,created_at,updated_at";
@@ -131,10 +131,10 @@ export async function handle(request, env, deps = {}) {
     try { ai = await summarize(env, `${link}\n${content}`, { fetchImpl: deps.fetchImpl ?? fetch }); }
     catch (e) { return aiErr(e); }
     const id = crypto.randomUUID();
-    await db.prepare(`INSERT INTO items(id,kind,status,title,url,source,category,summary,key_points,score,raw_excerpt,ai_provider,title_zh,title_original,summary_en,key_points_en,reco_score,reco_reason,created_at,updated_at)
-      VALUES(?, 'capture', 'draft', ?, ?, 'quick-capture', 'CAPTURE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+    await db.prepare(`INSERT INTO items(id,kind,status,title,url,source,category,summary,key_points,score,raw_excerpt,ai_provider,title_zh,title_original,summary_en,key_points_en,reco_score,reco_reason,side_income_new,side_income_reason,created_at,updated_at)
+      VALUES(?, 'capture', 'draft', ?, ?, 'quick-capture', 'CAPTURE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
       .bind(id, ai.title_original || ai.title || link || "Quick Capture", link || null, ai.summary, JSON.stringify(ai.key_points), ai.score, content.slice(0, 4000), ai.provider,
-        ai.title_zh, ai.title_original || null, ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, now, now).run();
+        ai.title_zh, ai.title_original || null, ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, ai.side_income_new ?? 0, ai.side_income_reason ?? null, now, now).run();
     return json({ id, status: "draft", ...ai }, 201);
   }
   return json({ error: "api_route_not_found" }, 404);

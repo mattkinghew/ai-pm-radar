@@ -32,3 +32,6 @@ nav button{font-size:clamp(13px,3.8vw,15px);padding:12px 2px}
 select{margin-top:6px;padding:12px;border-radius:4px;border:1px solid #9a9184;background:#fff;font:16px var(--sans);color:var(--ink)}
 .src{display:flex;align-items:center;gap:8px;padding:12px 0;border-top:1px solid var(--line);max-width:720px;overflow-wrap:anywhere}.src.off{opacity:.6}.src .tag{font:700 11px var(--sans);background:var(--ink);color:#fff;padding:3px 6px;border-radius:3px}
 .src button{min-height:40px;padding:8px 12px;border-radius:4px;font:600 13px var(--sans);cursor:pointer}.src .sec{background:var(--ink);color:#fff;border:0}.src .rej{background:transparent;border:1px solid var(--ink);color:var(--ink)}
+
+.money{background:#ecfdf5;border-left:3px solid #047857;padding:6px 10px;font-size:14px;color:#064e3b!important;overflow-wrap:anywhere}.money b{display:block;font-size:12px;color:#047857}
+.picks .badge{display:inline-block!important;background:#047857;color:#fff!important;font:700 11px var(--sans);padding:2px 6px;border-radius:3px;margin-right:6px}

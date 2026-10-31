@@ -16,7 +16,7 @@ function body(it) {
   return `<h3>${esc(zhT)}</h3><p>${esc(zhS)}</p>${ul(it.key_points)}`;
 }
 const size = (it, i) => i === 0 ? "feat" : (i < 3 || (it.score ?? 0) >= 8) ? "wide" : "";
-const card = (it, i = 9) => `<article id="i-${it.id}" class="card ${size(it, i)}">${it.category || it.source ? `<div class="kicker">${esc(it.category || it.source)}</div>` : ""}${body(it)}${it.reco_reason ? `<p class="why"><b>推薦理由</b>${esc(it.reco_reason)}</p>` : ""}<div class="meta">${it.reco_score != null ? `<span class="reco">推薦 ${esc(it.reco_score)}</span> · ` : ""}${esc(it.source || "")} · ${esc(it.status)}${it.score != null ? " · 評分 " + esc(it.score) : ""}${it.ai_provider ? " · " + esc(PV[it.ai_provider] || it.ai_provider) : ""}</div>
+const card = (it, i = 9) => `<article id="i-${it.id}" class="card ${size(it, i)}">${it.category || it.source ? `<div class="kicker">${esc(it.category || it.source)}</div>` : ""}${body(it)}${it.side_income_new ? `<p class="money"><b>💰 新變現機會</b>${esc(it.side_income_reason || "")}</p>` : ""}${it.reco_reason ? `<p class="why"><b>推薦理由</b>${esc(it.reco_reason)}</p>` : ""}<div class="meta">${it.reco_score != null ? `<span class="reco">推薦 ${esc(it.reco_score)}</span> · ` : ""}${esc(it.source || "")} · ${esc(it.status)}${it.score != null ? " · 評分 " + esc(it.score) : ""}${it.ai_provider ? " · " + esc(PV[it.ai_provider] || it.ai_provider) : ""}</div>
 ${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">原文</a>` : ""}
 <div class="acts">${!it.title_zh ? `<button class="sec" data-act="translate" data-id="${it.id}">轉中文</button>` : ""}${it.status === "draft" ? `<button data-act="review" data-id="${it.id}">已審核</button>` : ""}${it.status === "reviewed" ? `<button data-act="approve" data-id="${it.id}">批准重用</button>` : ""}${["draft", "reviewed"].includes(it.status) ? `<button class="rej" data-act="reject" data-id="${it.id}">拒絕</button>` : ""}</div></article>`;
 const list = (items) => items.length ? `<div class="grid">${items.map(card).join("")}</div>` : "<p class='meta'>暫時冇內容</p>";
@@ -26,11 +26,11 @@ async function show(tab) {
     if (tab === "capture") { view.innerHTML = ""; view.append(document.getElementById("capture-tpl").content.cloneNode(true)); return bindCapture(); }
     if (tab === "sources") { view.innerHTML = ""; view.append(document.getElementById("sources-tpl").content.cloneNode(true)); return bindSources(); }
     if (tab === "daily") {
-      const d = await api("/api/daily"); const picks = d.items.filter((i) => (i.reco_score ?? 0) >= 7).sort((a, b) => b.reco_score - a.reco_score).slice(0, 5);
+      const d = await api("/api/daily"); const picks = d.items.filter((i) => (i.reco_score ?? 0) >= 7 || i.side_income_new).sort((a, b) => (b.side_income_new - a.side_income_new) || ((b.reco_score ?? 0) - (a.reco_score ?? 0))).slice(0, 6);
       const only = localStorage.getItem("radar-reco") === "1";
       view.innerHTML = `<p class="dateline">${esc(d.date || "未有")} · 今日焦點 ${d.items.length} 則</p>
 <div class="filters"><button data-reco="0" class="${only ? "" : "on"}">全部</button><button data-reco="1" class="${only ? "on" : ""}">只睇推薦（${picks.length}）</button></div>
-${picks.length ? `<section class="picks" aria-label="推薦給你"><h2>推薦給你</h2><ol>${picks.map((p) => `<li><a href="#i-${p.id}">${esc(p.title_zh || p.title)}</a><span>${esc(p.reco_reason || "")}</span></li>`).join("")}</ol></section>` : ""}` + list(only ? picks : d.items);
+${picks.length ? `<section class="picks" aria-label="推薦給你"><h2>推薦給你</h2><ol>${picks.map((p) => `<li>${p.side_income_new ? `<span class="badge">💰 新變現機會</span>` : ""}<a href="#i-${p.id}">${esc(p.title_zh || p.title)}</a><span>${esc(p.side_income_new ? p.side_income_reason || p.reco_reason || "" : p.reco_reason || "")}</span></li>`).join("")}</ol></section>` : ""}` + list(only ? picks : d.items);
     }
     else { const d = await api(tab === "draft" ? "/api/library?status=all" : "/api/library?status=approved"); view.innerHTML = list(tab === "draft" ? d.items.filter((i) => ["draft", "reviewed"].includes(i.status)) : d.items); }
   } catch (e) { view.innerHTML = `<p>載入失敗：${esc(e.message)}</p>`; }

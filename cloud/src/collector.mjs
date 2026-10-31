@@ -41,8 +41,8 @@ export async function collect(fetchImpl = fetch, extra = []) {
   return out;
 }
 
-export const AI_UPDATE = "UPDATE items SET summary=?, key_points=?, score=?, ai_provider=?, title_zh=?, title_original=COALESCE(NULLIF(?,''), title_original, title), summary_en=?, key_points_en=?, reco_score=?, reco_reason=?, updated_at=? WHERE id=?";
-export const aiBind = (ai, original, now, id) => [ai.summary, JSON.stringify(ai.key_points), ai.score, ai.provider, ai.title_zh, original ?? "", ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, now, id];
+export const AI_UPDATE = "UPDATE items SET summary=?, key_points=?, score=?, ai_provider=?, title_zh=?, title_original=COALESCE(NULLIF(?,''), title_original, title), summary_en=?, key_points_en=?, reco_score=?, reco_reason=?, side_income_new=?, side_income_reason=?, updated_at=? WHERE id=?";
+export const aiBind = (ai, original, now, id) => [ai.summary, JSON.stringify(ai.key_points), ai.score, ai.provider, ai.title_zh, original ?? "", ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, ai.side_income_new ?? 0, ai.side_income_reason ?? null, now, id];
 
 // Collect built-in + user RSS, then analyze every un-analyzed item of the day (incl. X posts ingested by Jun) within caps.
 export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = {}) {
