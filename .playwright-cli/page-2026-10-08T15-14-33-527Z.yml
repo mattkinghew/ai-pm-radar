@@ -1,0 +1,222 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e580]:
+    - generic [ref=e581]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e582] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e583]: AI
+        - generic [ref=e584]:
+          - strong [ref=e585]: AI PM Radar
+          - paragraph [ref=e586]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e587]:
+        - link "首頁" [ref=e588] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=e589] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e590] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e591] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=e592] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=e593] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e594]:
+    - generic [ref=e595]:
+      - paragraph [ref=e596]: 研究簡報草稿
+      - heading "今日研究簡報草稿" [level=1] [ref=e597]
+      - paragraph [ref=e598]: 顯示本機 runner 收集及分析的有限結果；草稿仍需人工核對，不是正式 daily 或 verified 內容。
+      - paragraph [ref=e599]: 這是 AI／規則產生的研究簡報草稿；evidence 可定位不代表主張已獨立查證，也不代表已批准或發布。
+    - region [ref=e600]:
+      - generic [ref=e601]:
+        - heading "已批准 SourceRecord Library" [level=2] [ref=e602]
+        - paragraph [ref=e603]: 以下是同一瀏覽器保存的已審核來源快照。建立簡報會直接使用該 SourceRecord，不重新抓取或抽取原文。
+      - generic [ref=e604]:
+        - button "匯出 Source Library 與交接備份" [ref=e605] [cursor=pointer]
+        - generic [ref=e606] [cursor=pointer]:
+          - text: 匯入 Source Library 備份
+          - button "匯入 Source Library 備份" [ref=e607]
+      - article [ref=e609]:
+        - generic [ref=e610]:
+          - heading "Synthetic AI classification pilot" [level=3] [ref=e611]
+          - generic [ref=e612]: reviewed · approved
+        - paragraph [ref=e613]: https://example.org/synthetic-ai-pilot
+        - paragraph [ref=e614]: 作者：Synthetic Education Research Group · 發布：未知
+        - paragraph [ref=e615]:
+          - text: 批准時間：2026年10月8日 下午11:13 · SourceRecord ID：
+          - code [ref=e616]: src_d1f5f5b4
+        - group [ref=e617]:
+          - generic "來源明確內容" [ref=e618]
+        - region [ref=e619]:
+          - generic [ref=e620]:
+            - heading "Intelligence 評估與路由建議" [level=3] [ref=e621]
+            - paragraph [ref=e622]: 僅使用已批准 SourceRecord 的現有欄位；分數是規則分析，不是來源事實、查證或批准。
+          - button "評估 intelligence value" [ref=e623] [cursor=pointer]
+          - paragraph [ref=e663]: "Advisory, rule-based assessment derived from saved SourceRecord fields. Scores are not facts, verification, or approval. · 評估信心: 90% · 規則版本: radar-intelligence-rules-v1"
+          - paragraph [ref=e664]: 分數只供排序與解釋；高分不表示主張為真。
+          - generic [ref=e665]:
+            - article [ref=e666]:
+              - strong [ref=e667]: 來源品質 · 80/100
+              - paragraph [ref=e668]: Rule-based completeness and provenance signals; this is not an independent source-trust verification.
+              - generic [ref=e669]: source URL is present · requested and final URLs are retained · creator metadata is present · captured source text is present
+            - article [ref=e670]:
+              - strong [ref=e671]: Radar 相關性 · 44/100
+              - paragraph [ref=e672]: Keyword overlap with the documented Radar focus (AI PM, business/workflow, education/NGO/SME); update this profile when priorities change.
+              - generic [ref=e673]: ai · human review
+            - article [ref=e674]:
+              - strong [ref=e675]: Evidence 可定位度 · 80/100
+              - paragraph [ref=e676]: Measures whether existing SourceRecord evidence can be located in its captured text; it does not judge whether evidence proves a claim.
+              - generic [ref=e677]: 1 source evidence item(s) · 1/1 claims have locatable evidence
+            - article [ref=e678]:
+              - strong [ref=e679]: 可行動訊號 · 62/100
+              - paragraph [ref=e680]: Measures presence of recorded implications, use cases, and content ideas; it does not validate their usefulness.
+              - generic [ref=e681]: business implication is recorded · AI PM implication is recorded · 1 content idea(s) recorded
+            - article [ref=e682]:
+              - strong [ref=e683]: 重用潛力 · 35/100
+              - paragraph [ref=e684]: Measures existing case, library, teaching, and creative/video signals for downstream reuse.
+              - generic [ref=e685]: marked as a case candidate
+          - heading "Intelligence 評估與路由建議 · 待人工核對" [level=4] [ref=e686]
+          - generic [ref=e687]:
+            - article [ref=e688]:
+              - generic [ref=e689]:
+                - strong [ref=e690]: 顧問／案例參考
+                - generic [ref=e691]: 80/100 · 已接受路由
+              - paragraph [ref=e692]: marked as a case candidate; business implication is recorded; source-backed claims are present
+              - generic [ref=e693]: marked as a case candidate · business implication is recorded · source-backed claims are present
+              - paragraph [ref=e758]:
+                - strong [ref=e759]: 顧問／案例參考
+              - button "建立未批准草稿" [ref=e760] [cursor=pointer]
+            - article [ref=e702]:
+              - generic [ref=e703]:
+                - strong [ref=e704]: 研究簡報
+                - generic [ref=e705]: 62/100 · 待人工決定
+              - paragraph [ref=e706]: matches Radar focus; has source evidence
+              - generic [ref=e707]: matches Radar focus · has source evidence
+              - generic [ref=e708]:
+                - text: 決定原因（拒絕／覆寫必填）
+                - textbox "決定原因（拒絕／覆寫必填）" [ref=e709]
+              - generic [ref=e710]:
+                - button "接受建議" [ref=e711] [cursor=pointer]
+                - button "拒絕建議" [disabled] [ref=e712]
+              - generic [ref=e713]:
+                - text: 覆寫目標路由
+                - combobox "覆寫目標路由" [ref=e714]:
+                  - option "學習包" [selected]
+                  - option "內容候選"
+                  - option "創作參考"
+                  - option "顧問／案例參考"
+              - button "改用此路由" [disabled] [ref=e715]
+            - article [ref=e716]:
+              - generic [ref=e717]:
+                - strong [ref=e718]: 內容候選
+                - generic [ref=e719]: 55/100 · 待人工決定
+              - paragraph [ref=e720]: 1 content idea(s) are present; source evidence is available for review
+              - generic [ref=e721]: 1 content idea(s) are present · source evidence is available for review
+              - generic [ref=e722]:
+                - text: 決定原因（拒絕／覆寫必填）
+                - textbox "決定原因（拒絕／覆寫必填）" [ref=e723]
+              - generic [ref=e724]:
+                - button "接受建議" [ref=e725] [cursor=pointer]
+                - button "拒絕建議" [disabled] [ref=e726]
+              - generic [ref=e727]:
+                - text: 覆寫目標路由
+                - combobox "覆寫目標路由" [ref=e728]:
+                  - option "研究簡報" [selected]
+                  - option "學習包"
+                  - option "創作參考"
+                  - option "顧問／案例參考"
+              - button "改用此路由" [disabled] [ref=e729]
+            - article [ref=e730]:
+              - generic [ref=e731]:
+                - strong [ref=e732]: 創作參考
+                - generic [ref=e733]: 20/100 · 待人工決定
+              - paragraph [ref=e734]: visual moments are not recorded; story/style signals are not recorded
+              - generic [ref=e735]: visual moments are not recorded · story/style signals are not recorded
+              - generic [ref=e736]:
+                - text: 決定原因（拒絕／覆寫必填）
+                - textbox "決定原因（拒絕／覆寫必填）" [ref=e737]
+              - generic [ref=e738]:
+                - button "接受建議" [ref=e739] [cursor=pointer]
+                - button "拒絕建議" [disabled] [ref=e740]
+              - generic [ref=e741]:
+                - text: 覆寫目標路由
+                - combobox "覆寫目標路由" [ref=e742]:
+                  - option "研究簡報" [selected]
+                  - option "學習包"
+                  - option "內容候選"
+                  - option "顧問／案例參考"
+              - button "改用此路由" [disabled] [ref=e743]
+            - article [ref=e744]:
+              - generic [ref=e745]:
+                - strong [ref=e746]: 學習包
+                - generic [ref=e747]: 20/100 · 待人工決定
+              - paragraph [ref=e748]: teaching/method points are not recorded; use cases are not recorded
+              - generic [ref=e749]: teaching/method points are not recorded · use cases are not recorded
+              - generic [ref=e750]:
+                - text: 決定原因（拒絕／覆寫必填）
+                - textbox "決定原因（拒絕／覆寫必填）" [ref=e751]
+              - generic [ref=e752]:
+                - button "接受建議" [ref=e753] [cursor=pointer]
+                - button "拒絕建議" [disabled] [ref=e754]
+              - generic [ref=e755]:
+                - text: 覆寫目標路由
+                - combobox "覆寫目標路由" [ref=e756]:
+                  - option "研究簡報" [selected]
+                  - option "內容候選"
+                  - option "創作參考"
+                  - option "顧問／案例參考"
+              - button "改用此路由" [disabled] [ref=e757]
+        - generic [ref=e625]:
+          - button "以此來源建立 Research Brief" [ref=e626] [cursor=pointer]
+          - button "下載 SourceRecord 備份" [ref=e627] [cursor=pointer]
+        - region [ref=e628]:
+          - generic [ref=e629]:
+            - heading "重用來源建立下游交接" [level=3] [ref=e630]
+            - paragraph [ref=e631]: 每次只建立一種可匯出的交接；沿用同一 SourceRecord，不重新抓取來源。
+          - generic [ref=e632]:
+            - strong [ref=e633]: 來源事實與分析分開
+            - paragraph [ref=e634]: 以下主張及引文取自已審核 SourceRecord；引文可定位不代表主張已獨立查證。下游分析是衍生內容，不會回寫來源。
+            - paragraph [ref=e635]:
+              - text: 來源 ID：
+              - code [ref=e636]: src_d1f5f5b4
+              - text: · 來源審核／批准：reviewed / approved
+          - generic [ref=e637]:
+            - article [ref=e638]:
+              - strong [ref=e639]: 內容候選（Content Ops）
+              - generic [ref=e640]: 尚未建立
+            - article [ref=e641]:
+              - strong [ref=e642]: 學習包（Cyber Kuma）
+              - generic [ref=e643]: 尚未建立
+            - article [ref=e644]:
+              - strong [ref=e645]: 創作參考（Storyworld）
+              - generic [ref=e646]: 尚未建立
+            - article [ref=e647]:
+              - strong [ref=e648]: 案例參考（Diagnostic）
+              - generic [ref=e649]: 尚未建立
+          - generic [ref=e650]:
+            - generic [ref=e651]:
+              - text: 選擇下游用途
+              - combobox "選擇下游用途" [ref=e652]:
+                - option "內容候選（Content Ops）" [selected]
+                - option "學習包（Cyber Kuma）"
+                - option "創作參考（Storyworld）"
+                - option "案例參考（Diagnostic）"
+            - button "建立交接草稿" [ref=e653] [cursor=pointer]
+          - region "Delivery Outbox" [ref=e654]:
+            - generic [ref=e655]:
+              - heading "Delivery Outbox" [level=4] [ref=e656]
+              - paragraph [ref=e657]: 只保存已批准 handoff 的不可變快照；匯出不代表接收或發布。
+            - paragraph [ref=e658]: 尚無 delivery packages。先完成 handoff 人工審核與批准。
+    - generic [ref=e659]:
+      - button "重新讀取結果" [ref=e660] [cursor=pointer]
+      - link "回來源工作台立即執行" [ref=e661] [cursor=pointer]:
+        - /url: /source-inbox/
+    - status [ref=e662]: 本機研究服務未啟動，或尚未交接來源；可先在來源工作台保存來源設定。
+  - contentinfo [ref=e35]:
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - heading "使用限制" [level=2] [ref=e38]
+        - paragraph [ref=e39]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e40]:
+        - heading "安全邊界" [level=2] [ref=e41]
+        - paragraph [ref=e42]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=e51] [cursor=pointer]
+  - alert [ref=e43]

@@ -21,6 +21,7 @@ import {
   deliveryPackageToMarkdown,
   markDeliveryPackageExported,
   toContentOpsIntakePackage,
+  toCyberKumaLearningIntake,
   validateConsumerCompatibility,
   type DeliveryPackageRecord,
 } from "@/lib/delivery-package";
@@ -68,6 +69,8 @@ export function SourceHandoffWorkspace({ entry, onEntryUpdated }: {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [receiverStatus, setReceiverStatus] = useState<{ configured: boolean; brand_ids: string[]; code: string | null } | null>(null);
+  const [selectedBrandId, setSelectedBrandId] = useState("");
 
   const persist = async (handoff: BaseHandoff) => {
     setSaving(true);
@@ -172,7 +175,7 @@ export function SourceHandoffWorkspace({ entry, onEntryUpdated }: {
     }
   };
 
-  const exportDelivery = async (record: DeliveryPackageRecord, format: "json" | "markdown" | "content_ops") => {
+  const exportDelivery = async (record: DeliveryPackageRecord, format: "json" | "markdown" | "content_ops" | "cyber_kuma") => {
     if (deliveryPackageStatus(record, entry) === "outdated" || !validateConsumerCompatibility(record.package).compatible) return;
     try {
       setSaving(true);
@@ -180,6 +183,7 @@ export function SourceHandoffWorkspace({ entry, onEntryUpdated }: {
       const filename = safeFilename(record.package.package_id);
       if (format === "markdown") download(`${filename}.md`, deliveryPackageToMarkdown(record.package), "text/markdown;charset=utf-8");
       else if (format === "content_ops") download(`${filename}-content-ops-intake.json`, JSON.stringify(toContentOpsIntakePackage(record.package), null, 2), "application/json;charset=utf-8");
+      else if (format === "cyber_kuma") download(`${filename}-cyber-kuma-review.json`, JSON.stringify(toCyberKumaLearningIntake(record.package), null, 2), "application/json;charset=utf-8");
       else download(`${filename}.json`, JSON.stringify(record.package, null, 2), "application/json;charset=utf-8");
       const exported = markDeliveryPackageExported(record);
       const updated = await saveDeliveryPackageRecord(sourceLibraryEntryKey(entry), exported);
@@ -193,14 +197,86 @@ export function SourceHandoffWorkspace({ entry, onEntryUpdated }: {
   };
 
   const confirmImport = async (record: DeliveryPackageRecord) => {
+    if (record.package.target_product !== "content_ops") {
+      try {
+        setSaving(true);
+        await assertSealedDeliveryPackage(record, entry);
+        const updated = await saveDeliveryPackageRecord(sourceLibraryEntryKey(entry), confirmDeliveryPackageImported(record));
+        onEntryUpdated(updated);
+        setMessage(deliveryCopy.importConfirmed);
+      } catch {
+        setMessage(deliveryCopy.importConfirmFailed);
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
     try {
       setSaving(true);
       await assertSealedDeliveryPackage(record, entry);
-      const updated = await saveDeliveryPackageRecord(sourceLibraryEntryKey(entry), confirmDeliveryPackageImported(record));
+      const response = await fetch("/api/content-ops/import-status", {
+        method: "POST",
+        headers: { accept: "application/json", "content-type": "application/json" },
+        body: JSON.stringify({ library_entry: entry, delivery_package_record: record, target_brand_id: record.receiver_receipt?.target_brand_id }),
+      });
+      const body = await response.json();
+      if (!response.ok || !body?.result) throw new Error(typeof body?.code === "string" ? body.code : "content_ops_import_status_failed");
+      if (body.result.status === "draft") {
+        setMessage(deliveryCopy.receiverPendingImport);
+        return;
+      }
+      if (body.result.status === "not_found") {
+        setMessage(deliveryCopy.receiverDraftMissing);
+        return;
+      }
+      if (body.result.status !== "imported" || typeof body.result.verified_at !== "string") throw new Error("content_ops_receiver_identity_mismatch");
+      const observed = { ...record, receiver_import_verified_at: body.result.verified_at };
+      const updated = await saveDeliveryPackageRecord(sourceLibraryEntryKey(entry), confirmDeliveryPackageImported(observed, body.result.verified_at));
       onEntryUpdated(updated);
       setMessage(deliveryCopy.importConfirmed);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "content_ops_import_status_failed";
+      setMessage((deliveryCopy.dispatchErrors as Record<string, string>)[code] ?? deliveryCopy.importConfirmFailed);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const checkReceiver = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch("/api/content-ops/status", { headers: { accept: "application/json" }, cache: "no-store" });
+      const result = await response.json();
+      if (!response.ok || typeof result?.configured !== "boolean" || !Array.isArray(result?.brand_ids)) throw new Error("content_ops_status_unavailable");
+      const next = { configured: result.configured, brand_ids: result.brand_ids.filter((id: unknown): id is string => typeof id === "string"), code: typeof result.code === "string" ? result.code : null };
+      setReceiverStatus(next);
+      setSelectedBrandId((current) => next.brand_ids.includes(current) ? current : next.brand_ids[0] ?? "");
+      setMessage(next.configured ? deliveryCopy.receiverReady : deliveryCopy.receiverNotConfigured);
     } catch {
-      setMessage(deliveryCopy.importConfirmFailed);
+      setMessage(deliveryCopy.receiverUnavailable);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const dispatchToReceiver = async (record: DeliveryPackageRecord) => {
+    if (!receiverStatus?.configured || !selectedBrandId || saving) return;
+    setSaving(true);
+    try {
+      await assertSealedDeliveryPackage(record, entry);
+      const response = await fetch("/api/content-ops/dispatch", {
+        method: "POST",
+        headers: { accept: "application/json", "content-type": "application/json" },
+        body: JSON.stringify({ library_entry: entry, delivery_package_record: record, target_brand_id: selectedBrandId }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result?.receipt) throw new Error(typeof result?.code === "string" ? result.code : "content_ops_dispatch_failed");
+      const updated = await saveDeliveryPackageRecord(sourceLibraryEntryKey(entry), { ...record, receiver_receipt: result.receipt });
+      onEntryUpdated(updated);
+      setMessage(deliveryCopy.receiverReceived);
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "content_ops_dispatch_failed";
+      setMessage((deliveryCopy.dispatchErrors as Record<string, string>)[code] ?? deliveryCopy.dispatchFailed);
     } finally {
       setSaving(false);
     }
@@ -217,7 +293,9 @@ export function SourceHandoffWorkspace({ entry, onEntryUpdated }: {
     <div className="handoff-source-boundary">
       <strong>{copy.sourceBoundary}</strong>
       <p>{copy.sourceBoundaryHint}</p>
-      <p>{copy.sourceId}：<code>{entry.source_record.id}</code> · {copy.sourceApproval}：{entry.source_record.review_status} / {entry.source_record.approval_status}</p>
+      <details className="delivery-export-options"><summary>{deliveryCopy.technicalDetails}</summary>
+        <p className="delivery-identity">{copy.sourceId}：<code>{entry.source_record.id}</code><br />{copy.sourceApproval}：{entry.source_record.review_status} / {entry.source_record.approval_status}</p>
+      </details>
     </div>
     <div className="handoff-kind-grid">
       {HANDOFF_TYPES.map((type) => {
@@ -293,29 +371,48 @@ export function SourceHandoffWorkspace({ entry, onEntryUpdated }: {
         const canExport = status !== "outdated" && compatibility.compatible && Boolean(record.package.security_sha256);
         return <article className="delivery-package-card" key={record.package.package_id}>
           <div className="material-card-heading">
-            <h5>{copy.types[record.package.handoff_type]} → {record.package.target_product}</h5>
+            <h5>{copy.types[record.package.handoff_type]} → {deliveryCopy.targetNames[record.package.target_product]}</h5>
             <span className={`status-pill ${status === "outdated" ? "status-failed" : status === "import_confirmed" ? "status-reviewed" : status === "exported" ? "status-pending" : "status-captured"}`}>{deliveryCopy.state[status]}</span>
           </div>
-          <p>{deliveryCopy.compatibility}: <strong>{compatibility.compatible ? deliveryCopy.compatible : deliveryCopy.incompatible}</strong> · {deliveryCopy.packageVersion}: {record.package.package_version} · {deliveryCopy.contractVersion}: {record.package.contract_version}</p>
-          <p className="delivery-identity">{deliveryCopy.packageId}: <code>{record.package.package_id}</code><br />{deliveryCopy.fingerprint}: <code>{record.package.package_fingerprint}</code><br />{deliveryCopy.sourceRelationship}: <code>{record.package.source_record_id}</code> → <code>{record.package.handoff_id}</code></p>
+          <p>{deliveryCopy.compatibility}: <strong>{compatibility.compatible ? deliveryCopy.compatible : deliveryCopy.incompatible}</strong></p>
+          <details className="delivery-export-options"><summary>{deliveryCopy.technicalDetails}</summary>
+            <p className="delivery-identity">{deliveryCopy.packageVersion}: {record.package.package_version}<br />{deliveryCopy.contractVersion}: {record.package.contract_version}<br />{deliveryCopy.packageId}: <code>{record.package.package_id}</code><br />{deliveryCopy.fingerprint}: <code>{record.package.package_fingerprint}</code><br />{deliveryCopy.sourceRelationship}: <code>{record.package.source_record_id}</code> → <code>{record.package.handoff_id}</code></p>
+            {record.receiver_receipt ? <p className="delivery-identity">{deliveryCopy.receiverReceiptId}: <code>{record.receiver_receipt.draft_id}</code><br />{deliveryCopy.targetBrand}: <code>{record.receiver_receipt.target_brand_id}</code><br />{deliveryCopy.sourceSha256}: <code>{record.receiver_receipt.source_sha256}</code></p> : null}
+          </details>
           {status === "outdated" ? <p className="warning-message" role="status">{deliveryCopy.outdated}</p> : null}
           {!record.package.security_sha256 ? <p className="warning-message" role="status">Legacy package: recreate after a fresh human approval to enable SHA-256 protected export.</p> : null}
           {!compatibility.compatible ? <ul className="validation-list">{compatibility.errors.map((error) => <li key={error}>{compatibilityIssueLabel(error, deliveryCopy)}</li>)}</ul> : null}
           <div className="action-row">
             {canExport && record.state === "packaged" ? <button type="button" className="primary-button" onClick={() => void exportDelivery(record, "json")} disabled={saving}>{deliveryCopy.exportJson}</button> : null}
-            {record.state === "exported" && status !== "outdated" ? <button type="button" className="primary-button" onClick={() => void confirmImport(record)} disabled={saving}>{deliveryCopy.confirmImport}</button> : null}
+            {record.state === "exported" && status !== "outdated" && !["cyber_kuma", "content_ops"].includes(record.package.target_product) ? <button type="button" className="primary-button" onClick={() => void confirmImport(record)} disabled={saving}>{deliveryCopy.confirmImport}</button> : null}
             <button type="button" className="secondary-button" onClick={() => setActivePackageId(selected ? null : record.package.package_id)} aria-expanded={selected}>{deliveryCopy.preview}</button>
           </div>
+          {record.package.target_product === "content_ops" && record.package.handoff_type === "content_candidate" ? <section className="handoff-source-boundary" aria-label={deliveryCopy.receiverSection}>
+            <strong>{deliveryCopy.receiverSection}</strong>
+            <p>{deliveryCopy.receiverHint}</p>
+            <div className="action-row">
+              <button type="button" className="secondary-button" onClick={() => void checkReceiver()} disabled={saving}>{deliveryCopy.checkReceiver}</button>
+              {receiverStatus?.configured ? <label className="field"><span>{deliveryCopy.targetBrand}</span><select value={selectedBrandId} onChange={(event) => setSelectedBrandId(event.target.value)} disabled={saving}>
+                {receiverStatus.brand_ids.map((brandId) => <option value={brandId} key={brandId}>{brandId}</option>)}
+              </select></label> : null}
+              {receiverStatus?.configured && status !== "outdated" && compatibility.compatible && record.package.security_sha256 && record.package.manifest.handoff_approved_at ? <button type="button" className="primary-button" onClick={() => void dispatchToReceiver(record)} disabled={saving || !selectedBrandId}>{deliveryCopy.sendToInbox}</button> : null}
+              {record.receiver_receipt && status !== "outdated" && record.state !== "import_confirmed" ? <button type="button" className="secondary-button" onClick={() => void confirmImport(record)} disabled={saving}>{deliveryCopy.checkReceiverImport}</button> : null}
+            </div>
+            {record.receiver_receipt ? <p className="field-hint" role="status">{deliveryCopy.receiverReceived} · {record.receiver_receipt.received_at}{record.state === "import_confirmed" ? null : <><br />{deliveryCopy.awaitingInboxImport}</>}</p> : null}
+            {record.state === "import_confirmed" && record.receiver_import_verified_at ? <p className="field-hint" role="status">{deliveryCopy.importConfirmed} · {record.receiver_import_verified_at}</p> : null}
+          </section> : null}
           {canExport ? <details className="delivery-export-options">
             <summary>{deliveryCopy.otherExportOptions}</summary>
             <div className="action-row">
               {record.state !== "packaged" ? <button type="button" className="secondary-button" onClick={() => void exportDelivery(record, "json")} disabled={saving}>{deliveryCopy.exportJson}</button> : null}
               <button type="button" className="secondary-button" onClick={() => void exportDelivery(record, "markdown")} disabled={saving}>{deliveryCopy.exportMarkdown}</button>
               {record.package.target_product === "content_ops" ? <button type="button" className="secondary-button" onClick={() => void exportDelivery(record, "content_ops")} disabled={saving}>{deliveryCopy.contentOpsExport}</button> : null}
+              {record.package.target_product === "cyber_kuma" ? <button type="button" className="secondary-button" onClick={() => void exportDelivery(record, "cyber_kuma")} disabled={saving}>下載 Cyber Kuma 待審核知識包</button> : null}
             </div>
           </details> : null}
           {selected ? <details open className="delivery-package-preview"><summary>{deliveryCopy.preview}</summary><pre>{JSON.stringify(record.package, null, 2)}</pre></details> : null}
           {record.state === "exported" && status !== "outdated" ? <p className="field-hint">{deliveryCopy.exported}</p> : null}
+          {record.package.target_product === "cyber_kuma" ? <p className="field-hint">Cyber Kuma：下載後於遊戲「題庫／Radar 匯入」選擇 Radar Learning Intake；只會進入待審核清單，並不代表題目已生成或接收成功。</p> : null}
           {record.state === "import_confirmed" ? <p className="field-hint">{deliveryCopy.importConfirmed}</p> : null}
         </article>;
       })}

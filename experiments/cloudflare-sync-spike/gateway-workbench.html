@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>AI PM Radar — Protected Workbench Gateway</title><link rel="icon" href="data:,">
+<style>
+:root{font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"PingFang TC",sans-serif;color:#1b2936;background:#f7f2eb;color-scheme:light}
+*,*:before,*:after{box-sizing:border-box}
+body{margin:0;padding:1.2rem 1rem 5rem}main{max-width:1060px;margin:auto}
+h1{font-size:clamp(1.55rem,4.2vw,2.45rem);line-height:1.2;margin:.4rem 0 1rem}
+h2{font-size:1.1rem;margin:0 0 .8rem}h3{font-size:1rem;margin:.1rem 0 .5rem}
+.eyebrow{font-size:.78rem;color:#9f472d;letter-spacing:.12em;text-transform:uppercase}
+p{overflow-wrap:anywhere}small,.hint{color:#52606d}
+.card{border:1px solid #e1cdbc;border-radius:1rem;background:#fff;padding:clamp(1rem,2.5vw,1.6rem);margin:1rem 0;min-width:0}
+.warning{background:#fff3ec;border-left:4px solid #a84a2c;padding:.8rem 1rem}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));gap:.8rem}
+button{min-height:44px;border-radius:.65rem;border:1px solid #c7b09c;background:#fff;padding:.6rem .85rem;font:inherit;color:inherit;cursor:pointer}
+button.primary{background:#a6482a;color:white;border-color:#a6482a}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #246d9f;outline-offset:2px}
+.controls{display:flex;flex-wrap:wrap;gap:.45rem;margin:.8rem 0}
+label{display:block;margin:.5rem 0}.check{display:flex;gap:.6rem;align-items:flex-start}
+.check input{margin-top:.4rem}
+input[type=text],textarea,select{width:100%;font:inherit;border:1px solid #b8b1aa;border-radius:.5rem;padding:.65rem}
+textarea{min-height:90px;resize:vertical}textarea[readonly]{background:#f6f6f6}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;max-height:270px;background:#1d2329;color:#eee9e2;padding:.85rem;border-radius:.65rem;font-size:.76rem}
+dl{display:grid;grid-template-columns:auto 1fr;gap:.35rem .7rem;margin:.2rem 0}dt{color:#52606d}dd{margin:0;overflow-wrap:anywhere}
+#message{border-left:4px solid #a6482a;background:#fcf7f1;padding:.8rem;min-height:2rem}
+.stages{display:flex;gap:.5rem;flex-wrap:wrap;color:#52606d;font-size:.87rem}
+.stages span{border:1px solid #dfcaba;border-radius:1rem;padding:.2rem .65rem}
+.actions-disabled{color:#7c665b}
+@media(min-width:790px){.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem;align-items:start}.workspace .card{margin:.5rem 0}}
+</style>
+</head>
+<body><main>
+<div class="eyebrow">Phase 1.2C-2 · Secure Gateway · Synthetic Only</div>
+<h1>AI PM Radar — 來源工作台雲端閘道</h1>
+<p>同一 Cloudflare Access 網域下，測試完整 SourceRecord v2 的本機草稿、明確雲端寫入、人工審核、版本衝突及恢復。</p>
+<p class="warning"><strong>測試環境，非正式 Radar。</strong> 只允許系統指定的合成範例；沒有自訂 URL／正文輸入，也不會存放真實文章、客戶資料或 Gemini 金鑰。正式 <code>radar.lamlab.cc</code> 不受影響。</p>
+<div class="stages"><span>1. 建立本機草稿</span><span>2. 下載備份</span><span>3. 明確上雲</span><span>4. Review / Approval</span><span>5. 雙裝置版本衝突</span></div>
+<section class="card">
+<h2>安全連線狀態</h2>
+<dl><dt>登入</dt><dd id="auth">檢查中…</dd><dt>能力</dt><dd id="capabilities">檢查中…</dd><dt>來源範圍</dt><dd>只接受固定合成 SourceRecord v2</dd></dl>
+<div class="controls">
+<button type="button" id="new-local" class="primary" disabled>建立本機合成草稿</button>
+<button type="button" id="remote-list" disabled>列出雲端測試來源</button>
+<button type="button" id="refresh-remote" disabled>讀取最新雲端版本</button>
+</div>
+<label for="select-id">雲端來源（同一 Mac／iPhone 可選擇相同 ID）</label>
+<select id="select-id" disabled><option value="">尚無雲端紀錄</option></select>
+<p id="message" role="status" aria-live="polite">正在確認 Access 和同源 API…</p>
+</section>
+<div class="workspace">
+<section class="card">
+<h2>本機來源草稿</h2>
+<dl><dt>Source ID</dt><dd id="local-id">—</dd><dt>本機狀態</dt><dd id="local-state">—</dd><dt>上次確認版本</dt><dd id="ack-revision">—</dd></dl>
+<label for="title">來源標題（固定合成範例）</label><input type="text" id="title" readonly value="">
+<label for="body">來源正文（不允許上傳自訂內容）</label><textarea id="body" readonly></textarea>
+<label for="summary">本機摘要版本（只可選擇兩個固定測試文本）</label>
+<select id="summary" disabled>
+<option value="Synthetic source: students requested more practice.">合成摘要 A — 學生希望增加練習</option>
+<option value="Synthetic revised source: student requests remained unverified in a real study.">合成摘要 B — 仍未證實真實研究結果</option>
+</select>
+<details><summary>逐字 Evidence 與完整 SourceRecord</summary><pre id="local-json"></pre></details>
+<div class="controls">
+<button id="save-local" disabled>本機保存草稿</button>
+<button id="download" disabled>下載目前草稿備份 JSON</button>
+</div>
+<label class="check"><input type="checkbox" id="confirm-backup" disabled>我已核對最新草稿備份檔案存在</label>
+<div class="controls"><button class="primary" id="upload" disabled>明確上傳／更新合成來源</button></div>
+</section>
+<section class="card">
+<h2>雲端 SourceRecord</h2>
+<dl><dt>Revision</dt><dd id="revision">—</dd><dt>Review</dt><dd id="review">—</dd><dt>Daily Approval</dt><dd id="daily">—</dd><dt>Library Approval</dt><dd id="reuse">—</dd></dl>
+<div class="controls">
+<button id="mark-reviewed" disabled>人工 Review</button>
+<button id="approve-daily" disabled>批准 Daily</button>
+<button id="approve-library" disabled>批准 Library</button>
+<button id="show-library" disabled>讀取當前 Library v4</button>
+<button id="show-history" disabled>審批歷史</button>
+</div>
+<details><summary>雲端結果與 Evidence</summary><pre id="cloud-json"></pre></details>
+<div id="conflict" hidden>
+<h3>版本衝突：禁止自動覆寫</h3>
+<p>目前本機和雲端狀態可能不同。請先下載本機備份，然後選擇保留草稿或明確以最新雲端版本作為新本機草稿。</p>
+<div class="controls">
+<button id="keep-local">保留本機，先不覆寫</button>
+<button id="use-remote" disabled>已備份；以雲端版本建立新本機草稿</button>
+</div>
+</div>
+</section>
+</div>
+<p class="hint">本機草稿儲存在這個受保護 Preview 網域的瀏覽器 localStorage，與正式 Radar 的 IndexedDB 分開。這是閘道整合的合成驗收，不會自動遷移 Source Inbox 的真正文章。</p>
+</main><script src="/gateway-workbench/app.js" defer></script></body></html>

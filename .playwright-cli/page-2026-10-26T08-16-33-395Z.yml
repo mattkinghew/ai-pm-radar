@@ -1,0 +1,74 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: AI
+        - generic [ref=e6]:
+          - strong [ref=e7]: AI PM Radar
+          - paragraph [ref=e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e9]:
+        - link "首頁" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "來源工作台" [ref=e11] [cursor=pointer]:
+          - /url: /source-inbox/
+        - link "每日 Radar" [ref=e12] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e13] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e14] [cursor=pointer]:
+          - /url: /about/
+      - button "目前語言：繁體中文" [ref=e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - paragraph [ref=e18]: 來源工作台
+      - heading "輸入來源，整理成可核對草稿" [level=1] [ref=e19]
+      - paragraph [ref=e20]: 貼上公開文章連結或正文，先由規則整理基本草稿，再由你核對、補充原文證據、人工審核並批准下載。
+      - paragraph [ref=e21]: 本機優先：素材保存於目前瀏覽器；只有你按下 AI 整理時，正文才會送至本機設定的 server-side provider。不寫入 database，也不覆寫正式 daily data。
+      - paragraph [ref=e22]: 介面語言只影響操作文字；不會翻譯文章原文、使用者輸入、JSON keys、ID 或 enum values。
+      - generic "匯入素材" [ref=e23]:
+        - generic [ref=e24]: 1 匯入素材
+        - generic [ref=e25]: 2 核對草稿
+        - generic [ref=e26]: 3 批准與下載
+    - generic [ref=e27]:
+      - generic [ref=e28]:
+        - heading "匯入素材" [level=2] [ref=e29]
+        - paragraph [ref=e30]: 先選一種輸入方式；完成後才會顯示詳細來源資料、原文證據與人工分析欄位。
+      - tablist "匯入素材" [ref=e31]:
+        - button "貼連結" [ref=e32] [cursor=pointer]
+        - button "貼正文" [ref=e33] [cursor=pointer]
+      - generic [ref=e34]:
+        - generic [ref=e35]: 公開文章連結
+        - textbox "公開文章連結" [disabled] [ref=e37]:
+          - /placeholder: https://example.com/article
+      - paragraph [ref=e38]: 只處理一般公開 HTML 文章；不下載影片，不繞過登入、付費牆或平台限制。
+      - generic [ref=e39] [cursor=pointer]:
+        - text: 上傳 TXT／Markdown／SRT／VTT
+        - button "上傳 TXT／Markdown／SRT／VTT" [disabled] [ref=e40]
+      - button "讀取連結並建立草稿" [disabled] [ref=e42]
+    - generic [ref=e43]:
+      - status [ref=e44]: 正在保存本地草稿…
+      - generic [ref=e45]:
+        - button "立即儲存" [disabled] [ref=e46]
+        - button "匯出收集草稿" [disabled] [ref=e47]
+    - group [ref=e48]:
+      - generic "☁ 跨裝置同步 · Phase 1.2C（本機準備／預設停用）" [ref=e49] [cursor=pointer]
+    - group [ref=e50]:
+      - generic "進階工具與來源設定" [ref=e51] [cursor=pointer]
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high"
+      - option "medium" [selected]
+      - option "low"
+  - contentinfo [ref=e52]:
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - heading "使用限制" [level=2] [ref=e55]
+        - paragraph [ref=e56]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e57]:
+        - heading "安全邊界" [level=2] [ref=e58]
+        - paragraph [ref=e59]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。

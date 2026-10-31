@@ -46,9 +46,14 @@ export function companionApiUrl(
 export async function parseCompanionJsonResponse<T = unknown>(response: Response): Promise<T> {
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.toLowerCase().includes("application/json")) {
-    const looksLikeAccessLogin = contentType.toLowerCase().includes("text/html")
-      || response.redirected
-      || response.url.includes("cloudflareaccess.com");
+    let accessLoginHost = false;
+    try {
+      accessLoginHost = new URL(response.url).hostname.toLowerCase().endsWith(".cloudflareaccess.com");
+    } catch {
+      // Synthetic Response objects and some fetch implementations have no absolute response URL.
+    }
+    const looksLikeAccessLogin = response.status === 401 || response.status === 403
+      || response.redirected || accessLoginHost;
     throw new CompanionApiError(
       looksLikeAccessLogin ? "access_session_expired" : "companion_invalid_response",
       looksLikeAccessLogin

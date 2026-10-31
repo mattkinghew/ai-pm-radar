@@ -65,7 +65,7 @@ export const SOURCE_RECORD_VERSION = 2;
 
 export type MaterialStatus = "captured" | "needs_manual_input" | "capture_failed";
 export type AnalysisStatus = "not_requested" | "processing" | "draft" | "failed";
-export type AnalysisProvider = "none" | "openai_responses" | "gemini";
+export type AnalysisProvider = "none" | "openai_responses" | "gemini" | "ollama" | "openrouter";
 
 export type AnalysisUsage = {
   input_tokens: number;

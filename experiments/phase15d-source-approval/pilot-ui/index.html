@@ -1,0 +1,79 @@
+<!doctype html><html lang="zh-Hant"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI PM Radar｜Per-source Approval Shadow Review</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#09111d;color:#e8f2ff;color-scheme:dark}
+*{box-sizing:border-box;min-width:0}body{margin:0;background:radial-gradient(circle at 0 0,#174053,transparent 50%),#09111d}
+main{max-width:1040px;margin:auto;padding:30px 16px 60px}
+h1{font-size:clamp(1.6rem,4vw,2.4rem);letter-spacing:-.025em}h2{font-size:1.2rem}p,li{line-height:1.58;color:#c3d1e3}
+.eyebrow{font-size:.75rem;letter-spacing:.15em;font-weight:800;color:#8cdbc9}
+.panel{background:#142134;border:1px solid #31516a;border-radius:17px;margin:18px 0;padding:19px}
+label{display:block;font-weight:670;margin:14px 0 6px}
+input,select{border:1px solid #4c7087;background:#1b3246;color:#f4faff;border-radius:10px;font-size:1rem;padding:11px;width:100%;min-height:44px}
+input[type=checkbox]{width:22px;height:22px;min-height:22px;flex:none}
+label.check{display:flex;align-items:start;gap:10px;font-weight:450;padding:8px 0;line-height:1.45}
+input[type=file]{padding:12px}
+button{border:1px solid #527b8e;background:#203f53;color:#eafaff;padding:12px 17px;font-size:.92rem;border-radius:10px;min-height:46px;font-weight:750;cursor:pointer}
+button.primary{background:#07796e;border-color:#26d2b5}button:disabled{cursor:not-allowed;opacity:.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(245px,100%),1fr));gap:12px}
+.row{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.notice{background:#16313a;border-left:4px solid #70ddc4;padding:12px;border-radius:8px;overflow-wrap:anywhere}
+.warning{background:#3d301c;border-left-color:#fbc788}
+.blocked{background:#4a2430;border-left-color:#fa9bac}
+.metadata{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;background:#0a1521;border:1px solid #355167;border-radius:11px;padding:15px;max-height:430px;overflow:auto}
+code{overflow-wrap:anywhere}a{color:#94e1e0}
+@media(max-width:520px){main{padding:19px 12px}.panel{padding:15px}.metadata{grid-template-columns:1fr}}
+</style>
+<script type="module" src="/real-source-approval/app.js"></script></head>
+<body><main>
+<div class="eyebrow">AI PM RADAR · PHASE 1.5D · SHADOW APPROVAL</div>
+<h1>Per-source Approval & Controlled Onboarding</h1>
+<p>將 Phase 1.5C 治理報告綁定**同一份原始文件及備份**，由權利與私隱覆核者分開核對，產生有效期 24 小時的離線候選封包。</p>
+<p class="notice warning"><strong>真實來源雲端上傳仍為 OFF。</strong> 本頁只會產生待進一步審批的 Shadow Packet。它不是法律證明、簽署文件、Cloudflare Access 身份審核，也不能觸發任何真實雲端 POST／PUT。請勿把「候選通過」視為上傳許可。</p>
+<section class="panel"><h2>① SourceRecord、原件備份、治理報告（三份檔案）</h2>
+<p>使用 Phase 1.5C 下載的 SourceRecord v2 原件、完整備份及不含正文的治理報告。文件只在此瀏覽器內讀取；不會發送至任何服務。</p>
+<label for="source-file">原始 SourceRecord v2 JSON</label><input id="source-file" type="file" accept=".json,application/json">
+<label for="backup-file">同一原件的重新讀回備份 JSON</label><input id="backup-file" type="file" accept=".json,application/json">
+<label for="report-file">Phase 1.5C Governance Report JSON（包括九項審查聲明）</label><input id="report-file" type="file" accept=".json,application/json">
+<div id="files-state" class="notice" role="status">HOLD：尚未讀取及核對全部三份文件。</div>
+<div id="files-meta" class="metadata"></div></section>
+<section class="panel"><h2>② Rights & Licensing Review</h2>
+<p>請使用**不包含原文及個人資料**的短證據編號。覆核者身份在本機填寫，尚未連接外部認證機構，不能視為獨立批准。</p>
+<div class="grid"><div><label for="rights-basis">權利處理依據</label><select id="rights-basis">
+<option value="">尚未審核</option><option value="owner_original">本人原創且具備所需權利</option>
+<option value="explicit_license">已取得明確全文雲端保存授權</option>
+<option value="permission_record">有書面權利人同意紀錄</option>
+<option value="public_domain_checked">已人工核對公有領域及適用地區</option>
+</select></div><div><label for="rights-evidence">權利證據編號</label>
+<input id="rights-evidence" placeholder="rights-case-001" maxlength="80"></div>
+<div><label for="rights-reviewer">權利覆核者代碼</label>
+<input id="rights-reviewer" placeholder="Rights Reviewer 01" maxlength="70"></div></div>
+<label class="check"><input type="checkbox" id="rights-confirm">本人確實覆核了與這份 SHA-256 文章對應的權利證據及轉存用途。</label></section>
+<section class="panel"><h2>③ Privacy & Data Classification Review</h2>
+<div class="grid"><div><label for="privacy-class">資料分類</label><select id="privacy-class">
+<option value="">UNKNOWN／仍需人工審查</option>
+<option value="public_non_sensitive">公開且已核對無需保護的個人／機密資訊</option>
+<option value="restricted">Restricted：不可上傳</option>
+<option value="sensitive">Sensitive：不可上傳</option></select></div>
+<div><label for="privacy-evidence">私隱審查證據編號</label>
+<input id="privacy-evidence" maxlength="80" placeholder="privacy-check-001"></div>
+<div><label for="privacy-reviewer">私隱覆核者代碼（須與權利覆核者不同）</label>
+<input id="privacy-reviewer" maxlength="70" placeholder="Privacy Reviewer 02"></div></div>
+<label class="check"><input type="checkbox" id="privacy-confirm">已人工核對正文、Evidence、metadata 及最少必要保存原則。</label></section>
+<section class="panel"><h2>④ Owner 一篇一版本的候選範圍</h2>
+<label for="owner-ref">負責人代碼（只可字母、數字及 - _ . / :）</label>
+<input id="owner-ref" maxlength="80" placeholder="owner-demo-001">
+<label class="check"><input type="checkbox" id="ack-exact">候選只針對目前這一篇、這一份原件檔案 SHA-256。改動任何位元即須重審。</label>
+<label class="check"><input type="checkbox" id="ack-ttl">如日後取得另行批准，雲端有效保留最長七日且更新不得延長。</label>
+<label class="check"><input type="checkbox" id="ack-residual">理解刪除後 D1 Time Travel 備份可能暫時殘留，並確認須有刪除與復原流程。</label>
+<label class="check"><input type="checkbox" id="ack-off">明白此候選 **不會** 產生上傳權、簽署式審批或雲端同意紀錄。</label></section>
+<section class="panel"><h2>⑤ Shadow Approval Packet（離線、有效 24 小時）</h2>
+<div id="result-state" class="notice warning" data-testid="shadow-approval-status">HOLD：等待原件／備份／報告及雙重覆核。</div>
+<div class="row"><button id="review" class="primary">重新檢查逐篇審批關卡</button>
+<button id="download-packet" disabled>下載候選封包 JSON（不含原文）</button>
+<a href="/real-source-readiness/">返回 Phase 1.5C 治理審查</a></div>
+<pre id="packet-preview">HOLD：目前沒有候選審批封包。</pre>
+<p class="notice warning">離線候選中的覆核者代碼及聲明**並無受信任電子簽署或不可變伺服器事件**。即使顯示 Shadow Candidate PASS，雲端真實來源寫入仍然 OFF。請勿在沒有個別 Owner 授權時啟用任何同步 API。</p></section>
+<footer>Phase 1.5D • Client-only SHA-256 binding • Distinct rights and privacy review IDs • 24h shadow candidate • No data upload • No cloud permit • No storage of checked controls</footer>
+</main></body></html>

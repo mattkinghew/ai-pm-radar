@@ -26,6 +26,9 @@ export type CloudWriteConsent = {
   cloud_source_id: string;
   local_fingerprint: string;
   verified_local_backup: true;
+  rights_confirmed: true;
+  seven_day_retention_accepted: true;
+  time_travel_residual_accepted: true;
   requested_at: string;
 };
 
@@ -80,6 +83,8 @@ export async function planExplicitCloudWrite(params:{
   const {review_status: _reviewStatus, approval_status: _approvalStatus, ...approvalPayload} = record;
   await assertApprovalIntegrity(approvalPayload, localFingerprint);
   if(!consent || consent.granted!==true || consent.verified_local_backup!==true
+    || consent.rights_confirmed!==true || consent.seven_day_retention_accepted!==true
+    || consent.time_travel_residual_accepted!==true
     || consent.cloud_source_id!==binding.cloud_source_id
     || consent.local_fingerprint!==localFingerprint
     || !Number.isFinite(Date.parse(now))
@@ -99,11 +104,19 @@ export async function planExplicitCloudWrite(params:{
     throw new Error("Sync decision not eligible.");
   }
   if(decision.kind==="create_requires_consent" && binding.last_remote_revision===null){
-    return {method:"POST" as const,path:"/api/cloud/records",body:{source_id:binding.cloud_source_id,record}};
+    return {method:"POST" as const,path:"/api/cloud/records",body:{
+      source_id:binding.cloud_source_id,record,
+      authorization:{source_id:binding.cloud_source_id,content_sha256:localFingerprint,
+        backup_verified:true,rights_confirmed:true,seven_day_retention_accepted:true,
+        time_travel_residual_acknowledged:true},
+    }};
   }
   if(decision.kind==="push_requires_consent" && binding.last_remote_revision!==null){
     return {method:"PUT" as const,path:"/api/cloud/records/"+binding.cloud_source_id,
-      body:{expectedRevision:binding.last_remote_revision,record}};
+      body:{expectedRevision:binding.last_remote_revision,expectedSha256:binding.last_remote_fingerprint,
+        record,authorization:{source_id:binding.cloud_source_id,content_sha256:localFingerprint,
+          backup_verified:true,rights_confirmed:true,seven_day_retention_accepted:true,
+          time_travel_residual_acknowledged:true}}};
   }
   throw new Error("Conflict or missing remote state requires explicit manual resolution.");
 }

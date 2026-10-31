@@ -1,0 +1,73 @@
+{
+  "package_id": "delivery_content_candidate_08ce885844efa371",
+  "package_version": 1,
+  "contract_version": 1,
+  "target_product": "content_ops",
+  "handoff_type": "content_candidate",
+  "handoff_id": "handoff_content_candidate_6a23605c",
+  "handoff_fingerprint": "e62fec45c9a67c59",
+  "source_record_id": "src_0f700462",
+  "source_record_fingerprint": "16ab847652f7b2fd",
+  "created_at": "2026-10-08T16:59:59.147Z",
+  "manifest": {
+    "format": "ai-pm-radar.delivery-package",
+    "package_version": 1,
+    "contract_version": 1,
+    "created_at": "2026-10-08T16:59:59.147Z",
+    "source_review_status": "reviewed",
+    "source_approval_status": "approved",
+    "handoff_status": "approved",
+    "handoff_reviewed_at": "2026-10-08T16:59:33.810Z",
+    "handoff_approved_at": "2026-10-08T16:59:40.474Z"
+  },
+  "source_snapshot": {
+    "title": "Synthetic Support Classification Pilot",
+    "source_url": "https://example.org/synthetic-release-acceptance",
+    "facts": [
+      "Human reviewers corrected four classifications before operational use."
+    ]
+  },
+  "provenance": {
+    "source_url": "https://example.org/synthetic-release-acceptance",
+    "source_url_original": "https://example.org/synthetic-release-acceptance",
+    "source_url_final": "https://example.org/synthetic-release-acceptance",
+    "captured_at": "2026-10-08T16:55:43.652Z",
+    "access_method": "direct_input"
+  },
+  "source_facts": [
+    {
+      "text": "Human reviewers corrected four classifications before operational use.",
+      "evidence_reference_ids": [
+        "src_0f700462:e0"
+      ]
+    }
+  ],
+  "evidence_references": [
+    {
+      "id": "src_0f700462:e0",
+      "source_record_id": "src_0f700462",
+      "evidence_index": 0,
+      "text_reference": "Human reviewers corrected 4 classifications before operational use.",
+      "source": "https://example.org/synthetic-release-acceptance",
+      "timestamp": null
+    }
+  ],
+  "payload": {
+    "derived_analysis": {
+      "target_audience": "",
+      "content_angles": [],
+      "key_source_backed_claims": [
+        "Human reviewers corrected four classifications before operational use."
+      ],
+      "hooks": [],
+      "content_themes": [],
+      "suggested_formats": [],
+      "platform_considerations": [],
+      "unknowns_and_risks": [
+        "Unknown — not assessed"
+      ]
+    },
+    "human_notes": ""
+  },
+  "package_fingerprint": "53688ab7cc820758"
+}

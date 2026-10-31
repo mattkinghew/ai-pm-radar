@@ -49,15 +49,29 @@ test("production pages never target loopback, even when opened on a local hostna
   });
 });
 
-test("Access login HTML is classified as an expired login instead of JSON", async () => {
-  const response = new Response("<!doctype html><title>Cloudflare Access</title>", {
-    status: 200,
+test("Cloudflare Access login HTML is classified as an expired login instead of JSON", async () => {
+  const response = new Response("<!doctype html><title>Sign in · Cloudflare Access</title>", {
+    status: 401,
     headers: { "content-type": "text/html; charset=utf-8" },
   });
 
   await assert.rejects(
     () => parseCompanionJsonResponse(response),
     (error: unknown) => error instanceof CompanionApiError && error.code === "access_session_expired",
+  );
+});
+
+test("ordinary static HTML fallback is not misclassified as an expired Access session", async () => {
+  const response = new Response("<!doctype html><title>AI PM Radar</title>", {
+    status: 200,
+    headers: { "content-type": "text/html; charset=utf-8" },
+  });
+
+  await assert.rejects(
+    () => parseCompanionJsonResponse(response),
+    (error: unknown) => error instanceof CompanionApiError
+      && error.code === "companion_invalid_response"
+      && error.status === 200,
   );
 });
 

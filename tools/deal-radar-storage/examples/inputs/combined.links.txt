@@ -1,0 +1,2 @@
+https://example.com/item/ssd-good
+https://example.com/item/ssd-reject

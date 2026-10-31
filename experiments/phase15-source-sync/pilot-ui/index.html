@@ -1,0 +1,59 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI PM Radar • Multi-source Synthetic QA</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark;background:#090f1a;color:#eaf2ff}
+*{box-sizing:border-box;min-width:0}html{overflow-wrap:anywhere}body{margin:0;background:radial-gradient(circle at 0 0,#1b3146,transparent 42%),#090f1a}
+main{max-width:1050px;margin:auto;padding:32px 19px 72px}h1{font-size:clamp(1.55rem,3.5vw,2.4rem);letter-spacing:-.03em}h2{font-size:1.18rem}h3{font-size:1rem}p,li{line-height:1.55;color:#bbcce3}small{color:#abbcd5}a{color:#9fdfeb}.eyebrow{font-size:.75rem;font-weight:800;letter-spacing:.13em;color:#7be1c9}
+.panel{background:#111c2b;border:1px solid #345064;border-radius:17px;padding:20px;margin:19px 0;box-shadow:0 4px 24px #060b1440}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:10px}
+.card{border:1px solid #385064;border-radius:12px;background:#172538;padding:15px;cursor:pointer;text-align:left;color:#eaf2ff;font-size:1rem;min-height:99px}
+.card.selected{border-color:#7be1c9;box-shadow:inset 0 0 0 1px #7be1c9}
+button{cursor:pointer;font-weight:750;border:1px solid #537a93;border-radius:10px;background:#203a50;color:#eaf2ff;padding:11px 14px;font-size:.9rem;min-height:44px}
+button.primary{background:#117b76;border-color:#35c9b5;color:white}button.danger{background:#4e2b35;border-color:#895467}
+button:disabled{opacity:.45;cursor:not-allowed}.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px}
+label{display:block;font-weight:700;margin:14px 0 6px}input[type=file],select{display:block;width:100%;min-width:0;max-width:100%;margin:8px 0 14px;padding:12px;border-radius:10px;border:1px solid #4a6779;background:#1b2b3e;color:inherit}
+input[type=checkbox]{width:20px;height:20px;flex:none}label.check{display:flex;align-items:flex-start;gap:11px;font-weight:500;margin:12px 0}
+pre,code{font-size:.78rem;overflow-wrap:anywhere;word-break:break-word}pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;max-width:100%;max-height:310px;overflow:auto;border-radius:10px;border:1px solid #364c63;background:#080f19;padding:15px;color:#d8e4f5}
+dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}dt{color:#a8bdd5}dd{margin:0;overflow-wrap:anywhere}
+.notice{padding:13px;border-radius:11px;border-left:4px solid #7be1c9;background:#142b35;color:#d8ebf2;overflow-wrap:anywhere;word-break:break-word}
+.warning{border-left-color:#ffc579;background:#362b1c}.dangerNotice{border-left-color:#ef909b;background:#391f2b}
+footer{margin-top:30px;color:#a7bed6;font-size:.8rem}@media(max-width:470px){main{padding:22px 12px}.panel{padding:15px}dl{grid-template-columns:minmax(0,1fr)}}
+</style>
+<script defer src="/multi-source-pilot/app.js"></script></head>
+<body><main><div class="eyebrow">AI PM RADAR · PHASE 1.5B · SYNTHETIC ONLY</div>
+<h1>多文章跨裝置同步試點</h1>
+<p>Cloudflare Access 保護的獨立合成資料 D1。Mac / iPhone 可連接同一個來源版本庫，測試備份、同步、Revision 409 和刪除。</p>
+<p class="notice warning"><strong>僅供虛構測試。</strong>所有文章及可上傳的摘要都由系統固定。不得貼上個人、工作、客戶、敏感或真實來源內容。原有 Revision 2 真實文章完全獨立。</p>
+<section class="panel"><h2>① Access & Cloud 能力</h2>
+<p id="connection" role="status">正在核對 Cloudflare Access 與 SourceRecord 雲端能力…</p>
+<dl id="cap-display"></dl>
+<div class="row"><button id="refresh-list">重新同步雲端列表</button><a href="/pilot-source-inbox/">返回原有單篇文章工作台</a></div>
+<pre id="cloud-list" data-testid="multi-cloud-list">尚未載入。</pre></section>
+<section class="panel"><h2>② 選擇虛構文章</h2>
+<div class="cards" id="fixture-cards"></div>
+<label for="variant">選擇已核准的摘要版本</label>
+<select id="variant"><option value="0">合成摘要 v1</option><option value="1">合成摘要 v2</option></select>
+<p class="notice" id="selected-info">先選擇一篇合成文章。</p>
+<div class="row"><button id="fetch-source">從雲端讀取當前來源與 Revision</button><button id="read-history">讀取完整版本歷史</button></div>
+<dl id="selected-meta"></dl>
+<pre id="source-preview">來源尚未選擇。</pre></section>
+<section class="panel"><h2>③ 備份及操作授權</h2>
+<p>每次建立／更新之前，先下載**完整 SourceRecord JSON**，再重新選取該檔案核對 SHA-256。對已有雲端來源，還要備份目前雲端原件，確保可人工處理差異。</p>
+<div class="row"><button id="download-selected">下載本次候選完整 JSON</button><button id="download-cloud">下載當前雲端原件 JSON</button></div>
+<label for="verify-json">選擇剛下載的候選 JSON 以驗證（檔案不會上傳）</label>
+<input type="file" id="verify-json" accept=".json,application/json">
+<p id="backup-status" role="status">候選備份尚未讀回驗證。</p>
+<label class="check"><input type="checkbox" id="approve-rights">本人確認只使用內建虛構資料，具有這份合成資料的測試使用權。</label>
+<label class="check"><input type="checkbox" id="approve-retention">接受有效來源最多保存七日，更新不會延長，到期後自動刪除有效資料。</label>
+<label class="check"><input type="checkbox" id="approve-residual">理解 Cloudflare D1 Time Travel 備份可能在其保留期內存有殘留副本。</label>
+<p class="notice warning">這些確認只適用於此處所列的固定虛構文章，不會授權其他真實資料。</p></section>
+<section class="panel"><h2>④ 受控建立、更新、衝突及刪除</h2>
+<div class="row"><button class="primary" id="create-source">建立選定的合成文章</button><button id="update-source">以目前 Mac／iPhone 讀取版本更新摘要</button>
+<button class="danger" id="delete-source">刪除此合成文章（需再次確認）</button></div>
+<p>更新一律使用本裝置讀取的 Revision＋SHA-256。其他裝置若已先更新，舊操作會收到 HTTP 409 並停止；不得自動合併或覆寫。</p>
+<p class="notice" id="op-status" role="status">尚未執行操作。</p>
+<pre id="history">尚未讀取版本歷史。</pre></section>
+<footer>Phase 1.5B · Strict fixed synthetic fixtures · 5 active records max · 8 revisions each · No model API calls · No generic real-source upload · Cloudflare Access required</footer>
+</main></body></html>

@@ -1,0 +1,37 @@
+{
+  "name": "radar-phase13-one-article-dark",
+  "main": "./worker.mjs",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "CLOUD_ACCESS_REQUIRED": "true",
+    "OWNER_EMAIL_SHA256": "e9567eff528ea91c6472e28ec186b9a682d88456facceb65c943dc721d9f5ba3",
+    "PILOT_REAL_UPLOAD_ENABLED": "false",
+    "PINNED_ARTICLE_ID": "src_b374361cee7c6e132205267306a1e82b",
+    "PINNED_ARTICLE_SHA256": "bdea79cb77ae17c5467aba2f6a0517abd8368c611e76be45989f9af300ee6474",
+    "PINNED_UPDATE_SHA256": "9249bd0181fd7197d93ad6f64f5f689cb4bca3eb1c3faf171adab116c0f7ed13",
+    "PURGE_JOB_ENABLED": "true",
+    "PILOT_WRITE_PREFLIGHT_ENABLED": "true",
+    "PILOT_CONTROLLED_COMMIT_ENABLED": "false",
+    "SOURCE_SYNC_ENABLED": "false",
+    "SOURCE_SYNC_SYNTHETIC_ONLY": "true"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "radar-phase13-one-article-20261015",
+      "database_id": "874255da-f624-4ddc-89fe-f652c635e30a"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "0 * * * *"
+    ]
+  },
+  "assets": {
+    "directory": "./.phase14-assets",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  }
+}

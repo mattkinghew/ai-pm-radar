@@ -1,0 +1,51 @@
+- generic [active] [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=f1e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e5]: AI
+        - generic [ref=f1e6]:
+          - strong [ref=f1e7]: AI PM Radar
+          - paragraph [ref=f1e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=f1e9]:
+        - link "首頁" [ref=f1e10] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=f1e11] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=f1e12] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=f1e13] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=f1e14] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=f1e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=f1e16]:
+    - generic [ref=f1e17]:
+      - paragraph [ref=f1e18]: 研究簡報草稿
+      - heading "今日研究簡報草稿" [level=1] [ref=f1e19]
+      - paragraph [ref=f1e20]: 顯示本機 runner 收集及分析的有限結果；草稿仍需人工核對，不是正式 daily 或 verified 內容。
+      - paragraph [ref=f1e21]: 這是 AI／規則產生的研究簡報草稿；evidence 可定位不代表主張已獨立查證，也不代表已批准或發布。
+    - region [ref=f1e22]:
+      - generic [ref=f1e23]:
+        - heading "已批准 SourceRecord Library" [level=2] [ref=f1e24]
+        - paragraph [ref=f1e25]: 以下是同一瀏覽器保存的已審核來源快照。建立簡報會直接使用該 SourceRecord，不重新抓取或抽取原文。
+      - generic [ref=f1e26]:
+        - button "匯出 Source Library 與交接備份" [disabled] [ref=f1e27]
+        - generic [ref=f1e28] [cursor=pointer]:
+          - text: 匯入 Source Library 備份
+          - button "匯入 Source Library 備份" [ref=f1e29]
+      - paragraph [ref=f1e30]: 正在讀取本機研究結果…
+    - generic [ref=f1e31]:
+      - button "重新讀取結果" [ref=f1e32] [cursor=pointer]
+      - link "回來源工作台立即執行" [ref=f1e33] [cursor=pointer]:
+        - /url: /source-inbox/
+    - paragraph [ref=f1e34]: 正在讀取本機研究結果…
+  - contentinfo [ref=f1e35]:
+    - generic [ref=f1e36]:
+      - generic [ref=f1e37]:
+        - heading "使用限制" [level=2] [ref=f1e38]
+        - paragraph [ref=f1e39]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=f1e40]:
+        - heading "安全邊界" [level=2] [ref=f1e41]
+        - paragraph [ref=f1e42]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=f1e48] [cursor=pointer]

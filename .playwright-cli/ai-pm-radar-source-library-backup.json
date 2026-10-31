@@ -1,0 +1,366 @@
+{
+  "version": 1,
+  "exported_at": "2026-10-11T08:01:44.391Z",
+  "entries": [
+    {
+      "version": 4,
+      "source_record": {
+        "record_version": 2,
+        "id": "src_3db4cc9c",
+        "platform": "manual",
+        "source_type": "text",
+        "source_url": "https://example.org/synthetic-v04",
+        "source_url_original": "https://example.org/synthetic-v04",
+        "source_url_final": "https://example.org/synthetic-v04",
+        "creator": null,
+        "title": "Synthetic classification routing acceptance exercise",
+        "description": null,
+        "published_at": null,
+        "captured_at": "2026-10-11T07:55:55.570Z",
+        "language": "zh-Hant",
+        "raw_text": "Synthetic classification routing acceptance exercise\n\nAI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.",
+        "transcript": null,
+        "transcript_origin": "none",
+        "access_method": "direct_input",
+        "summary": "合成練習記錄20筆分類中4筆被人工修正；未量度時間、學習成果或收入。",
+        "key_points": [
+          "人工審核在20筆合成分類案例中修正4筆；未量度時間、學習成果或收入。"
+        ],
+        "key_claims": [
+          {
+            "claim": "在此合成練習中，AI 分類20筆，人工審核修正4筆。",
+            "evidence": [
+              {
+                "source": "https://example.org/synthetic-v04",
+                "timestamp": null,
+                "text_reference": "AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue."
+              }
+            ]
+          }
+        ],
+        "timestamps": [],
+        "visual_moments": [],
+        "story_patterns": [],
+        "style_features": [],
+        "why_it_matters": "需要以代表性資料和人工抽查檢視分類品質；這個小型合成練習不證明實際效益。",
+        "business_implication": "試點應定義錯誤成本、人工覆核時間及實際成效指標；此合成素材沒有量度這些結果。",
+        "ai_pm_implication": "以代表性測試集、風險分層及人工覆核定義產品驗收；需記錄錯誤與升級流程。",
+        "video_implication": null,
+        "content_ideas": [
+          "如何設計人工覆核的 AI 分類試點：明確量度範圍，並如實列出未測結果。"
+        ],
+        "case_candidate": false,
+        "library_targets": [],
+        "trend_tags": [],
+        "topic_tags": [],
+        "confidence": 0,
+        "evidence_grade": "ungraded",
+        "evidence": [
+          {
+            "source": "https://example.org/synthetic-v04",
+            "timestamp": null,
+            "text_reference": "AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue."
+          }
+        ],
+        "uncertainties": [
+          "資料為合成練習，未量度時間、學習成果、滿意度或收入；不能推論真實商業成效。"
+        ],
+        "rights_note": "Rights and reuse permissions not assessed; review before publishing or repurposing.",
+        "material_status": "captured",
+        "analysis": {
+          "version": 1,
+          "status": "not_requested",
+          "provider": "none",
+          "model": null,
+          "analyzed_at": null,
+          "input_chars": 232,
+          "usage": null,
+          "error_code": null,
+          "source_facts": [],
+          "inferences": [],
+          "use_cases": [],
+          "method_or_teaching_points": []
+        },
+        "review_status": "reviewed",
+        "approval_status": "approved"
+      },
+      "fingerprint": "{\"record_version\":2,\"id\":\"src_3db4cc9c\",\"platform\":\"manual\",\"source_type\":\"text\",\"source_url\":\"https://example.org/synthetic-v04\",\"source_url_original\":\"https://example.org/synthetic-v04\",\"source_url_final\":\"https://example.org/synthetic-v04\",\"creator\":null,\"title\":\"Synthetic classification routing acceptance exercise\",\"description\":null,\"published_at\":null,\"captured_at\":\"2026-10-11T07:55:55.570Z\",\"language\":\"zh-Hant\",\"raw_text\":\"Synthetic classification routing acceptance exercise\\n\\nAI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.\",\"transcript\":null,\"transcript_origin\":\"none\",\"access_method\":\"direct_input\",\"summary\":\"合成練習記錄20筆分類中4筆被人工修正；未量度時間、學習成果或收入。\",\"key_points\":[\"人工審核在20筆合成分類案例中修正4筆；未量度時間、學習成果或收入。\"],\"key_claims\":[{\"claim\":\"在此合成練習中，AI 分類20筆，人工審核修正4筆。\",\"evidence\":[{\"source\":\"https://example.org/synthetic-v04\",\"timestamp\":null,\"text_reference\":\"AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.\"}]}],\"timestamps\":[],\"visual_moments\":[],\"story_patterns\":[],\"style_features\":[],\"why_it_matters\":\"需要以代表性資料和人工抽查檢視分類品質；這個小型合成練習不證明實際效益。\",\"business_implication\":\"試點應定義錯誤成本、人工覆核時間及實際成效指標；此合成素材沒有量度這些結果。\",\"ai_pm_implication\":\"以代表性測試集、風險分層及人工覆核定義產品驗收；需記錄錯誤與升級流程。\",\"video_implication\":null,\"content_ideas\":[\"如何設計人工覆核的 AI 分類試點：明確量度範圍，並如實列出未測結果。\"],\"case_candidate\":false,\"library_targets\":[],\"trend_tags\":[],\"topic_tags\":[],\"confidence\":0,\"evidence_grade\":\"ungraded\",\"evidence\":[{\"source\":\"https://example.org/synthetic-v04\",\"timestamp\":null,\"text_reference\":\"AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.\"}],\"uncertainties\":[\"資料為合成練習，未量度時間、學習成果、滿意度或收入；不能推論真實商業成效。\"],\"rights_note\":\"Rights and reuse permissions not assessed; review before publishing or repurposing.\",\"material_status\":\"captured\",\"analysis\":{\"version\":1,\"status\":\"not_requested\",\"provider\":\"none\",\"model\":null,\"analyzed_at\":null,\"input_chars\":232,\"usage\":null,\"error_code\":null,\"source_facts\":[],\"inferences\":[],\"use_cases\":[],\"method_or_teaching_points\":[]}}",
+      "approved_at": "2026-10-11T07:59:06.462Z",
+      "handoffs": [
+        {
+          "kind": "research_brief",
+          "artifact_id": "research-brief-assessment_fa1f6309",
+          "created_at": "2026-10-11T07:59:50.497Z"
+        }
+      ],
+      "research_briefs": [
+        {
+          "artifact_id": "research-brief-assessment_fa1f6309",
+          "created_at": "2026-10-11T07:59:50.497Z",
+          "brief": {
+            "version": 3,
+            "material_id": "research-brief-assessment_fa1f6309",
+            "source_record_id": "src_3db4cc9c",
+            "generated_at": "2026-10-11T07:59:50.497Z",
+            "provider": "none",
+            "model": null,
+            "source_scope": "full_text",
+            "source_dates": {
+              "published_at": null,
+              "updated_at": null,
+              "discovered_at": "2026-10-11T07:59:50.497Z"
+            },
+            "selection_reasons": [],
+            "summary": "合成練習記錄20筆分類中4筆被人工修正；未量度時間、學習成果或收入。",
+            "key_points": [
+              "人工審核在20筆合成分類案例中修正4筆；未量度時間、學習成果或收入。"
+            ],
+            "key_claims": [
+              {
+                "claim": "在此合成練習中，AI 分類20筆，人工審核修正4筆。",
+                "evidence": [
+                  {
+                    "source": "https://example.org/synthetic-v04",
+                    "timestamp": null,
+                    "text_reference": "AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue."
+                  }
+                ]
+              }
+            ],
+            "method_or_teaching_points": [],
+            "applicability": [],
+            "business_implication": "試點應定義錯誤成本、人工覆核時間及實際成效指標；此合成素材沒有量度這些結果。",
+            "ai_pm_implication": "以代表性測試集、風險分層及人工覆核定義產品驗收；需記錄錯誤與升級流程。",
+            "uncertainties": [
+              "資料為合成練習，未量度時間、學習成果、滿意度或收入；不能推論真實商業成效。"
+            ],
+            "project_recommendations": [
+              {
+                "project_id": null,
+                "project_name": "暫無直接用途",
+                "reason": "目前未有足夠的明確詞彙支持專案配對；請人工判斷。",
+                "basis": "保守預設，不把未知用途當成已確認關聯",
+                "project_updated_at": null,
+                "matched_goal": null,
+                "matched_blocker": null
+              }
+            ],
+            "adoption": "undecided",
+            "recommendation_reason": "以代表性測試集、風險分層及人工覆核定義產品驗收；需記錄錯誤與升級流程。",
+            "suggested_action": null,
+            "usage": null,
+            "feedback": null,
+            "feedback_note": ""
+          }
+        }
+      ],
+      "downstream_handoffs": [
+        {
+          "id": "handoff_learning_pack_b3976925",
+          "type": "learning_pack",
+          "schema_version": 2,
+          "source_record_id": "src_3db4cc9c",
+          "source_fingerprint": "{\"record_version\":2,\"id\":\"src_3db4cc9c\",\"platform\":\"manual\",\"source_type\":\"text\",\"source_url\":\"https://example.org/synthetic-v04\",\"source_url_original\":\"https://example.org/synthetic-v04\",\"source_url_final\":\"https://example.org/synthetic-v04\",\"creator\":null,\"title\":\"Synthetic classification routing acceptance exercise\",\"description\":null,\"published_at\":null,\"captured_at\":\"2026-10-11T07:55:55.570Z\",\"language\":\"zh-Hant\",\"raw_text\":\"Synthetic classification routing acceptance exercise\\n\\nAI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.\",\"transcript\":null,\"transcript_origin\":\"none\",\"access_method\":\"direct_input\",\"summary\":\"合成練習記錄20筆分類中4筆被人工修正；未量度時間、學習成果或收入。\",\"key_points\":[\"人工審核在20筆合成分類案例中修正4筆；未量度時間、學習成果或收入。\"],\"key_claims\":[{\"claim\":\"在此合成練習中，AI 分類20筆，人工審核修正4筆。\",\"evidence\":[{\"source\":\"https://example.org/synthetic-v04\",\"timestamp\":null,\"text_reference\":\"AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.\"}]}],\"timestamps\":[],\"visual_moments\":[],\"story_patterns\":[],\"style_features\":[],\"why_it_matters\":\"需要以代表性資料和人工抽查檢視分類品質；這個小型合成練習不證明實際效益。\",\"business_implication\":\"試點應定義錯誤成本、人工覆核時間及實際成效指標；此合成素材沒有量度這些結果。\",\"ai_pm_implication\":\"以代表性測試集、風險分層及人工覆核定義產品驗收；需記錄錯誤與升級流程。\",\"video_implication\":null,\"content_ideas\":[\"如何設計人工覆核的 AI 分類試點：明確量度範圍，並如實列出未測結果。\"],\"case_candidate\":false,\"library_targets\":[],\"trend_tags\":[],\"topic_tags\":[],\"confidence\":0,\"evidence_grade\":\"ungraded\",\"evidence\":[{\"source\":\"https://example.org/synthetic-v04\",\"timestamp\":null,\"text_reference\":\"AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.\"}],\"uncertainties\":[\"資料為合成練習，未量度時間、學習成果、滿意度或收入；不能推論真實商業成效。\"],\"rights_note\":\"Rights and reuse permissions not assessed; review before publishing or repurposing.\",\"material_status\":\"captured\",\"analysis\":{\"version\":1,\"status\":\"not_requested\",\"provider\":\"none\",\"model\":null,\"analyzed_at\":null,\"input_chars\":232,\"usage\":null,\"error_code\":null,\"source_facts\":[],\"inferences\":[],\"use_cases\":[],\"method_or_teaching_points\":[]}}",
+          "created_at": "2026-10-11T07:59:50.498Z",
+          "updated_at": "2026-10-11T07:59:50.498Z",
+          "target_product": "cyber_kuma",
+          "source_url": "https://example.org/synthetic-v04",
+          "source_provenance": {
+            "source_url_original": "https://example.org/synthetic-v04",
+            "source_url_final": "https://example.org/synthetic-v04",
+            "captured_at": "2026-10-11T07:55:55.570Z",
+            "access_method": "direct_input"
+          },
+          "source_facts": [
+            {
+              "text": "在此合成練習中，AI 分類20筆，人工審核修正4筆。",
+              "evidence_reference_ids": [
+                "src_3db4cc9c:e0"
+              ]
+            }
+          ],
+          "evidence_references": [
+            {
+              "id": "src_3db4cc9c:e0",
+              "source_record_id": "src_3db4cc9c",
+              "evidence_index": 0,
+              "text_reference": "AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.",
+              "source": "https://example.org/synthetic-v04",
+              "timestamp": null
+            }
+          ],
+          "derived_analysis": {
+            "learning_objectives": [],
+            "concepts": [],
+            "definitions": [],
+            "examples": [],
+            "misconceptions": [],
+            "question_seeds": [],
+            "difficulty_suggestion": "",
+            "review_focus": [],
+            "unknowns": [
+              "Unknown — not assessed"
+            ]
+          },
+          "human_notes": "",
+          "status": "draft",
+          "reviewed_at": null,
+          "approved_at": null,
+          "approval_fingerprint": null
+        }
+      ],
+      "delivery_packages": [],
+      "intelligence_assessments": [
+        {
+          "id": "assessment_fa1f6309",
+          "schemaVersion": 1,
+          "sourceRecordId": "src_3db4cc9c",
+          "sourceFingerprint": "{\"record_version\":2,\"id\":\"src_3db4cc9c\",\"platform\":\"manual\",\"source_type\":\"text\",\"source_url\":\"https://example.org/synthetic-v04\",\"source_url_original\":\"https://example.org/synthetic-v04\",\"source_url_final\":\"https://example.org/synthetic-v04\",\"creator\":null,\"title\":\"Synthetic classification routing acceptance exercise\",\"description\":null,\"published_at\":null,\"captured_at\":\"2026-10-11T07:55:55.570Z\",\"language\":\"zh-Hant\",\"raw_text\":\"Synthetic classification routing acceptance exercise\\n\\nAI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.\",\"transcript\":null,\"transcript_origin\":\"none\",\"access_method\":\"direct_input\",\"summary\":\"合成練習記錄20筆分類中4筆被人工修正；未量度時間、學習成果或收入。\",\"key_points\":[\"人工審核在20筆合成分類案例中修正4筆；未量度時間、學習成果或收入。\"],\"key_claims\":[{\"claim\":\"在此合成練習中，AI 分類20筆，人工審核修正4筆。\",\"evidence\":[{\"source\":\"https://example.org/synthetic-v04\",\"timestamp\":null,\"text_reference\":\"AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.\"}]}],\"timestamps\":[],\"visual_moments\":[],\"story_patterns\":[],\"style_features\":[],\"why_it_matters\":\"需要以代表性資料和人工抽查檢視分類品質；這個小型合成練習不證明實際效益。\",\"business_implication\":\"試點應定義錯誤成本、人工覆核時間及實際成效指標；此合成素材沒有量度這些結果。\",\"ai_pm_implication\":\"以代表性測試集、風險分層及人工覆核定義產品驗收；需記錄錯誤與升級流程。\",\"video_implication\":null,\"content_ideas\":[\"如何設計人工覆核的 AI 分類試點：明確量度範圍，並如實列出未測結果。\"],\"case_candidate\":false,\"library_targets\":[],\"trend_tags\":[],\"topic_tags\":[],\"confidence\":0,\"evidence_grade\":\"ungraded\",\"evidence\":[{\"source\":\"https://example.org/synthetic-v04\",\"timestamp\":null,\"text_reference\":\"AI classified 20 synthetic practice cases. Human reviewers corrected 4 classifications before any decision. The exercise did not measure time saved, learner outcomes, or revenue.\"}],\"uncertainties\":[\"資料為合成練習，未量度時間、學習成果、滿意度或收入；不能推論真實商業成效。\"],\"rights_note\":\"Rights and reuse permissions not assessed; review before publishing or repurposing.\",\"material_status\":\"captured\",\"analysis\":{\"version\":1,\"status\":\"not_requested\",\"provider\":\"none\",\"model\":null,\"analyzed_at\":null,\"input_chars\":232,\"usage\":null,\"error_code\":null,\"source_facts\":[],\"inferences\":[],\"use_cases\":[],\"method_or_teaching_points\":[]}}",
+          "createdAt": "2026-10-11T07:59:50.497Z",
+          "updatedAt": "2026-10-11T08:01:27.296Z",
+          "status": "needs_review",
+          "dimensions": {
+            "source_quality": {
+              "score": 70,
+              "explanation": "Rule-based source-attribution, completeness, and provenance cues. Unknown metadata is shown; none independently verifies source credibility.",
+              "signals": [
+                "SourceRecord passed human review and reuse approval",
+                "source URL is present",
+                "requested and final URLs are retained",
+                "creator attribution is unknown",
+                "publication date is unknown",
+                "captured source text is present",
+                "access method is recorded",
+                "evidence grade is ungraded"
+              ]
+            },
+            "relevance": {
+              "score": 44,
+              "explanation": "Keyword overlap with the documented Radar focus (AI PM, business/workflow, education/NGO/SME); update this profile when priorities change.",
+              "signals": [
+                "ai",
+                "人工審核"
+              ]
+            },
+            "evidence_strength": {
+              "score": 80,
+              "explanation": "Measures whether existing SourceRecord evidence can be located in its captured text; it does not judge whether evidence proves a claim.",
+              "signals": [
+                "1 source evidence item(s)",
+                "1/1 claims have locatable evidence"
+              ]
+            },
+            "actionability": {
+              "score": 62,
+              "explanation": "Measures presence of recorded implications, use cases, and content ideas; it does not validate their usefulness.",
+              "signals": [
+                "business implication is recorded",
+                "AI PM implication is recorded",
+                "1 content idea(s) recorded"
+              ]
+            },
+            "reuse_potential": {
+              "score": 0,
+              "explanation": "Measures existing case, library, teaching, and creative/video signals for downstream reuse.",
+              "signals": []
+            }
+          },
+          "explanation": "Advisory, rule-based assessment derived from saved SourceRecord fields. Scores are not facts, verification, or approval.",
+          "confidence": 0.8,
+          "routeRecommendations": [
+            {
+              "id": "route-research_brief",
+              "route": "research_brief",
+              "score": 62,
+              "explanation": "matches Radar focus; has source evidence",
+              "signals": [
+                "matches Radar focus",
+                "has source evidence"
+              ],
+              "decision": {
+                "status": "accepted",
+                "selectedRoute": "research_brief",
+                "reason": null,
+                "decidedAt": "2026-10-11T08:00:06.889Z",
+                "createdArtifactId": "research-brief-assessment_fa1f6309"
+              }
+            },
+            {
+              "id": "route-content_candidate",
+              "route": "content_candidate",
+              "score": 60,
+              "explanation": "1 content idea(s) are present; source evidence is available for review",
+              "signals": [
+                "1 content idea(s) are present",
+                "source evidence is available for review"
+              ],
+              "decision": {
+                "status": "overridden",
+                "selectedRoute": "learning_pack",
+                "reason": "Synthetic QA: use a learning-pack format for this training-oriented example, not a publishing post.",
+                "decidedAt": "2026-10-11T08:00:58.225Z",
+                "createdArtifactId": "handoff_learning_pack_b3976925"
+              }
+            },
+            {
+              "id": "route-case_reference",
+              "route": "case_reference",
+              "score": 55,
+              "explanation": "not marked as a case candidate; business implication is recorded; source-backed claims are present",
+              "signals": [
+                "not marked as a case candidate",
+                "business implication is recorded",
+                "source-backed claims are present"
+              ],
+              "decision": {
+                "status": "rejected",
+                "selectedRoute": null,
+                "reason": "Synthetic QA: this small exercise does not support a case-study outcome claim.",
+                "decidedAt": "2026-10-11T08:00:27.351Z",
+                "createdArtifactId": null
+              }
+            },
+            {
+              "id": "route-creative_reference",
+              "route": "creative_reference",
+              "score": 20,
+              "explanation": "visual moments are not recorded; story/style signals are not recorded",
+              "signals": [
+                "visual moments are not recorded",
+                "story/style signals are not recorded"
+              ],
+              "decision": {
+                "status": "pending",
+                "selectedRoute": null,
+                "reason": null,
+                "decidedAt": null,
+                "createdArtifactId": null
+              }
+            },
+            {
+              "id": "route-learning_pack",
+              "route": "learning_pack",
+              "score": 20,
+              "explanation": "teaching/method points are not recorded; use cases are not recorded",
+              "signals": [
+                "teaching/method points are not recorded",
+                "use cases are not recorded"
+              ],
+              "decision": {
+                "status": "pending",
+                "selectedRoute": null,
+                "reason": null,
+                "decidedAt": null,
+                "createdArtifactId": null
+              }
+            }
+          ],
+          "method": {
+            "kind": "rules",
+            "version": "radar-intelligence-rules-v4"
+          }
+        }
+      ]
+    }
+  ]
+}

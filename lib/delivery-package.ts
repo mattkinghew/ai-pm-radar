@@ -4,6 +4,7 @@ import {
   validateHandoffForEntry,
   type BaseHandoff,
   type HandoffType,
+  type LearningPack,
 } from "./downstream-handoff.ts";
 import type { SourceLibraryEntry } from "./source-library.ts";
 
@@ -55,6 +56,20 @@ export type DeliveryPackageRecord = {
   state: DeliveryState;
   exported_at: string | null;
   import_confirmed_at: string | null;
+  receiver_receipt?: ContentOpsReceiverReceipt | null;
+  receiver_import_verified_at?: string | null;
+};
+
+export type ContentOpsReceiverReceipt = {
+  version: 1;
+  receiver: "content_ops";
+  draft_id: string;
+  target_brand_id: string;
+  received_at: string;
+  replayed: boolean;
+  source_record_id: string;
+  package_fingerprint: string;
+  source_sha256: string;
 };
 
 export type CompatibilityResult = {
@@ -235,6 +250,50 @@ export function createDeliveryPackage(entry: SourceLibraryEntry, handoff: BaseHa
   return deliveryPackage;
 }
 
+export type CyberKumaLearningIntake = {
+  format: "cyber-kuma-learning-intake";
+  version: 1;
+  sourceSystem: "ai_pm_radar";
+  status: "needs_review";
+  packageId: string;
+  sourceRecordId: string;
+  title: string;
+  sourceUrl: string | null;
+  learningObjectives: string[];
+  concepts: string[];
+  questionSeeds: string[];
+  evidenceReferences: DeliveryPackage["evidence_references"];
+  packageFingerprint: string;
+  packageSha256: string;
+};
+
+/** Human-reviewed Radar research becomes a NON-PLAYABLE draft at the consumer.
+ *  No MCQ answer keys or owner approval are manufactured here. */
+export function toCyberKumaLearningIntake(item: DeliveryPackage): CyberKumaLearningIntake {
+  const compatibility = validateConsumerCompatibility(item);
+  if (!compatibility.compatible || item.target_product !== "cyber_kuma" || item.handoff_type !== "learning_pack"
+    || !item.security_sha256?.package_sha256) {
+    throw new Error("Only a sealed compatible learning_pack can enter Cyber Kuma review.");
+  }
+  const learning = item.payload.derived_analysis as LearningPack;
+  return {
+    format: "cyber-kuma-learning-intake",
+    version: 1,
+    sourceSystem: "ai_pm_radar",
+    status: "needs_review",
+    packageId: item.package_id,
+    sourceRecordId: item.source_record_id,
+    title: item.source_snapshot.title ?? "Untitled learning source",
+    sourceUrl: item.provenance.source_url,
+    learningObjectives: [...learning.learning_objectives],
+    concepts: [...learning.concepts],
+    questionSeeds: [...learning.question_seeds],
+    evidenceReferences: structuredClone(item.evidence_references),
+    packageFingerprint: item.package_fingerprint,
+    packageSha256: item.security_sha256.package_sha256,
+  };
+}
+
 export function toContentOpsIntakePackage(item: DeliveryPackage): ContentOpsIntakePackage {
   const compatibility = validateConsumerCompatibility(item);
   if (!compatibility.compatible || item.target_product !== "content_ops" || item.handoff_type !== "content_candidate") {
@@ -281,9 +340,27 @@ export function validateDeliveryPackageRecord(value: unknown): value is Delivery
   if (!validateDeliveryPackage(record.package) || !["packaged", "exported", "import_confirmed"].includes(record.state ?? "")
     || (record.exported_at !== null && (typeof record.exported_at !== "string" || Number.isNaN(Date.parse(record.exported_at))))
     || (record.import_confirmed_at !== null && (typeof record.import_confirmed_at !== "string" || Number.isNaN(Date.parse(record.import_confirmed_at))))) return false;
+  if (record.receiver_receipt !== undefined && record.receiver_receipt !== null) {
+    const receipt = record.receiver_receipt;
+    if (!receipt || typeof receipt !== "object" || receipt.version !== 1 || receipt.receiver !== "content_ops"
+      || !/^radar-draft-[a-f0-9]{24}$/u.test(receipt.draft_id ?? "")
+      || !/^[a-z0-9][a-z0-9-]{0,109}$/u.test(receipt.target_brand_id ?? "")
+      || !Number.isFinite(Date.parse(receipt.received_at ?? "")) || typeof receipt.replayed !== "boolean"
+      || receipt.source_record_id !== record.package.source_record_id
+      || receipt.package_fingerprint !== record.package.package_fingerprint
+      || !/^[a-f0-9]{64}$/u.test(receipt.source_sha256 ?? "")
+      || receipt.source_sha256 !== record.package.security_sha256?.source_sha256) return false;
+  }
+  if (record.receiver_import_verified_at !== undefined && record.receiver_import_verified_at !== null
+    && (typeof record.receiver_import_verified_at !== "string" || Number.isNaN(Date.parse(record.receiver_import_verified_at))
+      || !record.receiver_receipt
+      || (record.import_confirmed_at !== null && record.import_confirmed_at !== record.receiver_import_verified_at))) return false;
   if (record.state === "packaged" && (record.exported_at !== null || record.import_confirmed_at !== null)) return false;
   if (record.state === "exported" && (!record.exported_at || record.import_confirmed_at !== null)) return false;
-  return record.state !== "import_confirmed" || Boolean(record.exported_at && record.import_confirmed_at);
+  if (record.state !== "import_confirmed") return true;
+  return Boolean(record.import_confirmed_at && (record.exported_at
+    || (record.package.target_product === "content_ops" && record.receiver_receipt
+      && record.receiver_import_verified_at === record.import_confirmed_at)));
 }
 
 export function deliveryPackageStatus(record: DeliveryPackageRecord, entry: SourceLibraryEntry): "outdated" | DeliveryState {
@@ -300,8 +377,17 @@ export function markDeliveryPackageExported(record: DeliveryPackageRecord, expor
 }
 
 export function confirmDeliveryPackageImported(record: DeliveryPackageRecord, confirmedAt = new Date().toISOString()): DeliveryPackageRecord {
-  if (!validateDeliveryPackageRecord(record) || !record.exported_at || Number.isNaN(Date.parse(confirmedAt))) throw new Error("A package must be explicitly exported before import confirmation.");
-  return { ...record, state: "import_confirmed", import_confirmed_at: new Date(confirmedAt).toISOString() };
+  const contentOps = record?.package?.target_product === "content_ops";
+  if (!validateDeliveryPackageRecord(record) || Number.isNaN(Date.parse(confirmedAt))
+    || (contentOps && (!record.receiver_receipt || !record.receiver_import_verified_at))
+    || (!contentOps && !record.exported_at)) {
+    throw new Error(contentOps
+      ? "Content Ops import confirmation requires a matching Receiver import readback."
+      : "A package must be explicitly exported before import confirmation.");
+  }
+  const timestamp = new Date(confirmedAt).toISOString();
+  return { ...record, state: "import_confirmed", import_confirmed_at: timestamp,
+    ...(contentOps ? { receiver_import_verified_at: timestamp } : {}) };
 }
 
 export function deliveryPackageToMarkdown(item: DeliveryPackage) {

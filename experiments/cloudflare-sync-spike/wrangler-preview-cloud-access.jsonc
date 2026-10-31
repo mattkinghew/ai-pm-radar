@@ -1,0 +1,19 @@
+{
+  "name": "radar-phase11-preview-locked",
+  "main": "./worker.mjs",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "CLOUD_ACCESS_REQUIRED": "true",
+    "OWNER_EMAIL_SHA256": "e9567eff528ea91c6472e28ec186b9a682d88456facceb65c943dc721d9f5ba3",
+    "SYNTHETIC_ONLY": "true"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "radar-phase11-synthetic-20261014",
+      "database_id": "f616e895-a43f-486d-a529-8372bdc588b9"
+    }
+  ]
+}

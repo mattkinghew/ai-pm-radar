@@ -7,7 +7,7 @@ import {
   approveHandoff, createHandoffDraft, markHandoffReviewed, updateHandoff,
 } from "../lib/downstream-handoff.ts";
 import {
-  createDeliveryPackage, toContentOpsIntakePackage, validateDeliveryPackage,
+  createDeliveryPackage, toContentOpsIntakePackage, toCyberKumaLearningIntake, validateDeliveryPackage,
 } from "../lib/delivery-package.ts";
 import {
   approveHandoffWithSeal, assertSealedHandoff,
@@ -36,9 +36,9 @@ function reviewedRecord(): SourceRecord {
   };
 }
 
-async function makeBundle() {
+async function makeBundle(type: "content_candidate" | "learning_pack" = "content_candidate") {
   const entry = createSourceLibraryEntry(reviewedRecord(), at);
-  const draft = createHandoffDraft(entry, "content_candidate", at);
+  const draft = createHandoffDraft(entry, type, at);
   const reviewed = markHandoffReviewed(draft, "2026-10-15T13:01:00.000Z");
   const approved = await approveHandoffWithSeal(reviewed, entry, "2026-10-15T13:02:00.000Z");
   const linked = { ...entry, downstream_handoffs: [approved] };
@@ -58,6 +58,18 @@ test("secure 1.5D approval and delivery bind reviewed source, evidence and packa
   assert.equal(intake.items[0]?.externalId, item.package_id);
   assert.equal(intake.items[0]?.metadata.radarDelivery.source_record_id, entry.source_record.id);
   assert.equal(intake.items[0]?.metadata.radarDelivery.package_sha256, item.security_sha256?.package_sha256);
+});
+
+test("sealed learning_pack exports a review-only Cyber Kuma intake, never an auto-approved quiz", async () => {
+  const { item } = await makeBundle("learning_pack");
+  const intake = toCyberKumaLearningIntake(item);
+  assert.equal(intake.format, "cyber-kuma-learning-intake");
+  assert.equal(intake.status, "needs_review");
+  assert.equal(intake.sourceRecordId, item.source_record_id);
+  assert.equal(intake.packageSha256, item.security_sha256?.package_sha256);
+  assert.equal(Object.hasOwn(intake, "cards"), false);
+  assert.equal(Object.hasOwn(intake, "questions"), false);
+  assert.throws(() => toCyberKumaLearningIntake({ ...item, security_sha256: undefined }), /sealed/);
 });
 
 test("negative: changed source byte, evidence quote, handoff payload and package invalidate seals", async () => {

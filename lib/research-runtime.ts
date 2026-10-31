@@ -119,6 +119,8 @@ export type ResearchBriefDraft = {
   generated_at: string;
   provider: SourceRecord["analysis"]["provider"];
   model: string | null;
+  /** Set when the primary provider failed and the optional fallback produced this brief. */
+  fallback_from?: { provider: string; model: string | null; code: string | null } | null;
   source_scope: "full_text" | "feed_content" | "summary_only" | "manual";
   source_dates: { published_at: string | null; updated_at: string | null; discovered_at: string };
   selection_reasons: string[];
@@ -143,6 +145,8 @@ export type ResearchDailyQuota = {
   source_attempts: number;
   body_attempts: number;
   analysis_attempts: number;
+  /** Daily model requests per provider (actual provider used, including fallback). */
+  analysis_attempts_by_provider?: Record<string, number>;
   briefs_created: number;
   actions_suggested: number;
 };
@@ -222,6 +226,10 @@ export function hongKongDate(value = new Date()) {
     month: "2-digit",
     day: "2-digit",
   }).format(value);
+}
+
+export function isResearchDateToday(date: string, now = new Date()) {
+  return date === hongKongDate(now);
 }
 
 export function sourceScope(record: SourceRecord): ResearchBriefDraft["source_scope"] {

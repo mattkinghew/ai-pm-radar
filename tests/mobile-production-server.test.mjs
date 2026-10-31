@@ -86,8 +86,10 @@ test("blocks unauthorised static and API requests before reading protected data"
 
 test("serves only exported files and proxies the allowlisted same-origin API", async (t) => {
   const outDir = await makeStaticOutput();
+  const proxiedPaths = [];
   const helper = http.createServer((request, response) => {
     assert.equal(request.headers.origin, "http://127.0.0.1:4320");
+    proxiedPaths.push(request.url);
     response.writeHead(200, { "content-type": "application/json; charset=utf-8" });
     response.end(JSON.stringify({ provider: "gemini", configured: true }));
   });
@@ -109,6 +111,7 @@ test("serves only exported files and proxies the allowlisted same-origin API", a
 
   const page = await request(origin, "/", { headers });
   const api = await request(origin, "/api/status", { headers });
+  const collectorInbox = await request(origin, "/api/automation/collector-inbox", { headers });
   const apiRoot = await request(origin, "/api", { headers });
   const secret = await request(origin, "/.env", { headers });
   const unknownApi = await request(origin, "/api/not-real", { headers });
@@ -119,6 +122,8 @@ test("serves only exported files and proxies the allowlisted same-origin API", a
   assert.match(page.headers["content-security-policy"] ?? "", new RegExp(`'sha256-${fixtureHash}'`, "u"));
   assert.doesNotMatch(page.headers["content-security-policy"] ?? "", /script-src[^;]*unsafe-inline/u);
   assert.deepEqual(await api.json(), { provider: "gemini", configured: true });
+  assert.deepEqual(await collectorInbox.json(), { provider: "gemini", configured: true });
+  assert.ok(proxiedPaths.includes("/automation/collector-inbox"));
   assert.equal(apiRoot.status, 404);
   assert.match(apiRoot.headers["content-type"] ?? "", /application\/json/u);
   assert.deepEqual(await apiRoot.json(), { code: "api_route_not_found", error: "Unknown API route." });
@@ -171,4 +176,55 @@ test("rejects requests for the wrong host or insecure forwarded protocol", async
 
   assert.equal(wrongHost.status, 421);
   assert.equal(insecure.status, 400);
+});
+
+test("Content Ops dispatch proxy requires the exact authenticated public Origin", async (t) => {
+  const outDir = await makeStaticOutput();
+  let calls = 0;
+  const helper = http.createServer((incoming, response) => {
+    calls += 1;
+    assert.equal(incoming.headers.origin, "http://127.0.0.1:4320");
+    response.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+    response.end(incoming.url === "/content-ops/dispatch"
+      ? JSON.stringify({ receipt: { version: 1, receiver: "content_ops" } })
+      : JSON.stringify({ result: { status: "draft" } }));
+  });
+  const helperOrigin = await listen(helper);
+  const server = createMobileProductionServer({
+    outDir,
+    helperOrigin,
+    helperAllowedOrigin: "http://127.0.0.1:4320",
+    publicOrigin: "https://radar.lamlab.cc",
+    verifyAccess: authorize,
+  });
+  const origin = await listen(server);
+  t.after(() => { server.close(); helper.close(); });
+  const headers = { host: "radar.lamlab.cc", "x-forwarded-proto": "https", "cf-access-jwt-assertion": "valid" };
+
+  const denied = await request(origin, "/api/content-ops/dispatch", {
+    method: "POST", headers: { ...headers, origin: "https://attacker.example", "content-type": "application/json" }, body: "{}",
+  });
+  assert.equal(denied.status, 403);
+  assert.equal((await denied.json()).code, "same_origin_required");
+  assert.equal(calls, 0);
+
+  const allowed = await request(origin, "/api/content-ops/dispatch", {
+    method: "POST", headers: { ...headers, origin: "https://radar.lamlab.cc", "content-type": "application/json" }, body: "{}",
+  });
+  assert.equal(allowed.status, 200);
+  assert.deepEqual(await allowed.json(), { receipt: { version: 1, receiver: "content_ops" } });
+  assert.equal(calls, 1);
+
+  const importDenied = await request(origin, "/api/content-ops/import-status", {
+    method: "POST", headers: { ...headers, "content-type": "application/json" }, body: "{}",
+  });
+  assert.equal(importDenied.status, 403);
+  assert.equal((await importDenied.json()).code, "same_origin_required");
+  assert.equal(calls, 1);
+  const importAllowed = await request(origin, "/api/content-ops/import-status", {
+    method: "POST", headers: { ...headers, origin: "https://radar.lamlab.cc", "content-type": "application/json" }, body: "{}",
+  });
+  assert.equal(importAllowed.status, 200);
+  assert.deepEqual(await importAllowed.json(), { result: { status: "draft" } });
+  assert.equal(calls, 2);
 });

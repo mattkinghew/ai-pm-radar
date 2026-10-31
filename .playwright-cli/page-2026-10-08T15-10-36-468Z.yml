@@ -1,0 +1,70 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e55]:
+    - generic [ref=e56]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e57] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e58]: AI
+        - generic [ref=e59]:
+          - strong [ref=e60]: AI PM Radar
+          - paragraph [ref=e61]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e62]:
+        - link "首頁" [ref=e63] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=e64] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e65] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e66] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=e67] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=e68] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e69]:
+    - generic [ref=e70]:
+      - paragraph [ref=e71]: 來源工作台
+      - heading "輸入來源，整理成可核對草稿" [level=1] [ref=e72]
+      - paragraph [ref=e73]: 貼上公開文章連結或正文，先由規則整理基本草稿，再由你核對、補充原文證據、人工審核並批准下載。
+      - paragraph [ref=e74]: 本機優先：素材保存於目前瀏覽器；只有你按下 AI 整理時，正文才會送至本機設定的 server-side provider。不寫入 database，也不覆寫正式 daily data。
+      - paragraph [ref=e75]: 介面語言只影響操作文字；不會翻譯文章原文、使用者輸入、JSON keys、ID 或 enum values。
+      - generic "匯入素材" [ref=e76]:
+        - generic [ref=e77]: 1 匯入素材
+        - generic [ref=e78]: 2 核對草稿
+        - generic [ref=e79]: 3 批准與下載
+    - status [ref=e80]: 已保存於目前瀏覽器
+    - group [ref=e81]:
+      - generic "進階工具與來源設定" [ref=e82] [cursor=pointer]
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high"
+      - option "medium" [selected]
+      - option "low"
+    - generic [ref=e83]:
+      - generic [ref=e84]:
+        - heading "匯入素材" [level=2] [ref=e85]
+        - paragraph [ref=e86]: 先選一種輸入方式；完成後才會顯示詳細來源資料、原文證據與人工分析欄位。
+      - tablist "匯入素材" [ref=e87]:
+        - button "貼連結" [ref=e88] [cursor=pointer]
+        - button "貼正文" [ref=e89] [cursor=pointer]
+      - generic [ref=e90]:
+        - generic [ref=e91]: 公開文章連結
+        - textbox "公開文章連結" [ref=e93]:
+          - /placeholder: https://example.com/article
+      - paragraph [ref=e94]: 只處理一般公開 HTML 文章；不下載影片，不繞過登入、付費牆或平台限制。
+      - generic [ref=e95] [cursor=pointer]:
+        - text: 上傳 TXT／Markdown／SRT／VTT
+        - button "上傳 TXT／Markdown／SRT／VTT" [ref=e96]
+      - button "讀取連結並建立草稿" [disabled] [ref=e98]
+  - contentinfo [ref=e35]:
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - heading "使用限制" [level=2] [ref=e38]
+        - paragraph [ref=e39]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e40]:
+        - heading "安全邊界" [level=2] [ref=e41]
+        - paragraph [ref=e42]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=e51] [cursor=pointer]
+  - alert [ref=e43]

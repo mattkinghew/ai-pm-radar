@@ -181,14 +181,57 @@ h3 {
   .brand { gap: 0.65rem; }
   .brand-mark { width: 2.3rem; height: 2.3rem; flex: none; }
   .brand p { display: none; }
-  .nav { flex-wrap: nowrap; overflow-x: auto; gap: 0.15rem; -webkit-overflow-scrolling: touch; }
-  .nav-link { flex: 0 0 auto; white-space: nowrap; padding: 0.35rem 0.6rem; font-size: 0.9rem; }
+  .nav { flex-wrap: wrap; gap: 0.15rem; }
+  .nav-link { flex: 0 1 auto; white-space: nowrap; padding: 0.35rem 0.6rem; font-size: 0.9rem; }
   .site-header .language-toggle { width: fit-content; align-self: flex-start; min-height: 2rem; padding: 0.3rem 0.6rem; font-size: 0.85rem; }
 }
 
 .hero {
   padding: 2rem 0 2.5rem;
 }
+
+.quick-capture {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(217, 200, 172, 0.9);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 253, 250, 0.92);
+}
+
+.quick-capture-heading,
+.quick-capture-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.quick-capture-heading h2 { font-size: clamp(1.35rem, 4vw, 1.8rem); }
+.quick-capture-heading p,
+.quick-capture-hint,
+.quick-capture-saved { margin: 0.45rem 0 0; font-size: 0.92rem; }
+.quick-capture-saved { color: var(--muted); }
+.quick-capture-form { display: grid; gap: 0.65rem; }
+.quick-capture-label { font-weight: 700; color: var(--text); }
+.quick-capture-form textarea {
+  width: 100%;
+  min-height: 7rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+.quick-capture-form textarea:focus-visible,
+.quick-capture-file:focus-within { outline: 3px solid rgba(180, 79, 46, 0.28); outline-offset: 2px; }
+.quick-capture-file { position: relative; max-width: 100%; overflow-wrap: anywhere; cursor: pointer; }
+.quick-capture-file input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.quick-capture-actions > * { min-height: 2.75rem; }
+.quick-capture-hint { line-height: 1.55; }
 
 .hero-grid,
 .about-grid,
@@ -276,6 +319,24 @@ h3 {
 .hero-date {
   margin: 0.4rem 0 0;
   font-weight: 600;
+}
+
+.hero-freshness {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.stale-data-badge {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.12rem 0.48rem;
+  color: var(--accent-dark);
+  font-weight: 700;
 }
 
 .eyebrow {
@@ -991,6 +1052,12 @@ select:focus-visible {
   gap: 0.75rem;
 }
 
+.material-card-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .material-card p {
   margin: 0;
   overflow-wrap: anywhere;
@@ -1379,6 +1446,11 @@ select:focus-visible {
 }
 
 @media (max-width: 767px) {
+  .quick-capture { margin-top: 0.75rem; padding: 1rem; border-radius: var(--radius-md); }
+  .quick-capture-heading { align-items: flex-start; flex-direction: column; }
+  .quick-capture-heading .secondary-button,
+  .quick-capture-actions > * { width: 100%; justify-content: center; }
+  .quick-capture-actions { align-items: stretch; flex-direction: column; }
   .hero-top-list li,
   .article-card,
   .filter-panel,

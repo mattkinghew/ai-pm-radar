@@ -1,0 +1,228 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: AI
+        - generic [ref=e6]:
+          - strong [ref=e7]: AI PM Radar
+          - paragraph [ref=e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e9]:
+        - link "首頁" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=e11] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e12] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e13] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=e14] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - paragraph [ref=e18]: 研究簡報草稿
+      - heading "今日研究簡報草稿" [level=1] [ref=e19]
+      - paragraph [ref=e20]: 顯示本機 runner 收集及分析的有限結果；草稿仍需人工核對，不是正式 daily 或 verified 內容。
+      - paragraph [ref=e21]: 這是 AI／規則產生的研究簡報草稿；evidence 可定位不代表主張已獨立查證，也不代表已批准或發布。
+    - region [ref=e22]:
+      - generic [ref=e23]:
+        - heading "已批准 SourceRecord Library" [level=2] [ref=e24]
+        - paragraph [ref=e25]: 以下是同一瀏覽器保存的已審核來源快照。建立簡報會直接使用該 SourceRecord，不重新抓取或抽取原文。
+      - generic [ref=e26]:
+        - button "匯出 Source Library 與交接備份" [ref=e27] [cursor=pointer]
+        - generic [ref=e28] [cursor=pointer]:
+          - text: 匯入 Source Library 備份
+          - button "匯入 Source Library 備份" [active] [ref=e29]
+      - article [ref=e55]:
+        - generic [ref=e56]:
+          - heading "Synthetic AI classification pilot" [level=3] [ref=e57]
+          - generic [ref=e58]: reviewed · approved
+        - paragraph [ref=e59]: https://example.org/radar-release-test-2026-10-08
+        - paragraph [ref=e60]: 作者：Synthetic Education Research Group · 發布：未知
+        - paragraph [ref=e61]:
+          - text: 批准時間：2026年10月8日 下午11:23 · SourceRecord ID：
+          - code [ref=e62]: src_b712fc33
+        - group [ref=e63]:
+          - generic "來源明確內容" [ref=e64]
+        - region [ref=e65]:
+          - generic [ref=e66]:
+            - heading "Intelligence 評估與路由建議" [level=3] [ref=e67]
+            - paragraph [ref=e68]: 僅使用已批准 SourceRecord 的現有欄位；分數是規則分析，不是來源事實、查證或批准。
+          - button "評估 intelligence value" [ref=e69] [cursor=pointer]
+          - paragraph [ref=e70]: 尚未建立評估。
+        - generic [ref=e71]:
+          - button "以此來源建立 Research Brief" [ref=e72] [cursor=pointer]
+          - button "下載 SourceRecord 備份" [ref=e73] [cursor=pointer]
+        - region [ref=e74]:
+          - generic [ref=e75]:
+            - heading "重用來源建立下游交接" [level=3] [ref=e76]
+            - paragraph [ref=e77]: 每次只建立一種可匯出的交接；沿用同一 SourceRecord，不重新抓取來源。
+          - generic [ref=e78]:
+            - strong [ref=e79]: 來源事實與分析分開
+            - paragraph [ref=e80]: 以下主張及引文取自已審核 SourceRecord；引文可定位不代表主張已獨立查證。下游分析是衍生內容，不會回寫來源。
+            - paragraph [ref=e81]:
+              - text: 來源 ID：
+              - code [ref=e82]: src_b712fc33
+              - text: · 來源審核／批准：reviewed / approved
+          - generic [ref=e83]:
+            - article [ref=e84]:
+              - strong [ref=e85]: 內容候選（Content Ops）
+              - generic [ref=e86]: 1 · 已批准
+            - article [ref=e87]:
+              - strong [ref=e88]: 學習包（Cyber Kuma）
+              - generic [ref=e89]: 1 · 已批准
+            - article [ref=e90]:
+              - strong [ref=e91]: 創作參考（Storyworld）
+              - generic [ref=e92]: 1 · 已批准
+            - article [ref=e93]:
+              - strong [ref=e94]: 案例參考（Diagnostic）
+              - generic [ref=e95]: 1 · 已批准
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - text: 選擇下游用途
+              - combobox "選擇下游用途" [ref=e98]:
+                - option "內容候選（Content Ops）" [selected]
+                - option "學習包（Cyber Kuma）"
+                - option "創作參考（Storyworld）"
+                - option "案例參考（Diagnostic）"
+            - button "建立交接草稿" [ref=e99] [cursor=pointer]
+          - generic [ref=e100]:
+            - text: 開啟此來源的交接
+            - combobox "開啟此來源的交接" [ref=e101]:
+              - option "選擇已建立的交接" [selected]
+              - option "內容候選（Content Ops） · 已批准 · handoff_content_candidate_935b0698"
+              - option "學習包（Cyber Kuma） · 已批准 · handoff_learning_pack_49073dfb"
+              - option "創作參考（Storyworld） · 已批准 · handoff_creative_reference_22205ded"
+              - option "案例參考（Diagnostic） · 已批准 · handoff_case_reference_b43b1274"
+          - region "Delivery Outbox" [ref=e102]:
+            - generic [ref=e103]:
+              - heading "Delivery Outbox" [level=4] [ref=e104]
+              - paragraph [ref=e105]: 只保存已批准 handoff 的不可變快照；匯出不代表接收或發布。
+            - paragraph [ref=e106]: 尚無 delivery packages。先完成 handoff 人工審核與批准。
+            - article [ref=e107]:
+              - generic [ref=e108]:
+                - heading "內容候選（Content Ops） → content_ops" [level=5] [ref=e109]
+                - generic [ref=e110]: 已過期
+              - paragraph [ref=e111]:
+                - text: "相容性:"
+                - strong [ref=e112]: 通過
+                - text: "· Package 版本: 1 · Contract 版本: 1"
+              - paragraph [ref=e113]:
+                - text: "Package ID:"
+                - code [ref=e114]: delivery_content_candidate_747504f46d5c989e
+                - text: "Package fingerprint:"
+                - code [ref=e115]: 00b8a8b5c2519eb9
+                - text: "來源／handoff 關聯:"
+                - code [ref=e116]: src_b712fc33
+                - text: →
+                - code [ref=e117]: handoff_content_candidate_935b0698
+              - status [ref=e118]: 已過期：來源或 handoff 已有新版本；舊 package 保留且不能冒充最新版。
+              - button "預覽不可變 JSON" [ref=e120] [cursor=pointer]
+            - article [ref=e121]:
+              - generic [ref=e122]:
+                - heading "內容候選（Content Ops） → content_ops" [level=5] [ref=e123]
+                - generic [ref=e124]: 已封裝
+              - paragraph [ref=e125]:
+                - text: "相容性:"
+                - strong [ref=e126]: 通過
+                - text: "· Package 版本: 1 · Contract 版本: 1"
+              - paragraph [ref=e127]:
+                - text: "Package ID:"
+                - code [ref=e128]: delivery_content_candidate_f6ed21ccd4b5a697
+                - text: "Package fingerprint:"
+                - code [ref=e129]: 09fedf111b9ab964
+                - text: "來源／handoff 關聯:"
+                - code [ref=e130]: src_b712fc33
+                - text: →
+                - code [ref=e131]: handoff_content_candidate_935b0698
+              - generic [ref=e132]:
+                - button "匯出 JSON" [ref=e133] [cursor=pointer]
+                - button "預覽不可變 JSON" [ref=e134] [cursor=pointer]
+              - group [ref=e135]:
+                - generic "其他匯出格式" [ref=e136]
+            - article [ref=e137]:
+              - generic [ref=e138]:
+                - heading "學習包（Cyber Kuma） → cyber_kuma" [level=5] [ref=e139]
+                - generic [ref=e140]: 已匯出
+              - paragraph [ref=e141]:
+                - text: "相容性:"
+                - strong [ref=e142]: 通過
+                - text: "· Package 版本: 1 · Contract 版本: 1"
+              - paragraph [ref=e143]:
+                - text: "Package ID:"
+                - code [ref=e144]: delivery_learning_pack_beede8dce5a543a9
+                - text: "Package fingerprint:"
+                - code [ref=e145]: 92db75a5ae34b698
+                - text: "來源／handoff 關聯:"
+                - code [ref=e146]: src_b712fc33
+                - text: →
+                - code [ref=e147]: handoff_learning_pack_49073dfb
+              - generic [ref=e148]:
+                - button "我已在接收產品確認匯入" [ref=e149] [cursor=pointer]
+                - button "預覽不可變 JSON" [ref=e150] [cursor=pointer]
+              - group [ref=e151]:
+                - generic "其他匯出格式" [ref=e152]
+              - paragraph [ref=e153]: 已匯出（不代表接收端已收到）。
+            - article [ref=e154]:
+              - generic [ref=e155]:
+                - heading "創作參考（Storyworld） → storyworld" [level=5] [ref=e156]
+                - generic [ref=e157]: 已匯出
+              - paragraph [ref=e158]:
+                - text: "相容性:"
+                - strong [ref=e159]: 通過
+                - text: "· Package 版本: 1 · Contract 版本: 1"
+              - paragraph [ref=e160]:
+                - text: "Package ID:"
+                - code [ref=e161]: delivery_creative_reference_457c5cec87a85190
+                - text: "Package fingerprint:"
+                - code [ref=e162]: deba5fb4c8910ab5
+                - text: "來源／handoff 關聯:"
+                - code [ref=e163]: src_b712fc33
+                - text: →
+                - code [ref=e164]: handoff_creative_reference_22205ded
+              - generic [ref=e165]:
+                - button "我已在接收產品確認匯入" [ref=e166] [cursor=pointer]
+                - button "預覽不可變 JSON" [ref=e167] [cursor=pointer]
+              - group [ref=e168]:
+                - generic "其他匯出格式" [ref=e169]
+              - paragraph [ref=e170]: 已匯出（不代表接收端已收到）。
+            - article [ref=e171]:
+              - generic [ref=e172]:
+                - heading "案例參考（Diagnostic） → diagnostic" [level=5] [ref=e173]
+                - generic [ref=e174]: 已匯出
+              - paragraph [ref=e175]:
+                - text: "相容性:"
+                - strong [ref=e176]: 通過
+                - text: "· Package 版本: 1 · Contract 版本: 1"
+              - paragraph [ref=e177]:
+                - text: "Package ID:"
+                - code [ref=e178]: delivery_case_reference_585c3d8104a4a9de
+                - text: "Package fingerprint:"
+                - code [ref=e179]: feaa1c051bb92aed
+                - text: "來源／handoff 關聯:"
+                - code [ref=e180]: src_b712fc33
+                - text: →
+                - code [ref=e181]: handoff_case_reference_b43b1274
+              - generic [ref=e182]:
+                - button "我已在接收產品確認匯入" [ref=e183] [cursor=pointer]
+                - button "預覽不可變 JSON" [ref=e184] [cursor=pointer]
+              - group [ref=e185]:
+                - generic "其他匯出格式" [ref=e186]
+              - paragraph [ref=e187]: 已匯出（不代表接收端已收到）。
+    - generic [ref=e32]:
+      - button "重新讀取結果" [ref=e33] [cursor=pointer]
+      - link "回來源工作台立即執行" [ref=e34] [cursor=pointer]:
+        - /url: /source-inbox/
+    - status [ref=e35]: 本機研究服務未啟動，或尚未交接來源；可先在來源工作台保存來源設定。
+    - status [ref=e188]: Source Library 備份已合併；既有本地版本優先保留，請重新核對。
+  - contentinfo [ref=e36]:
+    - generic [ref=e37]:
+      - generic [ref=e38]:
+        - heading "使用限制" [level=2] [ref=e39]
+        - paragraph [ref=e40]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e41]:
+        - heading "安全邊界" [level=2] [ref=e42]
+        - paragraph [ref=e43]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=e49] [cursor=pointer]
+  - alert [ref=e53]

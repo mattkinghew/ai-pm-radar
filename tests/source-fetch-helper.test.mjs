@@ -14,6 +14,8 @@ import {
   isPublicAddress,
   loadProjectEnv,
   requestGeminiAnalysis,
+  parseCollectorInbox,
+  readCollectorInbox,
   readLimitedBody,
   resolvePublicTarget,
 } from "../scripts/source-fetch-helper.mjs";
@@ -50,6 +52,34 @@ function validAnalysis(textReference = "The rollout reduced review time from fiv
 test("Gemini gets a bounded 60-second allowance without increasing the unrelated OpenAI timeout", () => {
   assert.equal(GEMINI_ANALYSIS_TIMEOUT_MS, 60_000);
   assert.equal(ANALYSIS_TIMEOUT_MS, 30_000);
+});
+
+test("collector inbox parser preserves safe metadata and keeps every item review-gated", () => {
+  const parsed = parseCollectorInbox({
+    version: 1,
+    updatedAt: "2026-10-17T12:00:00.000Z",
+    items: [
+      { id: "fixture-1", category: "AI_TECH_NEWS", sourceId: "feed-fixture", title: "Synthetic candidate", url: "https://example.com/story", summary: "Public feed summary", discoveredAt: "2026-10-17T12:00:00.000Z", reviewStatus: "approved", rawHtml: "must not leak" },
+      { id: "bad", title: "Missing metadata" },
+    ],
+  });
+  assert.equal(parsed.items.length, 1);
+  assert.equal(parsed.items[0].reviewStatus, "needs_review");
+  assert.equal(parsed.items[0].url, "https://example.com/story");
+  assert.equal("rawHtml" in parsed.items[0], false);
+});
+
+test("collector inbox reader bounds file size and rejects unsupported schema versions", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "radar-collector-fixture-"));
+  const inboxPath = join(directory, "daily-radar-inbox.json");
+  try {
+    writeFileSync(inboxPath, JSON.stringify({ version: 2, items: [] }));
+    await assert.rejects(readCollectorInbox(inboxPath), /collector_inbox_invalid/u);
+    writeFileSync(inboxPath, "x".repeat(2_000_001));
+    await assert.rejects(readCollectorInbox(inboxPath), /collector_inbox_too_large/u);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test("loads .env.local values without overriding existing process environment", () => {

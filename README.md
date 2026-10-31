@@ -380,3 +380,38 @@ This project demonstrates practical AI PM skills rather than only technical impl
 - The footer includes the required disclaimer.
 - No API keys are used in the frontend.
 - `review.*` is optional display metadata only. It supports human review visibility but does not change ranking.
+
+
+<!-- BEGIN cursor-grok-kit 2026-10-31 (merged by Grok Bot; kit content appended, original content above unchanged) -->
+
+## Cursor/Grok 協作套件補充（2026-10-31）
+
+## AI PM Radar — handoff snapshot (2026-10-31)
+
+**Status: Partial; owner-used runtime recovery is active; protected runtime Blocked**
+
+### Purpose
+AI product / opportunity monitoring with source provenance and human review.
+
+### Evidence boundary
+Memory from 2026-10-29 records a protected Worker returning `unauthenticated` and a restricted static-preview fallback; static UI checks cannot validate Worker identity, D1, or cloud dispatch. The earlier portfolio routing prioritizes repairing the owner-used runtime before scoring/agent work.
+
+### Blockers / Unknowns
+Access/JWT/binding identity remains unverified; no bypass, public tunnel to internal services, or claim of cloud/D1 validation.
+
+### Next step
+Confirm repo/commit and bindings using authorized read-only inspection; establish the exact failing path and authenticated owner identity before minimal repair.
+
+### Acceptance criteria
+- [ ] Reproduce the issue without weakening auth or changing remote state.
+- [ ] Prove protected Worker post-login identity and expected response with existing Access policy.
+- [ ] Separate local/static UI evidence from Worker/D1/cloud evidence.
+- [ ] Document fail-closed fallback and owner-only acceptance evidence.
+
+### Non-goals
+No Access bypass, unauthenticated public endpoint, Internet-reachable internal service, D1 write, live ingestion, or Scoring vNext/Jev expansion before runtime recovery.
+
+### Verification approach
+Start with repo identity and `git status --short --branch`. Read project-native docs. Run the narrowest project-native check only after confirming the current branch and available scripts. Save exact command, result, build/device/commit identity and date. Do not claim this package ran repository tests.
+
+<!-- END cursor-grok-kit 2026-10-31 -->

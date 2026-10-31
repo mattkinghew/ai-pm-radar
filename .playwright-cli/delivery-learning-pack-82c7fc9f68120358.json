@@ -1,0 +1,72 @@
+{
+  "package_id": "delivery_learning_pack_82c7fc9f68120358",
+  "package_version": 1,
+  "contract_version": 1,
+  "target_product": "cyber_kuma",
+  "handoff_type": "learning_pack",
+  "handoff_id": "handoff_learning_pack_6187934b",
+  "handoff_fingerprint": "9387d50c5757cbd4",
+  "source_record_id": "src_498d74ae",
+  "source_record_fingerprint": "172f1bda343ae043",
+  "created_at": "2026-10-09T07:27:22.994Z",
+  "manifest": {
+    "format": "ai-pm-radar.delivery-package",
+    "package_version": 1,
+    "contract_version": 1,
+    "created_at": "2026-10-09T07:27:22.994Z",
+    "source_review_status": "reviewed",
+    "source_approval_status": "approved",
+    "handoff_status": "approved",
+    "handoff_reviewed_at": "2026-10-09T07:26:53.721Z",
+    "handoff_approved_at": "2026-10-09T07:27:07.607Z"
+  },
+  "source_snapshot": {
+    "title": "Synthetic QA: AI categorization test",
+    "source_url": "https://example.org/radar-release-qa",
+    "facts": [
+      "The fictional center classified 32 of 40 synthetic queries correctly."
+    ]
+  },
+  "provenance": {
+    "source_url": "https://example.org/radar-release-qa",
+    "source_url_original": "https://example.org/radar-release-qa",
+    "source_url_final": "https://example.org/radar-release-qa",
+    "captured_at": "2026-10-09T07:16:43.712Z",
+    "access_method": "direct_input"
+  },
+  "source_facts": [
+    {
+      "text": "The fictional center classified 32 of 40 synthetic queries correctly.",
+      "evidence_reference_ids": [
+        "src_498d74ae:e0"
+      ]
+    }
+  ],
+  "evidence_references": [
+    {
+      "id": "src_498d74ae:e0",
+      "source_record_id": "src_498d74ae",
+      "evidence_index": 0,
+      "text_reference": "Synthetic QA only: A fictional education center tested AI categorization on 40 synthetic queries. It classified 32 correctly and sent 8 for human correction. No time savings, satisfaction, or revenue impact has been measured.",
+      "source": "https://example.org/radar-release-qa",
+      "timestamp": null
+    }
+  ],
+  "payload": {
+    "derived_analysis": {
+      "learning_objectives": [],
+      "concepts": [],
+      "definitions": [],
+      "examples": [],
+      "misconceptions": [],
+      "question_seeds": [],
+      "difficulty_suggestion": "",
+      "review_focus": [],
+      "unknowns": [
+        "Unknown — not assessed"
+      ]
+    },
+    "human_notes": ""
+  },
+  "package_fingerprint": "ac7e08f5ea27c081"
+}

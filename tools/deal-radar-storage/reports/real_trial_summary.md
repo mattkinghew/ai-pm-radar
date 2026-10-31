@@ -4,18 +4,18 @@
 
 ## Overview
 
-- Total rows read: 66
+- Total rows read: 69
 - Empty rows skipped: 66
-- Valid listings evaluated: 0
-- BUY_CANDIDATE: 0
+- Valid listings evaluated: 3
+- BUY_CANDIDATE: 1
 - NEGOTIATE_ONLY: 0
 - WATCH_ONLY: 0
 - NEED_MORE_INFO: 0
-- REJECT: 0
+- REJECT: 2
 
 ## Top follow-up candidates
 
-- 暫時沒有 BUY_CANDIDATE / NEGOTIATE_ONLY。
+- SN730 2TB NVMe 固態硬盤 健康98｜BUY_CANDIDATE｜分數 98｜建議價 750–900 CNY｜下一步: 先向賣家索取完整證據；證據一致後才考慮購買。
 
 ## Listings that need more information
 
@@ -23,7 +23,8 @@
 
 ## Listings rejected
 
-- 暫時沒有 REJECT。
+- Samsung 990 Pro 2TB 低价 图吧显示｜原因: 賣家明示不保品牌／只保正常使用／图吧顯示／打包，假貨或錯標風險高; 疑似低價假 Samsung 990 Pro 或錯標 listing，未有強證據前拒絕｜URL: https://www.goofish.com/item?id=sample-fake-990pro
+- Samsung 870 QVO 2TB SATA 固態硬盤｜原因: 低端 SATA / QLC 2TB 標價 770 CNY > 750 CNY，拒絕; SATA / mSATA 不是 NVMe，2TB 價格超過 ¥600 且接近 NVMe 時不值得; QVO / QLC 不適合作高信任工作碟，且價格接近 NVMe 選項｜URL: https://www.goofish.com/item?id=sample-qvo-overpriced
 
 ## Suggested next manual actions
 

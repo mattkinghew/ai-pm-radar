@@ -1,0 +1,32 @@
+{
+  "name": "radar-phase11-context-local",
+  "main": "./worker.mjs",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "vars": {
+    "CLOUD_ACCESS_REQUIRED": "true",
+    "OWNER_EMAIL_SHA256": "84e1f3f311a2d3cf0eb3b59ac951ae46c317de465fb0eaffe7dde9dd3ce0d99a",
+    "SYNTHETIC_ONLY": "true"
+  },
+  "access": {
+    "dev": {
+      "aud": "radar-context-synthetic",
+      "identity": {
+        "email": "owner-a@example.test"
+      }
+    }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "radar-phase11-context-local",
+      "database_id": "22222222-2222-4222-8222-222222222222"
+    }
+  ],
+  "assets": {
+    "directory": "./.phase12c3-assets",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  }
+}

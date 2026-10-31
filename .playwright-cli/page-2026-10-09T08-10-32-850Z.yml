@@ -1,0 +1,261 @@
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: AI
+        - generic [ref=e6]:
+          - strong [ref=e7]: AI PM Radar
+          - paragraph [ref=e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e9]:
+        - link "首頁" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=e11] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e12] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e13] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=e14] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - paragraph [ref=e18]: 來源工作台
+      - heading "輸入來源，整理成可核對草稿" [level=1] [ref=e19]
+      - paragraph [ref=e20]: 貼上公開文章連結或正文，先由規則整理基本草稿，再由你核對、補充原文證據、人工審核並批准下載。
+      - paragraph [ref=e21]: 本機優先：素材保存於目前瀏覽器；只有你按下 AI 整理時，正文才會送至本機設定的 server-side provider。不寫入 database，也不覆寫正式 daily data。
+      - paragraph [ref=e22]: 介面語言只影響操作文字；不會翻譯文章原文、使用者輸入、JSON keys、ID 或 enum values。
+      - generic "匯入素材" [ref=e23]:
+        - generic [ref=e24]: 1 匯入素材
+        - generic [ref=e25]: 2 核對草稿
+        - generic [ref=e26]: 3 批准與下載
+    - status [ref=e75]: 整理成草稿
+    - status [ref=e27]: 已保存於目前瀏覽器
+    - group [ref=e28]:
+      - generic "進階工具與來源設定" [ref=e29] [cursor=pointer]
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high"
+      - option "medium" [selected]
+      - option "low"
+    - region "素材清單" [ref=e76]:
+      - generic [ref=e77]:
+        - heading "素材清單" [level=2] [ref=e78]
+        - paragraph [ref=e79]: 連結模式每批最多 5 筆，一行一個；一筆失敗不會阻擋其他筆。
+      - article [ref=e81]:
+        - generic [ref=e82]:
+          - strong [ref=e83]: "#1 Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before us"
+          - generic [ref=e84]: 已取得素材
+        - paragraph [ref=e85]: https://example.org/synthetic-radar-v4
+        - paragraph [ref=e86]:
+          - strong [ref=e87]: 下一步：
+          - text: 開啟後按 AI 整理
+        - button "查看這筆素材" [ref=e89] [cursor=pointer]
+    - generic [ref=e283]:
+      - generic [ref=e284]:
+        - paragraph [ref=e285]: 核對草稿
+        - heading "核對草稿" [level=2] [ref=e286]
+        - paragraph [ref=e287]: 以下是規則整理與可編輯欄位，不是 AI 摘要；無法從來源推導的分析保持待填。
+      - generic [ref=e288]:
+        - generic [ref=e289]:
+          - heading "來源與正文" [level=3] [ref=e290]
+          - paragraph [ref=e291]: 先核對來源資料與原文。帶 * 的欄位是 candidate 輸出前必要資料。
+        - generic [ref=e292]:
+          - generic [ref=e293]:
+            - generic [ref=e294]:
+              - generic [ref=e295]: 來源標題
+              - textbox "來源標題" [ref=e297]: Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before us
+            - generic [ref=e298]:
+              - generic [ref=e299]:
+                - generic [ref=e300]: 來源 URL
+                - emphasis [ref=e301]: 可選
+              - textbox "來源 URL 可選" [ref=e302]: https://example.org/synthetic-radar-v4
+            - generic [ref=e303]:
+              - generic [ref=e304]:
+                - generic [ref=e305]: 來源名稱／作者
+                - emphasis [ref=e306]: 可選
+              - textbox "來源名稱／作者 可選" [ref=e307]
+            - generic [ref=e308]:
+              - generic [ref=e309]:
+                - generic [ref=e310]: 原文語言
+                - emphasis [ref=e311]: 可選
+              - textbox "原文語言 可選" [ref=e312]: zh-Hant
+            - generic [ref=e313]:
+              - generic [ref=e314]:
+                - generic [ref=e315]: 發布時間
+                - emphasis [ref=e316]: 可選
+              - textbox "發布時間 可選" [ref=e317]
+            - generic [ref=e318]:
+              - generic [ref=e319]:
+                - generic [ref=e320]: 來源描述
+                - emphasis [ref=e321]: 可選
+              - textbox "來源描述 可選" [ref=e322]
+          - paragraph [ref=e323]: 暫定標題（由正文首個非空行整理，尚未確認）
+          - paragraph [ref=e324]: 最終 URL：example.org（網域只作參考，不代表已確認出版者。）
+          - group "資料不足時仍可補救" [ref=e325]:
+            - paragraph [ref=e326]: 可返回編輯區補正文、evidence、subtitle 或 notes；擷取失敗不會清空已填資料。
+            - generic [ref=e327]:
+              - button "重試讀取連結" [ref=e328] [cursor=pointer]
+              - button "改貼正文" [ref=e329] [cursor=pointer]
+          - generic [ref=e330]:
+            - generic [ref=e331]:
+              - strong [ref=e332]: 原始 URL
+              - code [ref=e333]: https://example.org/synthetic-radar-v4
+            - generic [ref=e334]:
+              - strong [ref=e335]: 最終 URL
+              - code [ref=e336]: https://example.org/synthetic-radar-v4
+            - generic [ref=e337]:
+              - strong [ref=e338]: 擷取時間
+              - code [ref=e339]: 2026-10-09T08:09:33.176Z
+            - generic [ref=e340]:
+              - strong [ref=e341]: 資料來源
+              - code [ref=e342]: 人工輸入
+          - generic [ref=e343]:
+            - generic [ref=e344]:
+              - generic [ref=e345]: 正文
+              - generic [ref=e346]: "*"
+            - textbox "正文 * 只保留你有權使用或已匿名化的原文；不會翻譯或改寫。" [ref=e347]: Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before use. It did not measure time savings or learner outcomes.
+            - generic [ref=e348]: 只保留你有權使用或已匿名化的原文；不會翻譯或改寫。
+      - generic [ref=e349]:
+        - generic [ref=e350]:
+          - heading "原文證據與定位" [level=3] [ref=e351]
+          - paragraph [ref=e352]: 可直接從正文選取段落作為原文摘錄；不需再複製貼上。重要主張會保留同一筆來源追溯。
+        - generic [ref=e353]:
+          - generic [ref=e354]:
+            - generic [ref=e355]: 選取一段作為原文摘錄
+            - combobox "選取一段作為原文摘錄" [ref=e357]:
+              - option "尚未選取原文段落"
+              - option "#1 Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated clas" [selected]
+          - generic "原文預覽" [ref=e358]:
+            - button "#1 Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before use. It did not measure time savings or learner outcomes." [ref=e359] [cursor=pointer]:
+              - generic [ref=e360]: "#1"
+              - text: Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before use. It did not measure time savings or learner outcomes.
+          - paragraph [ref=e361]: 原文摘錄（規則預填，請核對）
+          - generic [ref=e362]:
+            - generic [ref=e363]:
+              - generic [ref=e364]:
+                - generic [ref=e365]: 證據來源
+                - emphasis [ref=e366]: 可選
+              - textbox "證據來源 可選" [ref=e367]: https://example.org/synthetic-radar-v4
+            - generic [ref=e368]:
+              - generic [ref=e369]:
+                - generic [ref=e370]: 時間戳（可留空）
+                - emphasis [ref=e371]: 可選
+              - textbox "時間戳（可留空） 可選" [ref=e372]
+            - generic [ref=e373]:
+              - generic [ref=e374]:
+                - generic [ref=e375]: 原文摘錄／文字定位
+                - emphasis [ref=e376]: 可選
+              - textbox "原文摘錄／文字定位 可選" [ref=e377]:
+                - /placeholder: 先在上方選取正文段落，或填寫可核對的文字定位
+                - text: Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before use. It did not measure time savings or learner outcomes.
+      - generic [ref=e378]:
+        - generic [ref=e379]:
+          - heading "AI 分析草稿" [level=3] [ref=e380]
+          - paragraph [ref=e381]: 按下 AI 整理後才會傳送這筆正文至已設定的 provider；不會自動分析舊草稿。工作台手動分析不計入每日 runner 的 10 次上限，但仍受供應商配額約束。
+        - generic [ref=e383]:
+          - strong [ref=e384]: AI 分析狀態
+          - text: 尚未要求 AI 分析
+        - button "AI 整理（會傳送正文）" [ref=e386] [cursor=pointer]
+        - generic [ref=e387]:
+          - generic [ref=e388]:
+            - generic [ref=e389]: 來源明確內容（AI 摘錄，待核對）
+            - textbox "來源明確內容（AI 摘錄，待核對）" [ref=e391]
+          - generic [ref=e392]:
+            - generic [ref=e393]: 來源明確提供的方法／教學片段（逐字，待核對）
+            - textbox "來源明確提供的方法／教學片段（逐字，待核對）" [ref=e395]
+          - generic [ref=e396]:
+            - generic [ref=e397]: 模型分析／推論（待人工核對）
+            - textbox "模型分析／推論（待人工核對）" [ref=e399]
+      - group [ref=e400]:
+        - generic "人工分析與補充（可展開）" [active] [ref=e401] [cursor=pointer]
+        - paragraph [ref=e407]: 這些欄位直接對應既有 SourceRecord 與 daily converter；空白不會被虛構填補。
+        - generic [ref=e408]:
+          - generic [ref=e409]:
+            - generic [ref=e410]: 核心觀點（每行一項）
+            - textbox "核心觀點（每行一項）" [ref=e412]
+          - generic [ref=e413]:
+            - generic [ref=e414]: 重要主張（每行一項）
+            - textbox "重要主張（每行一項）" [ref=e416]
+          - generic [ref=e417]:
+            - generic [ref=e418]: 摘要（人工填寫）
+            - textbox "摘要（人工填寫）" [ref=e420]
+          - generic [ref=e421]:
+            - generic [ref=e422]: 為甚麼重要（分析）
+            - textbox "為甚麼重要（分析）" [ref=e424]
+          - generic [ref=e425]:
+            - generic [ref=e426]: 業務含意（分析）
+            - textbox "業務含意（分析）" [ref=e428]
+          - generic [ref=e429]:
+            - generic [ref=e430]: AI PM 含意（分析）
+            - textbox "AI PM 含意（分析）" [ref=e432]
+          - generic [ref=e433]:
+            - generic [ref=e434]:
+              - generic [ref=e435]: 影片含意（可留空）
+              - emphasis [ref=e436]: 可選
+            - textbox "影片含意（可留空） 可選" [ref=e437]
+          - generic [ref=e438]:
+            - generic [ref=e439]: 內容角度（每行一項）
+            - textbox "內容角度（每行一項）" [ref=e441]
+          - generic [ref=e442]:
+            - generic [ref=e443]: 未確定事項（每行一項）
+            - textbox "未確定事項（每行一項）" [ref=e445]
+          - generic [ref=e446]:
+            - generic [ref=e447]: 主題標籤（每行一項）
+            - textbox "主題標籤（每行一項）" [ref=e449]
+          - generic [ref=e450]:
+            - generic [ref=e451]: 趨勢標籤（每行一項）
+            - textbox "趨勢標籤（每行一項）" [ref=e453]
+          - generic [ref=e454]:
+            - generic [ref=e455]:
+              - generic [ref=e456]: 信心度（0–1）
+              - emphasis [ref=e457]: 可選
+            - spinbutton "信心度（0–1） 可選" [ref=e458]: "0"
+          - generic [ref=e459]:
+            - generic [ref=e460]: 證據等級
+            - combobox "證據等級" [ref=e462]:
+              - option "ungraded" [selected]
+              - option "A"
+              - option "B"
+              - option "C"
+        - generic [ref=e463]:
+          - generic [ref=e464]:
+            - checkbox "標記為案例候選" [ref=e465]
+            - generic [ref=e466]: 標記為案例候選
+          - group "邏輯資料集" [ref=e467]:
+            - generic [ref=e469]:
+              - generic [ref=e470]:
+                - checkbox "trend" [ref=e471]
+                - generic [ref=e472]: trend
+              - generic [ref=e473]:
+                - checkbox "case" [ref=e474]
+                - generic [ref=e475]: case
+              - generic [ref=e476]:
+                - checkbox "creator" [ref=e477]
+                - generic [ref=e478]: creator
+              - generic [ref=e479]:
+                - checkbox "video_reference" [ref=e480]
+                - generic [ref=e481]: video_reference
+              - generic [ref=e482]:
+                - checkbox "content_idea" [ref=e483]
+                - generic [ref=e484]: content_idea
+      - group [ref=e402]:
+        - generic "每日候選資料（可展開）" [ref=e403] [cursor=pointer]
+    - generic [ref=e404]:
+      - button "返回編輯草稿" [ref=e405] [cursor=pointer]
+      - button "下一步：進入批准與下載" [ref=e406] [cursor=pointer]
+  - contentinfo [ref=e46]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - heading "使用限制" [level=2] [ref=e49]
+        - paragraph [ref=e50]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e51]:
+        - heading "安全邊界" [level=2] [ref=e52]
+        - paragraph [ref=e53]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=e59] [cursor=pointer]
+  - alert [ref=e63]

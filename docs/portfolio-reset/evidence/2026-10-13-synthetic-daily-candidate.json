@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-13",
+  "articles": [
+    {
+      "question_title": "What did the synthetic workshop demonstrate?",
+      "short_title": "Synthetic workshop",
+      "summary": "Synthetic workshop observations, not verified.",
+      "why_it_matters": "Shows how human-reviewed evidence is retained.",
+      "business_angle": "No business conclusions can be drawn from fictional data.",
+      "ai_pm_angle": "A PM should demand actual observations before deployment.",
+      "risk_note": "Rights and reuse permissions not assessed; review before publishing or repurposing.",
+      "category": "AI Product Management",
+      "tags": [],
+      "source_name": "Synthetic QA Team",
+      "source_url": "https://example.com/fictional-radar-fixture",
+      "published_at": "2026-10-13T14:31:51.576Z",
+      "impact_score": 5,
+      "relevance_score": 5,
+      "trust_score": 5,
+      "review": {
+        "status": "reviewed",
+        "human_review_required": false,
+        "review_notes": "人工批准只表示通過候選輸出 gate；不代表來源事實已被獨立驗證。完整 provenance 保留在 SourceRecord。"
+      }
+    }
+  ]
+}

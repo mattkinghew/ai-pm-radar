@@ -1,0 +1,51 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: AI
+        - generic [ref=e6]:
+          - strong [ref=e7]: AI PM Radar
+          - paragraph [ref=e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e9]:
+        - link "首頁" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=e11] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e12] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e13] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=e14] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - paragraph [ref=e18]: 研究簡報草稿
+      - heading "今日研究簡報草稿" [level=1] [ref=e19]
+      - paragraph [ref=e20]: 顯示本機 runner 收集及分析的有限結果；草稿仍需人工核對，不是正式 daily 或 verified 內容。
+      - paragraph [ref=e21]: 這是 AI／規則產生的研究簡報草稿；evidence 可定位不代表主張已獨立查證，也不代表已批准或發布。
+    - region [ref=e22]:
+      - generic [ref=e23]:
+        - heading "已批准 SourceRecord Library" [level=2] [ref=e24]
+        - paragraph [ref=e25]: 以下是同一瀏覽器保存的已審核來源快照。建立簡報會直接使用該 SourceRecord，不重新抓取或抽取原文。
+      - generic [ref=e26]:
+        - button "匯出 Source Library 與交接備份" [ref=e27] [cursor=pointer]
+        - generic [ref=e28] [cursor=pointer]:
+          - text: 匯入 Source Library 備份
+          - button "匯入 Source Library 備份" [ref=e29]
+      - paragraph [ref=e31]: 目前沒有符合重用條件的已批准來源。可先到來源工作台完成核對與批准。
+    - generic [ref=e32]:
+      - button "重新讀取結果" [ref=e33] [cursor=pointer]
+      - link "回來源工作台立即執行" [ref=e34] [cursor=pointer]:
+        - /url: /source-inbox/
+    - paragraph [ref=e35]: 正在讀取本機研究結果…
+  - contentinfo [ref=e36]:
+    - generic [ref=e37]:
+      - generic [ref=e38]:
+        - heading "使用限制" [level=2] [ref=e39]
+        - paragraph [ref=e40]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e41]:
+        - heading "安全邊界" [level=2] [ref=e42]
+        - paragraph [ref=e43]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - alert [ref=e44]

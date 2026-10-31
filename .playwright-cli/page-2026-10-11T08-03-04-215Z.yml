@@ -1,0 +1,204 @@
+- generic [active] [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=f1e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e5]: AI
+        - generic [ref=f1e6]:
+          - strong [ref=f1e7]: AI PM Radar
+          - paragraph [ref=f1e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=f1e9]:
+        - link "首頁" [ref=f1e10] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=f1e11] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=f1e12] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=f1e13] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=f1e14] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=f1e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=f1e16]:
+    - generic [ref=f1e17]:
+      - paragraph [ref=f1e18]: 研究簡報草稿
+      - heading "今日研究簡報草稿" [level=1] [ref=f1e19]
+      - paragraph [ref=f1e20]: 顯示本機 runner 收集及分析的有限結果；草稿仍需人工核對，不是正式 daily 或 verified 內容。
+      - paragraph [ref=f1e21]: 這是 AI／規則產生的研究簡報草稿；evidence 可定位不代表主張已獨立查證，也不代表已批准或發布。
+    - region [ref=f1e22]:
+      - generic [ref=f1e23]:
+        - heading "已批准 SourceRecord Library" [level=2] [ref=f1e24]
+        - paragraph [ref=f1e25]: 以下是同一瀏覽器保存的已審核來源快照。建立簡報會直接使用該 SourceRecord，不重新抓取或抽取原文。
+      - generic [ref=f1e26]:
+        - button "匯出 Source Library 與交接備份" [ref=f1e27] [cursor=pointer]
+        - generic [ref=f1e28] [cursor=pointer]:
+          - text: 匯入 Source Library 備份
+          - button "匯入 Source Library 備份" [ref=f1e29]
+      - article [ref=f1e31]:
+        - generic [ref=f1e32]:
+          - heading "Synthetic classification routing acceptance exercise" [level=3] [ref=f1e33]
+          - generic [ref=f1e34]: reviewed · approved
+        - paragraph [ref=f1e35]: https://example.org/synthetic-v04
+        - paragraph [ref=f1e36]: 作者：未知 · 發布：未知
+        - paragraph [ref=f1e37]:
+          - text: 批准時間：2026年10月11日 下午3:59 · SourceRecord ID：
+          - code [ref=f1e38]: src_3db4cc9c
+        - group [ref=f1e39]:
+          - generic "來源明確內容" [ref=f1e40]
+        - region [ref=f1e41]:
+          - generic [ref=f1e42]:
+            - heading "Intelligence 評估與路由建議" [level=3] [ref=f1e43]
+            - paragraph [ref=f1e44]: 僅使用已批准 SourceRecord 的現有欄位；分數是規則分析，不是來源事實、查證或批准。
+          - button "評估 intelligence value" [ref=f1e45] [cursor=pointer]
+          - paragraph [ref=f1e46]: "這是根據已保存 SourceRecord 欄位計算的規則型參考評估；分數不是事實、查證或批准。 · 評估信心: 80% · 規則版本: radar-intelligence-rules-v4"
+          - paragraph [ref=f1e47]: 評估信心代表有可觀察 signals 的維度比例，不是評分正確率；分數只供排序與解釋，高分不表示主張為真。
+          - generic [ref=f1e48]:
+            - article [ref=f1e49]:
+              - strong [ref=f1e50]: 來源品質 · 70/100
+              - paragraph [ref=f1e51]: 檢視來源歸屬、metadata、正文、provenance 與 evidence grade 是否完整；不會獨立驗證來源可信度。
+              - generic [ref=f1e52]: SourceRecord 已通過人工審核及可重用來源批准（不是事實查證） · 已提供來源 URL · 原始及最終 URL 均有保留 · 作者／來源歸屬未知 · 發布日期未知 · 已保存來源正文 · 已記錄取得方式 · evidence grade 尚未評定
+            - article [ref=f1e53]:
+              - strong [ref=f1e54]: Radar 相關性 · 44/100
+              - paragraph [ref=f1e55]: 按目前文件化的 Radar focus 詞／詞組比對原文與已保存欄位；固定基線，不讀取個人 profile。
+              - generic [ref=f1e56]: "命中焦點詞: ai · 命中焦點詞: 人工審核"
+            - article [ref=f1e57]:
+              - strong [ref=f1e58]: Evidence 可定位度 · 80/100
+              - paragraph [ref=f1e59]: 檢查已有 evidence 是否可在來源正文定位；不判斷引文是否足以證明主張。
+              - generic [ref=f1e60]: 1 項來源 evidence · 1/1 項主張的 evidence 可在正文定位
+            - article [ref=f1e61]:
+              - strong [ref=f1e62]: 可行動訊號 · 62/100
+              - paragraph [ref=f1e63]: 檢視業務／AI PM 含意、use cases 與內容角度是否已記錄；不代表其有效性。
+              - generic [ref=f1e64]: 已記錄業務含意 · 已記錄 AI PM 含意 · 1 content idea(s) recorded
+            - article [ref=f1e65]:
+              - strong [ref=f1e66]: 重用潛力 · 0/100
+              - paragraph [ref=f1e67]: 檢視案例、資料集、教學及創作／影片重用訊號是否存在。
+              - generic [ref=f1e68]: 沒有足夠的專屬訊號；請人工判斷是否適合。
+          - heading "Intelligence 評估與路由建議 · 待人工核對" [level=4] [ref=f1e69]
+          - generic [ref=f1e70]:
+            - article [ref=f1e71]:
+              - generic [ref=f1e72]:
+                - strong [ref=f1e73]: 研究簡報
+                - generic [ref=f1e74]: 62/100 · 已接受路由
+              - paragraph [ref=f1e75]: 符合 Radar 焦點主題；有來源 evidence
+              - paragraph [ref=f1e76]:
+                - strong [ref=f1e77]: 研究簡報
+                - text: "· 此建議已關聯草稿:"
+                - code [ref=f1e78]: research-brief-assessment_fa1f6309
+              - button "此建議已關聯草稿" [disabled] [ref=f1e79]
+            - article [ref=f1e80]:
+              - generic [ref=f1e81]:
+                - strong [ref=f1e82]: 內容候選
+                - generic [ref=f1e83]: 60/100 · 已覆寫路由
+              - paragraph [ref=f1e84]: 1 content idea(s) are present；有來源 evidence 可供核對
+              - paragraph [ref=f1e85]: "Synthetic QA: use a learning-pack format for this training-oriented example, not a publishing post."
+              - paragraph [ref=f1e86]:
+                - strong [ref=f1e87]: 學習包
+                - text: "· 此建議已關聯草稿:"
+                - code [ref=f1e88]: handoff_learning_pack_b3976925
+              - button "此建議已關聯草稿" [disabled] [ref=f1e89]
+            - article [ref=f1e90]:
+              - generic [ref=f1e91]:
+                - strong [ref=f1e92]: 顧問／案例參考
+                - generic [ref=f1e93]: 55/100 · 已拒絕
+              - paragraph [ref=f1e94]: 未標記為案例候選；已記錄業務含意；有帶來源 evidence 的主張
+              - paragraph [ref=f1e95]: "Synthetic QA: this small exercise does not support a case-study outcome claim."
+            - article [ref=f1e96]:
+              - generic [ref=f1e97]:
+                - strong [ref=f1e98]: 創作參考
+                - generic [ref=f1e99]: 20/100 · 待人工決定
+              - paragraph [ref=f1e100]: 尚未記錄視覺片段；尚未記錄敘事／風格訊號
+              - generic [ref=f1e101]:
+                - text: 決定原因（拒絕／覆寫必填）
+                - textbox "決定原因（拒絕／覆寫必填）" [ref=f1e102]
+              - generic [ref=f1e103]:
+                - button "接受建議" [ref=f1e104] [cursor=pointer]
+                - button "拒絕建議" [disabled] [ref=f1e105]
+              - generic [ref=f1e106]:
+                - text: 覆寫目標路由
+                - combobox "覆寫目標路由" [ref=f1e107]:
+                  - option "研究簡報" [selected]
+                  - option "學習包"
+                  - option "內容候選"
+                  - option "顧問／案例參考"
+              - button "改用此路由" [disabled] [ref=f1e108]
+            - article [ref=f1e109]:
+              - generic [ref=f1e110]:
+                - strong [ref=f1e111]: 學習包
+                - generic [ref=f1e112]: 20/100 · 待人工決定
+              - paragraph [ref=f1e113]: 尚未記錄教學／方法要點；尚未記錄應用情境
+              - generic [ref=f1e114]:
+                - text: 決定原因（拒絕／覆寫必填）
+                - textbox "決定原因（拒絕／覆寫必填）" [ref=f1e115]
+              - generic [ref=f1e116]:
+                - button "接受建議" [ref=f1e117] [cursor=pointer]
+                - button "拒絕建議" [disabled] [ref=f1e118]
+              - generic [ref=f1e119]:
+                - text: 覆寫目標路由
+                - combobox "覆寫目標路由" [ref=f1e120]:
+                  - option "研究簡報" [selected]
+                  - option "內容候選"
+                  - option "創作參考"
+                  - option "顧問／案例參考"
+              - button "改用此路由" [disabled] [ref=f1e121]
+        - generic [ref=f1e122]:
+          - button "以此來源建立 Research Brief" [ref=f1e123] [cursor=pointer]
+          - button "下載 SourceRecord 備份" [ref=f1e124] [cursor=pointer]
+        - paragraph [ref=f1e125]: "Research Brief reuse recorded: research-brief-assessment_fa1f6309 (2026年10月11日 下午3:59)"
+        - region [ref=f1e126]:
+          - generic [ref=f1e127]:
+            - heading "重用來源建立下游交接" [level=3] [ref=f1e128]
+            - paragraph [ref=f1e129]: 每次只建立一種可匯出的交接；沿用同一 SourceRecord，不重新抓取來源。
+          - generic [ref=f1e130]:
+            - strong [ref=f1e131]: 來源事實與分析分開
+            - paragraph [ref=f1e132]: 以下主張及引文取自已審核 SourceRecord；引文可定位不代表主張已獨立查證。下游分析是衍生內容，不會回寫來源。
+            - paragraph [ref=f1e133]:
+              - text: 來源 ID：
+              - code [ref=f1e134]: src_3db4cc9c
+              - text: · 來源審核／批准：reviewed / approved
+          - generic [ref=f1e135]:
+            - article [ref=f1e136]:
+              - strong [ref=f1e137]: 內容候選（Content Ops）
+              - generic [ref=f1e138]: 尚未建立
+            - article [ref=f1e139]:
+              - strong [ref=f1e140]: 學習包（Cyber Kuma）
+              - generic [ref=f1e141]: 1 · 草稿
+            - article [ref=f1e142]:
+              - strong [ref=f1e143]: 創作參考（Storyworld）
+              - generic [ref=f1e144]: 尚未建立
+            - article [ref=f1e145]:
+              - strong [ref=f1e146]: 案例參考（Diagnostic）
+              - generic [ref=f1e147]: 尚未建立
+          - generic [ref=f1e148]:
+            - generic [ref=f1e149]:
+              - text: 選擇下游用途
+              - combobox "選擇下游用途" [ref=f1e150]:
+                - option "內容候選（Content Ops）" [selected]
+                - option "學習包（Cyber Kuma）"
+                - option "創作參考（Storyworld）"
+                - option "案例參考（Diagnostic）"
+            - button "建立交接草稿" [ref=f1e151] [cursor=pointer]
+          - generic [ref=f1e152]:
+            - text: 開啟此來源的交接
+            - combobox "開啟此來源的交接" [ref=f1e153]:
+              - option "選擇已建立的交接" [selected]
+              - option "學習包（Cyber Kuma） · 草稿 · handoff_learning_pack_b3976925"
+          - region "Delivery Outbox" [ref=f1e154]:
+            - generic [ref=f1e155]:
+              - heading "Delivery Outbox" [level=4] [ref=f1e156]
+              - paragraph [ref=f1e157]: 只保存已批准 handoff 的不可變快照；匯出不代表接收或發布。
+            - paragraph [ref=f1e158]: 尚無 delivery packages。先完成 handoff 人工審核與批准。
+    - generic [ref=f1e159]:
+      - button "重新讀取結果" [ref=f1e160] [cursor=pointer]
+      - link "回來源工作台立即執行" [ref=f1e161] [cursor=pointer]:
+        - /url: /source-inbox/
+    - status [ref=f1e162]: 本機研究服務未啟動，或尚未交接來源；可先在來源工作台保存來源設定。
+  - contentinfo [ref=f1e163]:
+    - generic [ref=f1e164]:
+      - generic [ref=f1e165]:
+        - heading "使用限制" [level=2] [ref=f1e166]
+        - paragraph [ref=f1e167]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=f1e168]:
+        - heading "安全邊界" [level=2] [ref=f1e169]
+        - paragraph [ref=f1e170]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=f1e176] [cursor=pointer]
+  - alert [ref=f1e180]

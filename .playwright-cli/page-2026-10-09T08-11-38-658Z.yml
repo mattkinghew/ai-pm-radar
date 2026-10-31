@@ -1,0 +1,130 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: AI
+        - generic [ref=e6]:
+          - strong [ref=e7]: AI PM Radar
+          - paragraph [ref=e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e9]:
+        - link "首頁" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=e11] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e12] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e13] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=e14] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - paragraph [ref=e18]: 來源工作台
+      - heading "輸入來源，整理成可核對草稿" [level=1] [ref=e19]
+      - paragraph [ref=e20]: 貼上公開文章連結或正文，先由規則整理基本草稿，再由你核對、補充原文證據、人工審核並批准下載。
+      - paragraph [ref=e21]: 本機優先：素材保存於目前瀏覽器；只有你按下 AI 整理時，正文才會送至本機設定的 server-side provider。不寫入 database，也不覆寫正式 daily data。
+      - paragraph [ref=e22]: 介面語言只影響操作文字；不會翻譯文章原文、使用者輸入、JSON keys、ID 或 enum values。
+      - generic "匯入素材" [ref=e23]:
+        - generic [ref=e24]: 1 匯入素材
+        - generic [ref=e25]: 2 核對草稿
+        - generic [ref=e26]: 3 批准與下載
+    - status [ref=e75]: 整理成草稿
+    - status [ref=e27]: 已保存於目前瀏覽器
+    - group [ref=e28]:
+      - generic "進階工具與來源設定" [ref=e29] [cursor=pointer]
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high"
+      - option "medium" [selected]
+      - option "low"
+    - region "素材清單" [ref=e76]:
+      - generic [ref=e77]:
+        - heading "素材清單" [level=2] [ref=e78]
+        - paragraph [ref=e79]: 連結模式每批最多 5 筆，一行一個；一筆失敗不會阻擋其他筆。
+      - article [ref=e81]:
+        - generic [ref=e82]:
+          - strong [ref=e83]: "#1 Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before us"
+          - generic [ref=e84]: 已取得素材
+        - paragraph [ref=e85]: https://example.org/synthetic-radar-v4
+        - paragraph [ref=e86]:
+          - strong [ref=e87]: 下一步：
+          - text: 開啟後按 AI 整理
+        - button "查看這筆素材" [ref=e89] [cursor=pointer]
+    - generic [ref=e485]:
+      - generic [ref=e486]:
+        - paragraph [ref=e487]: 批准與下載
+        - heading "批准與下載" [level=2] [ref=e488]
+        - paragraph [ref=e489]: 審核與批准是兩個明確的人工作動；修改正文、原文證據、來源資料、分析或日期後，舊批准會失效。
+      - generic [ref=e490]:
+        - generic [ref=e491]:
+          - strong [ref=e492]: 目前狀態
+          - generic [ref=e493]:
+            - generic [ref=e494]:
+              - strong [ref=e495]: 審核狀態
+              - text: 已審核
+            - generic [ref=e496]:
+              - strong [ref=e497]: 批准狀態
+              - text: 未批准
+        - paragraph [ref=e498]: 批准只代表通過 candidate 輸出 gate，不等於事實已被獨立驗證，也不會變成 verified。
+      - generic [ref=e499]:
+        - button "返回編輯草稿" [ref=e500] [cursor=pointer]
+        - button "完成核對並標記已審核" [disabled] [ref=e501]
+        - button "拒絕此來源" [ref=e502] [cursor=pointer]
+        - button "批准並下載候選檔" [disabled] [ref=e503]
+      - region [ref=e504]:
+        - heading "批准並保存為可重用來源" [level=3] [ref=e505]
+        - paragraph [ref=e506]: 此動作只批准本 SourceRecord 進入目前瀏覽器的 Library；不代表 verified，也不批准 daily candidate。
+        - paragraph [ref=e507]: 重用批准要求：正文或逐字稿、可定位的原文 evidence、至少一項帶 evidence 的主張，並完成審核。
+        - button "批准並保存為可重用來源" [ref=e510] [cursor=pointer]
+      - paragraph [ref=e511]: SourceRecord 草稿保存在目前瀏覽器；不會寫入伺服器資料庫或正式 daily data。
+      - status [ref=e512]:
+        - strong [ref=e513]: 目前不能下載 candidate
+        - paragraph [ref=e514]: 未符合必要條件，下載按鈕已停用；請按下方提示返回編輯。
+      - list [ref=e515]:
+        - listitem [ref=e518]:
+          - link "SourceRecord 尚未明確批准輸出 daily candidate。" [ref=e519] [cursor=pointer]:
+            - /url: "#review-section"
+        - listitem [ref=e520]:
+          - link "可輸出的 daily article 必須有來源名稱或作者。" [ref=e521] [cursor=pointer]:
+            - /url: "#creator"
+        - listitem [ref=e522]:
+          - link "輸出 candidate 前必須評估證據等級。" [ref=e523] [cursor=pointer]:
+            - /url: "#evidence-reference"
+        - listitem [ref=e524]:
+          - link "每日候選資料缺少 question_title。" [ref=e525] [cursor=pointer]:
+            - /url: "#daily-fields"
+        - listitem [ref=e526]:
+          - link "每日候選資料缺少 short_title。" [ref=e527] [cursor=pointer]:
+            - /url: "#daily-fields"
+        - listitem [ref=e528]:
+          - link "每日候選資料缺少 category。" [ref=e529] [cursor=pointer]:
+            - /url: "#daily-fields"
+      - generic [ref=e530]:
+        - generic [ref=e531]:
+          - heading "daily candidate 預覽" [level=3] [ref=e532]
+          - generic [ref=e533]: "{ \"date\": \"2026-10-09\", \"articles\": [] }"
+        - generic [ref=e534]:
+          - heading "完整 SourceRecord 預覽" [level=3] [ref=e535]
+          - generic [ref=e536]: "{ \"record_version\": 2, \"id\": \"src_89a9384a\", \"platform\": \"manual\", \"source_type\": \"text\", \"source_url\": \"https://example.org/synthetic-radar-v4\", \"source_url_original\": \"https://example.org/synthetic-radar-v4\", \"source_url_final\": \"https://example.org/synthetic-radar-v4\", \"creator\": null, \"title\": \"Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before us\", \"description\": null, \"published_at\": null, \"captured_at\": \"2026-10-09T08:09:33.176Z\", \"language\": \"zh-Hant\", \"raw_text\": \"Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before use. It did not measure time savings or learner outcomes.\", \"transcript\": null, \"transcript_origin\": \"none\", \"access_method\": \"direct_input\", \"summary\": \"A synthetic education organization piloted an AI product workflow with manual correction.\", \"key_points\": [ \"Human review corrected four classifications before any operational use.\" ], \"key_claims\": [ { \"claim\": \"The team reviewed 20 generated classifications and corrected four before use.\", \"evidence\": [ { \"source\": \"https://example.org/synthetic-radar-v4\", \"timestamp\": null, \"text_reference\": \"Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before use. It did not measure time savings or learner outcomes.\" } ] } ], \"timestamps\": [], \"visual_moments\": [], \"story_patterns\": [], \"style_features\": [], \"why_it_matters\": \"The example shows a human review step before generated classifications are used.\", \"business_implication\": \"An AI product pilot should define human review ownership and correction thresholds.\", \"ai_pm_implication\": \"Measure accuracy and operational outcomes before expanding an AI classification workflow.\", \"video_implication\": null, \"content_ideas\": [], \"case_candidate\": true, \"library_targets\": [], \"trend_tags\": [], \"topic_tags\": [], \"confidence\": 0, \"evidence_grade\": \"ungraded\", \"evidence\": [ { \"source\": \"https://example.org/synthetic-radar-v4\", \"timestamp\": null, \"text_reference\": \"Synthetic education organization piloted an AI product workflow. The team reviewed 20 generated classifications and corrected four before use. It did not measure time savings or learner outcomes.\" } ], \"uncertainties\": [], \"rights_note\": \"Rights and reuse permissions not assessed; review before publishing or repurposing.\", \"material_status\": \"captured\", \"analysis\": { \"version\": 1, \"status\": \"not_requested\", \"provider\": \"none\", \"model\": null, \"analyzed_at\": null, \"input_chars\": 195, \"usage\": null, \"error_code\": null, \"source_facts\": [], \"inferences\": [], \"use_cases\": [], \"method_or_teaching_points\": [] }, \"review_status\": \"reviewed\", \"approval_status\": \"not_approved\" }"
+      - paragraph [ref=e537]: candidate 與 SourceRecord 檔名共用日期與 SourceRecord ID；正式 data/daily/ 不會被修改。
+      - generic [ref=e538]:
+        - button "下載 daily candidate JSON" [disabled] [ref=e539]
+        - button "下載 SourceRecord 備份" [ref=e540] [cursor=pointer]
+        - button "清除本頁草稿" [ref=e541] [cursor=pointer]
+      - paragraph [ref=e542]: 清除會刪除目前瀏覽器中保存的素材與草稿；如要保留，請先下載備份。重新整理會載入最近一次已保存的版本。
+  - contentinfo [ref=e46]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - heading "使用限制" [level=2] [ref=e49]
+        - paragraph [ref=e50]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e51]:
+        - heading "安全邊界" [level=2] [ref=e52]
+        - paragraph [ref=e53]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=e59] [cursor=pointer]
+  - alert [ref=e63]

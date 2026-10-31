@@ -11,12 +11,14 @@ import {
   buildResearchBrief,
   emptyResearchState,
   hongKongDate,
+  isResearchDateToday,
   selectFeedCandidates,
   summarizeResearchDate,
   resumableResearchMaterials,
 } from "../lib/research-runtime.ts";
 import { normaliseSourceInput } from "../lib/source-inbox.ts";
 import { mergeFeedItems } from "../lib/source-feed.ts";
+import { getCollectorSnapshotFreshness } from "../lib/collector-snapshot-status.ts";
 import {
   acquireRunLock,
   readRuntimeConfig,
@@ -43,6 +45,22 @@ const item = (id, overrides = {}) => ({
   discovered_at: "2026-09-19T00:00:00.000Z",
   source_refs: [{ source_id: "feed_1", feed_url: "https://example.com/feed.xml", item_id: id }],
   ...overrides,
+});
+
+test("classifies Collector inbox snapshot freshness without implying a feed fetch succeeded", () => {
+  const now = new Date("2026-10-26T00:00:00.000Z");
+
+  assert.deepEqual(getCollectorSnapshotFreshness("2026-10-25T12:00:00.000Z", now), {
+    status: "fresh",
+    updatedAt: "2026-10-25T12:00:00.000Z",
+  });
+  assert.deepEqual(getCollectorSnapshotFreshness("2026-10-24T23:59:59.999Z", now), {
+    status: "stale",
+    updatedAt: "2026-10-24T23:59:59.999Z",
+  });
+  assert.deepEqual(getCollectorSnapshotFreshness(null, now), { status: "unknown", updatedAt: null });
+  assert.deepEqual(getCollectorSnapshotFreshness("not-a-date", now), { status: "unknown", updatedAt: null });
+  assert.deepEqual(getCollectorSnapshotFreshness("2026-10-26T00:10:00.000Z", now), { status: "unknown", updatedAt: null });
 });
 
 test("selects new feed items within the runner material limit and does not repeat drafts", () => {
@@ -317,6 +335,13 @@ test("Hong Kong date is explicit and feed merge retains provenance", () => {
   assert.equal(hongKongDate(new Date("2026-09-18T16:30:00.000Z")), "2026-09-19");
   const merged = mergeFeedItems([], [item("one")]);
   assert.equal(merged.items[0]?.source_refs[0]?.source_id, "feed_1");
+});
+
+test("research date is labeled today only when it matches the current Hong Kong date", () => {
+  const now = new Date("2026-10-29T18:00:00.000Z");
+  assert.equal(hongKongDate(now), "2026-10-30");
+  assert.equal(isResearchDateToday("2026-10-30", now), true);
+  assert.equal(isResearchDateToday("2026-10-11", now), false);
 });
 
 test("does not invent a suggested action and snapshots source dates and project version", () => {

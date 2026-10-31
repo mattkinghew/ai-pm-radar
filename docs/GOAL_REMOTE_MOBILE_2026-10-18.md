@@ -1,0 +1,6 @@
+# Radar Remote Mobile Goal — 2026-10-18
+Status: PLANNED. Primary Outcome: Owner can log in from cellular Safari, review one evidenced SourceRecord, and transfer approved content to Content Ops with receiver proof.
+Known: Cloudflare Access redirects; Origin/HMAC synthetic tests previously passed; external signed-in Tunnel/Archive read is Unknown. Local LAN ports 4320/4482/4496 must never be exposed to public Internet.
+AC: confirm canonical SHA and protected HTTPS Tunnel service; validate true mobile login/reload; exact /archive route; review/approve with Owner; signed source → Content Ops exact-brand draft receipt/ack; keep derived facts/uncertainties distinct. Report Mac sleep dependency explicitly. All failures and Owner inputs labeled.
+Stop: never disable Access, change production data, auto-publish, push dirty worktree, or equate Access 302 with Origin health.
+Tests: existing npm test/typecheck/build/health:mobile, actual external cellular UAT, receiver replay/negative auth. Deliver evidence and rollback instructions.

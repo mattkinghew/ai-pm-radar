@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { ArticleCard } from "@/components/ArticleCard";
+import { HomeQuickCapture } from "@/components/HomeQuickCapture";
 import { useLanguage } from "@/components/LanguageProvider";
 import type { ArticleRecord } from "@/lib/articles";
-import { formatDate } from "@/lib/format";
+import { calendarDayAge, dateInTimeZone, formatDate } from "@/lib/format";
 
 type HomeContentProps = {
   topArticles: ArticleRecord[];
@@ -15,9 +17,13 @@ type HomeContentProps = {
 export function HomeContent({ topArticles, latestDate }: HomeContentProps) {
   const { locale, messages } = useLanguage();
   const copy = messages.home;
+  const [today, setToday] = useState("");
+  useEffect(() => setToday(dateInTimeZone(new Date(), "Asia/Hong_Kong")), []);
+  const dataAge = today && latestDate ? calendarDayAge(latestDate, today) : null;
 
   return (
     <main>
+      <HomeQuickCapture />
       <section className="hero">
         <div className="container hero-grid">
           <div className="stack-lg">
@@ -44,6 +50,12 @@ export function HomeContent({ topArticles, latestDate }: HomeContentProps) {
             <p className="eyebrow">{copy.todaysFocus}</p>
             <h2>{copy.topFive}</h2>
             <p className="hero-date">{latestDate ? formatDate(latestDate, locale) : copy.noData}</p>
+            {dataAge !== null ? (
+              <p className="hero-freshness">
+                {copy.dataAge.replace("{days}", String(dataAge))}
+                {dataAge > 7 ? <span className="stale-data-badge">{copy.staleEdition}</span> : null}
+              </p>
+            ) : null}
             <ul className="hero-top-list">
               {topArticles.map((article, index) => (
                 <li key={article.slug}>

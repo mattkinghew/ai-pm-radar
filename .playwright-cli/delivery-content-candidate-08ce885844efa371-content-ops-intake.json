@@ -1,0 +1,48 @@
+{
+  "packageType": "content-ops-handoff",
+  "version": 1,
+  "sourceSystem": "ai_pm_radar",
+  "exportedAt": "2026-10-08T16:59:59.147Z",
+  "items": [
+    {
+      "externalId": "delivery_content_candidate_08ce885844efa371",
+      "kind": "content_candidate",
+      "title": "Synthetic Support Classification Pilot",
+      "url": "https://example.org/synthetic-release-acceptance",
+      "text": "{\n  \"source_facts\": [\n    {\n      \"text\": \"Human reviewers corrected four classifications before operational use.\",\n      \"evidence_reference_ids\": [\n        \"src_0f700462:e0\"\n      ]\n    }\n  ],\n  \"derived_analysis\": {\n    \"target_audience\": \"\",\n    \"content_angles\": [],\n    \"key_source_backed_claims\": [\n      \"Human reviewers corrected four classifications before operational use.\"\n    ],\n    \"hooks\": [],\n    \"content_themes\": [],\n    \"suggested_formats\": [],\n    \"platform_considerations\": [],\n    \"unknowns_and_risks\": [\n      \"Unknown — not assessed\"\n    ]\n  },\n  \"human_notes\": \"\"\n}",
+      "createdAt": "2026-10-08T16:59:59.147Z",
+      "metadata": {
+        "radarDelivery": {
+          "package_id": "delivery_content_candidate_08ce885844efa371",
+          "package_version": 1,
+          "contract_version": 1,
+          "package_fingerprint": "53688ab7cc820758",
+          "source_record_id": "src_0f700462",
+          "source_record_fingerprint": "16ab847652f7b2fd",
+          "handoff_id": "handoff_content_candidate_6a23605c",
+          "handoff_fingerprint": "e62fec45c9a67c59",
+          "provenance": {
+            "source_url": "https://example.org/synthetic-release-acceptance",
+            "source_url_original": "https://example.org/synthetic-release-acceptance",
+            "source_url_final": "https://example.org/synthetic-release-acceptance",
+            "captured_at": "2026-10-08T16:55:43.652Z",
+            "access_method": "direct_input"
+          },
+          "evidence_references": [
+            {
+              "id": "src_0f700462:e0",
+              "source_record_id": "src_0f700462",
+              "evidence_index": 0,
+              "text_reference": "Human reviewers corrected 4 classifications before operational use.",
+              "source": "https://example.org/synthetic-release-acceptance",
+              "timestamp": null
+            }
+          ],
+          "source_approval": "approved",
+          "handoff_reviewed_at": "2026-10-08T16:59:33.810Z",
+          "handoff_approved_at": "2026-10-08T16:59:40.474Z"
+        }
+      }
+    }
+  ]
+}

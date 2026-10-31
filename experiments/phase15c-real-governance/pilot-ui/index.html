@@ -1,0 +1,60 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI PM Radar｜Real-source Governance Readiness</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark;background:#0b111d;color:#eaf2ff}
+*{box-sizing:border-box;min-width:0}html{overflow-wrap:anywhere}body{margin:0;background:radial-gradient(circle at 0% 0%,#1b3449,transparent 50%),#0b111d}
+main{max-width:1050px;margin:auto;padding:34px 16px 70px}
+h1{font-size:clamp(1.65rem,4vw,2.5rem);line-height:1.22;letter-spacing:-.025em}
+h2{font-size:1.2rem}h3{font-size:1.02rem}
+p,li{line-height:1.58;color:#bfcde0}.eyebrow{text-transform:uppercase;letter-spacing:.15em;font-size:.76rem;font-weight:800;color:#84e6ce}
+.panel{border:1px solid #31495f;border-radius:18px;margin:18px 0;padding:20px;background:#131f30;box-shadow:0 5px 26px #01040928}
+label{display:block;margin:12px 0 8px;font-weight:650}input[type=file]{display:block;width:100%;border:1px solid #547086;padding:13px;margin:9px 0;background:#1c3043;border-radius:10px;color:#eaf2ff}
+label.check{display:flex;gap:11px;align-items:flex-start;font-weight:450;border-bottom:1px solid #263d52;padding:9px 0}
+input[type=checkbox]{width:21px;height:21px;flex:none;margin-top:1px}
+button{color:#edfbff;font-size:.95rem;border:1px solid #4d758a;background:#213a4c;border-radius:11px;padding:12px 17px;cursor:pointer;min-height:45px;font-weight:760}
+button.primary{background:#086f69;border-color:#4ac1b7}
+button:disabled{cursor:not-allowed;opacity:.48}a{color:#8fdddc}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:12px}
+.notice{border-left:4px solid #8be2c7;border-radius:9px;background:#183034;padding:12px;overflow-wrap:anywhere}
+.warning{background:#382b19;border-left-color:#ffd18c}
+.blocked{background:#452632;border-left-color:#f49aa5}
+.muted{font-size:.86rem;color:#acbdd0}
+dl{display:grid;grid-template-columns:minmax(130px,210px) minmax(0,1fr);gap:12px;line-height:1.5}
+dt{color:#a9bdd3}dd{margin:0;overflow-wrap:anywhere}code{font-size:.76rem;word-break:break-all}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;background:#091320;border:1px solid #32495d;padding:15px;border-radius:12px;max-height:430px;overflow-y:auto}
+#errors-list li{margin:7px 0}
+footer{font-size:.82rem;color:#adbed0;margin-top:24px}
+@media(max-width:520px){main{padding:23px 12px 52px}.panel{padding:15px}dl{grid-template-columns:minmax(0,1fr);gap:4px}}
+</style>
+<script type="module" src="/real-source-readiness/app.js"></script></head>
+<body><main>
+<div class="eyebrow">AI PM RADAR · PHASE 1.5C</div>
+<h1>Real-source Sync Governance & Readiness</h1>
+<p>在真實文章進入雲端前，先完成可追溯的本機治理審查。此頁沒有任何文章 POST／PUT API，不會將 JSON、摘要、個人資料或勾選結果傳送到伺服器。</p>
+<div class="notice warning"><strong>目前：雲端真實來源同步 OFF。</strong> 本頁審查 PASS 只代表本機準備結果，不是版權法律意見，也不是雲端上傳授權。任何真實來源都需再獲逐篇明確批准。</div>
+<section class="panel"><h2>① 原始 SourceRecord v2 完整性</h2>
+<label for="source-file">從電腦或 iPhone 選擇原始 SourceRecord JSON（只在本機讀取）</label>
+<input id="source-file" type="file" accept=".json,application/json">
+<p id="source-state" class="notice" role="status">尚未選擇來源檔案。請勿輸入僱主或客戶的機密資料。</p>
+<dl id="source-meta"></dl>
+<button type="button" id="download-backup" disabled>下載逐位元相同的原件備份</button>
+<label for="backup-file">下載後重新選擇原件備份，核對完整檔案 SHA-256</label>
+<input id="backup-file" type="file" accept=".json,application/json" disabled>
+<p id="backup-state" role="status">尚未完成備份讀回。</p></section>
+<section class="panel"><h2>② Evidence／資料分類檢查</h2>
+<p>只展示判斷結果及風險類型，不顯示原文。疑似憑證、電子郵件、HKID 或機密字串屬啟發式警號；即使沒有警號，也不能取代人工逐段審查。</p>
+<div id="errors-state" class="notice">尚未執行核對。</div><ul id="errors-list"></ul></section>
+<section class="panel"><h2>③ 人工治理及權利確認</h2>
+<p>以下九項均要求獨立人工確認；勾選前應保留來源／授權證據。任何 Unknown 都應維持 HOLD，不能用總體 PASS 掩蓋。</p>
+<div id="attestations"></div>
+</section>
+<section class="panel"><h2>④ 審查結論及離線證據</h2>
+<div id="decision" class="notice warning" role="status" data-testid="readiness-decision">HOLD — 等待原件、備份、Evidence 及人工聲明。</div>
+<div class="row"><button id="review" class="primary">重新執行治理檢查</button>
+<button id="download-report" disabled>下載不含原文的審查報告 JSON</button>
+<a href="/pilot-source-inbox/">返回真正 React Source Inbox</a><a href="/real-source-approval/">下一步：Phase 1.5D 逐篇審批候選</a></div>
+<pre id="report-preview">尚未產生報告。只會輸出 Source ID、檔案 SHA-256、審查結果及風險代碼。</pre></section>
+<footer>此介面不儲存輸入至 localStorage、IndexedDB 或 Cloudflare D1；重新整理會清除本次檔案及勾選。所有授權、Privacy Impact、存取權限及上傳操作均另設審批關卡。</footer>
+</main></body></html>

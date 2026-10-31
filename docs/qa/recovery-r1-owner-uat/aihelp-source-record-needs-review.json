@@ -1,0 +1,127 @@
+{
+  "record_version": 2,
+  "id": "src_4a0922cb",
+  "platform": "manual",
+  "source_type": "text",
+  "source_url": "https://cloud.google.com/customers/aihelp",
+  "source_url_original": "https://cloud.google.com/customers/aihelp",
+  "source_url_final": "https://cloud.google.com/customers/aihelp",
+  "creator": "Google Cloud",
+  "title": "AIHelp: Enhancing multilingual customer service quality with Google AI",
+  "description": "Public customer case page. Publication date is not shown in the reviewed page; raw_text contains selected evidence excerpts only.",
+  "published_at": null,
+  "captured_at": "2026-10-30T05:18:25.298Z",
+  "language": "en",
+  "raw_text": "Selected evidence excerpts from the public Google Cloud AIHelp case page. This is a partial excerpt set, not the complete article.\n\n70% less time\n5-10% increase in their user satisfaction rate\n30% higher case handling efficiency",
+  "transcript": null,
+  "transcript_origin": "none",
+  "access_method": "direct_input",
+  "summary": "Google Cloud 的客戶案例頁稱，AIHelp 使用 Google AI 改善多語客服工作流程，並報告模型開發時間、客戶滿意度與案件處理效率的提升。這些是供應商案例頁自述，尚無獨立驗證。",
+  "key_points": [
+    "案例頁描述 AIHelp 以 Vertex AI 作為集中式 MLOps 平台，並使用 Gemini 及相關品質工具。",
+    "頁面報告多語 AI 模型開發耗時降低 70%。",
+    "頁面報告客戶滿意度增加 5–10%，以及案件處理效率提升 30%。"
+  ],
+  "key_claims": [
+    {
+      "claim": "Google Cloud 案例頁報告 AIHelp 的多語 AI 模型開發時間減少 70%。",
+      "evidence": [
+        {
+          "source": "https://cloud.google.com/customers/aihelp",
+          "timestamp": null,
+          "text_reference": "70% less time"
+        }
+      ]
+    },
+    {
+      "claim": "Google Cloud 案例頁報告 AIHelp 客戶滿意度增加 5–10%。",
+      "evidence": [
+        {
+          "source": "https://cloud.google.com/customers/aihelp",
+          "timestamp": null,
+          "text_reference": "5-10% increase in their user satisfaction rate"
+        }
+      ]
+    },
+    {
+      "claim": "Google Cloud 案例頁報告使用 Vertex AI Search 後案件處理效率提高 30%。",
+      "evidence": [
+        {
+          "source": "https://cloud.google.com/customers/aihelp",
+          "timestamp": null,
+          "text_reference": "30% higher case handling efficiency"
+        }
+      ]
+    }
+  ],
+  "timestamps": [],
+  "visual_moments": [],
+  "story_patterns": [],
+  "style_features": [],
+  "why_it_matters": "案例把多語言品質、檢索、模型開發與營運效率放在同一個客服產品流程中，適合作為 AI 導入評估問題的素材；頁面數字仍需視為供應商自述。",
+  "business_implication": "企業評估客服 AI 時，可分別量度開發週期、一次解決率、案件處理時間與客戶滿意度，並確認基線、樣本及人工升級處理成本。",
+  "ai_pm_implication": "產品驗收應拆分語言與意圖測試集，追蹤錯誤類型與人工覆核比例，並把檢索品質、回應品質及營運結果分開量度。",
+  "video_implication": null,
+  "content_ideas": [
+    "多語客服 AI 導入前，先定義可比較的基線與人工升級指標"
+  ],
+  "case_candidate": true,
+  "library_targets": [
+    "case",
+    "content_idea"
+  ],
+  "trend_tags": [
+    "multilingual AI",
+    "customer service",
+    "AI evaluation"
+  ],
+  "topic_tags": [
+    "AI product management",
+    "MLOps",
+    "customer operations"
+  ],
+  "confidence": 0,
+  "evidence_grade": "B",
+  "evidence": [
+    {
+      "source": "https://cloud.google.com/customers/aihelp",
+      "timestamp": null,
+      "text_reference": "70% less time"
+    },
+    {
+      "source": "https://cloud.google.com/customers/aihelp",
+      "timestamp": null,
+      "text_reference": "5-10% increase in their user satisfaction rate"
+    },
+    {
+      "source": "https://cloud.google.com/customers/aihelp",
+      "timestamp": null,
+      "text_reference": "30% higher case handling efficiency"
+    }
+  ],
+  "uncertainties": [
+    "案例頁未交代客戶滿意度與效率指標的樣本量、基線、量測期間或統計方法。",
+    "所述結果由供應商案例頁報告，未有獨立第三方驗證。",
+    "無法從該頁判斷結果能否套用至其他產業、語言組合或規模。",
+    "頁面未顯示發布日期；published_at 保持 null。",
+    "此 SourceRecord 只保存支持引文，不含完整文章正文。"
+  ],
+  "rights_note": "Rights and reuse permissions not assessed; review before publishing or repurposing. Owner review required before reusing excerpts in external content.",
+  "material_status": "captured",
+  "analysis": {
+    "version": 1,
+    "status": "not_requested",
+    "provider": "none",
+    "model": null,
+    "analyzed_at": null,
+    "input_chars": 0,
+    "usage": null,
+    "error_code": null,
+    "source_facts": [],
+    "inferences": [],
+    "use_cases": [],
+    "method_or_teaching_points": []
+  },
+  "review_status": "reviewed",
+  "approval_status": "approved"
+}

@@ -1,0 +1,298 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: AI
+        - generic [ref=e6]:
+          - strong [ref=e7]: AI PM Radar
+          - paragraph [ref=e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e9]:
+        - link "首頁" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=e11] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e12] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e13] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=e14] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e16]:
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - paragraph [ref=e20]: 靜態每日摘要
+        - heading "給實務 AI PM 學習與 SME 決策的每日 AI Radar" [level=1] [ref=e21]
+        - paragraph [ref=e22]: 每天追蹤五個最相關的訊號，不需要後端、API key 或複雜研究流程。
+        - generic [ref=e23]:
+          - link "瀏覽每日 Radar" [ref=e24] [cursor=pointer]:
+            - /url: /archive/
+          - link "查看研究簡報草稿" [ref=e25] [cursor=pointer]:
+            - /url: /research/
+          - link "開啟來源工作台" [ref=e26] [cursor=pointer]:
+            - /url: /source-inbox/
+          - link "了解這個 MVP" [ref=e27] [cursor=pointer]:
+            - /url: /about/
+      - generic [ref=e28]:
+        - paragraph [ref=e29]: 今日焦點
+        - heading "今日 Top 5" [level=2] [ref=e30]
+        - paragraph [ref=e31]: 2026年7月2日
+        - list [ref=e32]:
+          - listitem [ref=e33]:
+            - generic [ref=e34]:
+              - generic [ref=e35]: "#1"
+              - generic [ref=e36]: 分數 9.1
+            - link "Evaluation as product work" [ref=e37] [cursor=pointer]:
+              - /url: /article/2026-07-02-evaluation-as-product-work/
+            - paragraph [ref=e38]: "This is a core AI PM skill: convert vague model potential into measurable product acceptance criteria."
+            - generic [ref=e39]:
+              - generic [ref=e40]: AI PM Learning
+              - generic [ref=e41]: "風險: Without evaluation criteria, teams may ship features that look useful in demos but fail under real user tasks."
+          - listitem [ref=e42]:
+            - generic [ref=e43]:
+              - generic [ref=e44]: "#2"
+              - generic [ref=e45]: 分數 8.8
+            - link "Copilot rollout readiness" [ref=e46] [cursor=pointer]:
+              - /url: /article/2026-07-02-copilot-rollout-readiness/
+            - paragraph [ref=e47]: AI PM learners should define the user workflow, success metric, human review point, and failure mode before recommending a broader rollout.
+            - generic [ref=e48]:
+              - generic [ref=e49]: SME Strategy
+              - generic [ref=e50]: "風險: Teams may overtrust generated answers if they skip source checking, access control, or staff training."
+          - listitem [ref=e51]:
+            - generic [ref=e52]:
+              - generic [ref=e53]: "#3"
+              - generic [ref=e54]: 分數 8.6
+            - link "Low-code AI workflows" [ref=e55] [cursor=pointer]:
+              - /url: /article/2026-07-02-low-code-ai-workflows/
+            - paragraph [ref=e56]: The product opportunity is to design safe workflows around existing tools, including review ownership, source attribution, and repeatable templates.
+            - generic [ref=e57]:
+              - generic [ref=e58]: Education and NGO
+              - generic [ref=e59]: "風險: Sensitive beneficiary data should not be pasted into public AI tools without clear data handling rules and organizational approval."
+          - listitem [ref=e60]:
+            - generic [ref=e61]:
+              - generic [ref=e62]: "#4"
+              - generic [ref=e63]: 分數 8.5
+            - link "Practical AI governance" [ref=e64] [cursor=pointer]:
+              - /url: /article/2026-07-02-practical-ai-governance/
+            - paragraph [ref=e65]: "AI PMs can turn governance into product requirements: permissions, disclaimers, review states, audit logs, and rollback plans."
+            - generic [ref=e66]:
+              - generic [ref=e67]: Governance
+              - generic [ref=e68]: "風險: Overly abstract governance documents may fail if frontline users do not have practical examples and clear responsibility boundaries."
+          - listitem [ref=e69]:
+            - generic [ref=e70]:
+              - generic [ref=e71]: "#5"
+              - generic [ref=e72]: 分數 8.3
+            - link "MVP security boundaries" [ref=e73] [cursor=pointer]:
+              - /url: /article/2026-07-02-mvp-security-boundaries/
+            - paragraph [ref=e74]: This supports a product mindset where safety is part of the workflow design, not a separate engineering afterthought.
+            - generic [ref=e75]:
+              - generic [ref=e76]: Security
+              - generic [ref=e77]: "風險: Connecting AI agents to files, email, or terminals without scope limits can increase the chance of accidental data loss or unsafe execution."
+    - generic [ref=e78]:
+      - generic [ref=e79]:
+        - generic [ref=e80]:
+          - paragraph [ref=e81]: 每日 Top 5
+          - heading "最新檔案中的高優先訊號" [level=2] [ref=e82]
+        - paragraph [ref=e83]: 沿用既有影響力、相關性、可信度分數；文章內容與來源原文不會因介面語言改變。
+      - generic [ref=e84]:
+        - article [ref=e85]:
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - generic [ref=e88]: AI PM Learning
+              - generic [ref=e89]: 分數 9.1
+              - generic [ref=e90]: 審核 草稿
+            - heading "Why should AI product teams treat evaluation as part of the product, not an afterthought?" [level=3] [ref=e91]
+            - paragraph [ref=e92]: OpenAI Platform Docs · 2026年7月2日 下午4:30
+          - paragraph [ref=e93]: AI products need practical evaluation loops that test answer quality, user trust, edge cases, and human review behavior rather than only relying on model capability claims.
+          - generic "核心文章分數" [ref=e94]:
+            - generic [ref=e95]:
+              - strong [ref=e96]: 影響力
+              - generic [ref=e97]: 9/10
+            - generic [ref=e98]:
+              - strong [ref=e99]: 相關性
+              - generic [ref=e100]: 10/10
+            - generic [ref=e101]:
+              - strong [ref=e102]: 可信度
+              - generic [ref=e103]: 8/10
+          - generic "文章快速檢視" [ref=e104]:
+            - generic [ref=e105]:
+              - heading "AI PM 角度" [level=4] [ref=e106]
+              - paragraph [ref=e107]: "This is a core AI PM skill: convert vague model potential into measurable product acceptance criteria."
+            - generic [ref=e108]:
+              - heading "業務角度" [level=4] [ref=e109]
+              - paragraph [ref=e110]: A lightweight evaluation checklist can reduce wasted budget by showing whether an AI feature improves speed, quality, or decision confidence.
+            - generic [ref=e111]:
+              - heading "風險提示" [level=4] [ref=e112]
+              - paragraph [ref=e113]: Without evaluation criteria, teams may ship features that look useful in demos but fail under real user tasks.
+          - generic "文章標籤" [ref=e114]:
+            - generic [ref=e115]: "#evaluation"
+            - generic [ref=e116]: "#quality"
+            - generic [ref=e117]: "#product"
+          - button "展開分析" [ref=e118] [cursor=pointer]
+          - generic [ref=e119]:
+            - link "開啟來源" [ref=e120] [cursor=pointer]:
+              - /url: https://platform.openai.com/docs/guides/evals
+            - link "閱讀詳情" [ref=e121] [cursor=pointer]:
+              - /url: /article/2026-07-02-evaluation-as-product-work/
+        - article [ref=e122]:
+          - generic [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e125]: SME Strategy
+              - generic [ref=e126]: 分數 8.8
+              - generic [ref=e127]: 審核 已審核
+            - heading "How should SMEs decide whether an AI copilot is ready for real operations?" [level=3] [ref=e128]
+            - paragraph [ref=e129]: Microsoft Copilot · 2026年7月2日 下午5:00
+          - paragraph [ref=e130]: SMEs can evaluate AI copilots through small workflow trials, role-based review steps, and measurable time-saving targets before expanding usage across teams.
+          - generic "核心文章分數" [ref=e131]:
+            - generic [ref=e132]:
+              - strong [ref=e133]: 影響力
+              - generic [ref=e134]: 9/10
+            - generic [ref=e135]:
+              - strong [ref=e136]: 相關性
+              - generic [ref=e137]: 9/10
+            - generic [ref=e138]:
+              - strong [ref=e139]: 可信度
+              - generic [ref=e140]: 8/10
+          - generic "文章快速檢視" [ref=e141]:
+            - generic [ref=e142]:
+              - heading "AI PM 角度" [level=4] [ref=e143]
+              - paragraph [ref=e144]: AI PM learners should define the user workflow, success metric, human review point, and failure mode before recommending a broader rollout.
+            - generic [ref=e145]:
+              - heading "業務角度" [level=4] [ref=e146]
+              - paragraph [ref=e147]: A practical rollout can begin with low-risk tasks such as draft generation, meeting note cleanup, FAQ support, and internal knowledge search.
+            - generic [ref=e148]:
+              - heading "風險提示" [level=4] [ref=e149]
+              - paragraph [ref=e150]: Teams may overtrust generated answers if they skip source checking, access control, or staff training.
+          - generic "文章標籤" [ref=e151]:
+            - generic [ref=e152]: "#copilot"
+            - generic [ref=e153]: "#SME"
+            - generic [ref=e154]: "#rollout"
+          - button "展開分析" [ref=e155] [cursor=pointer]
+          - generic [ref=e156]:
+            - link "開啟來源" [ref=e157] [cursor=pointer]:
+              - /url: https://www.microsoft.com/en-us/microsoft-copilot
+            - link "閱讀詳情" [ref=e158] [cursor=pointer]:
+              - /url: /article/2026-07-02-copilot-rollout-readiness/
+        - article [ref=e159]:
+          - generic [ref=e160]:
+            - generic [ref=e161]:
+              - generic [ref=e162]: Education and NGO
+              - generic [ref=e163]: 分數 8.6
+            - heading "How can education and NGO teams use AI without building a full custom platform first?" [level=3] [ref=e164]
+            - paragraph [ref=e165]: Google for Education AI · 2026年7月2日 下午4:00
+          - paragraph [ref=e166]: Education and NGO teams can start with structured prompts, reviewed summaries, and reusable templates before investing in custom systems or automated pipelines.
+          - generic "核心文章分數" [ref=e167]:
+            - generic [ref=e168]:
+              - strong [ref=e169]: 影響力
+              - generic [ref=e170]: 8/10
+            - generic [ref=e171]:
+              - strong [ref=e172]: 相關性
+              - generic [ref=e173]: 10/10
+            - generic [ref=e174]:
+              - strong [ref=e175]: 可信度
+              - generic [ref=e176]: 8/10
+          - generic "文章快速檢視" [ref=e177]:
+            - generic [ref=e178]:
+              - heading "AI PM 角度" [level=4] [ref=e179]
+              - paragraph [ref=e180]: The product opportunity is to design safe workflows around existing tools, including review ownership, source attribution, and repeatable templates.
+            - generic [ref=e181]:
+              - heading "業務角度" [level=4] [ref=e182]
+              - paragraph [ref=e183]: Use cases such as report summarization, stakeholder updates, programme reflection, and learning-material drafting can be tested with low setup cost.
+            - generic [ref=e184]:
+              - heading "風險提示" [level=4] [ref=e185]
+              - paragraph [ref=e186]: Sensitive beneficiary data should not be pasted into public AI tools without clear data handling rules and organizational approval.
+          - generic "文章標籤" [ref=e187]:
+            - generic [ref=e188]: "#education"
+            - generic [ref=e189]: "#ngo"
+            - generic [ref=e190]: "#workflow"
+          - button "展開分析" [ref=e191] [cursor=pointer]
+          - generic [ref=e192]:
+            - link "開啟來源" [ref=e193] [cursor=pointer]:
+              - /url: https://edu.google.com/ai/
+            - link "閱讀詳情" [ref=e194] [cursor=pointer]:
+              - /url: /article/2026-07-02-low-code-ai-workflows/
+        - article [ref=e195]:
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - generic [ref=e198]: Governance
+              - generic [ref=e199]: 分數 8.5
+            - heading "What governance habits should teams add before scaling AI-assisted decisions?" [level=3] [ref=e200]
+            - paragraph [ref=e201]: NIST AI Risk Management Framework · 2026年7月2日 下午3:30
+          - paragraph [ref=e202]: Teams should document intended use, human oversight, risk level, source handling, and escalation paths before AI outputs influence decisions or public communication.
+          - generic "核心文章分數" [ref=e203]:
+            - generic [ref=e204]:
+              - strong [ref=e205]: 影響力
+              - generic [ref=e206]: 8/10
+            - generic [ref=e207]:
+              - strong [ref=e208]: 相關性
+              - generic [ref=e209]: 9/10
+            - generic [ref=e210]:
+              - strong [ref=e211]: 可信度
+              - generic [ref=e212]: 9/10
+          - generic "文章快速檢視" [ref=e213]:
+            - generic [ref=e214]:
+              - heading "AI PM 角度" [level=4] [ref=e215]
+              - paragraph [ref=e216]: "AI PMs can turn governance into product requirements: permissions, disclaimers, review states, audit logs, and rollback plans."
+            - generic [ref=e217]:
+              - heading "業務角度" [level=4] [ref=e218]
+              - paragraph [ref=e219]: A simple risk checklist can help managers decide which use cases are safe for automation, which require review, and which should stay manual.
+            - generic [ref=e220]:
+              - heading "風險提示" [level=4] [ref=e221]
+              - paragraph [ref=e222]: Overly abstract governance documents may fail if frontline users do not have practical examples and clear responsibility boundaries.
+          - generic "文章標籤" [ref=e223]:
+            - generic [ref=e224]: "#governance"
+            - generic [ref=e225]: "#risk"
+            - generic [ref=e226]: "#oversight"
+          - button "展開分析" [ref=e227] [cursor=pointer]
+          - generic [ref=e228]:
+            - link "開啟來源" [ref=e229] [cursor=pointer]:
+              - /url: https://www.nist.gov/itl/ai-risk-management-framework
+            - link "閱讀詳情" [ref=e230] [cursor=pointer]:
+              - /url: /article/2026-07-02-practical-ai-governance/
+        - article [ref=e231]:
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - generic [ref=e234]: Security
+              - generic [ref=e235]: 分數 8.3
+            - heading "Why do AI applications need security thinking even when the first release is only an MVP?" [level=3] [ref=e236]
+            - paragraph [ref=e237]: OWASP Top 10 for LLM Applications · 2026年7月2日 下午3:00
+          - paragraph [ref=e238]: AI MVPs still need boundaries for prompt injection, unsafe tool use, data exposure, and unreviewed automation, especially when they connect to files or external services.
+          - generic "核心文章分數" [ref=e239]:
+            - generic [ref=e240]:
+              - strong [ref=e241]: 影響力
+              - generic [ref=e242]: 8/10
+            - generic [ref=e243]:
+              - strong [ref=e244]: 相關性
+              - generic [ref=e245]: 9/10
+            - generic [ref=e246]:
+              - strong [ref=e247]: 可信度
+              - generic [ref=e248]: 8/10
+          - generic "文章快速檢視" [ref=e249]:
+            - generic [ref=e250]:
+              - heading "AI PM 角度" [level=4] [ref=e251]
+              - paragraph [ref=e252]: This supports a product mindset where safety is part of the workflow design, not a separate engineering afterthought.
+            - generic [ref=e253]:
+              - heading "業務角度" [level=4] [ref=e254]
+              - paragraph [ref=e255]: Teams can keep cost low while still adding basic controls such as scoped access, approval gates, validation scripts, and audit notes.
+            - generic [ref=e256]:
+              - heading "風險提示" [level=4] [ref=e257]
+              - paragraph [ref=e258]: Connecting AI agents to files, email, or terminals without scope limits can increase the chance of accidental data loss or unsafe execution.
+          - generic "文章標籤" [ref=e259]:
+            - generic [ref=e260]: "#security"
+            - generic [ref=e261]: "#agent"
+            - generic [ref=e262]: "#mvp"
+          - button "展開分析" [ref=e263] [cursor=pointer]
+          - generic [ref=e264]:
+            - link "開啟來源" [ref=e265] [cursor=pointer]:
+              - /url: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+            - link "閱讀詳情" [ref=e266] [cursor=pointer]:
+              - /url: /article/2026-07-02-mvp-security-boundaries/
+  - contentinfo [ref=e267]:
+    - generic [ref=e268]:
+      - generic [ref=e269]:
+        - heading "使用限制" [level=2] [ref=e270]
+        - paragraph [ref=e271]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e272]:
+        - heading "安全邊界" [level=2] [ref=e273]
+        - paragraph [ref=e274]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。

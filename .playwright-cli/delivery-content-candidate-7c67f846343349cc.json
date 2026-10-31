@@ -1,0 +1,73 @@
+{
+  "package_id": "delivery_content_candidate_7c67f846343349cc",
+  "package_version": 1,
+  "contract_version": 1,
+  "target_product": "content_ops",
+  "handoff_type": "content_candidate",
+  "handoff_id": "handoff_content_candidate_25104a1b",
+  "handoff_fingerprint": "dee260416e4fbf29",
+  "source_record_id": "src_498d74ae",
+  "source_record_fingerprint": "172f1bda343ae043",
+  "created_at": "2026-10-09T07:25:26.644Z",
+  "manifest": {
+    "format": "ai-pm-radar.delivery-package",
+    "package_version": 1,
+    "contract_version": 1,
+    "created_at": "2026-10-09T07:25:26.644Z",
+    "source_review_status": "reviewed",
+    "source_approval_status": "approved",
+    "handoff_status": "approved",
+    "handoff_reviewed_at": "2026-10-09T07:24:56.019Z",
+    "handoff_approved_at": "2026-10-09T07:25:12.032Z"
+  },
+  "source_snapshot": {
+    "title": "Synthetic QA: AI categorization test",
+    "source_url": "https://example.org/radar-release-qa",
+    "facts": [
+      "The fictional center classified 32 of 40 synthetic queries correctly."
+    ]
+  },
+  "provenance": {
+    "source_url": "https://example.org/radar-release-qa",
+    "source_url_original": "https://example.org/radar-release-qa",
+    "source_url_final": "https://example.org/radar-release-qa",
+    "captured_at": "2026-10-09T07:16:43.712Z",
+    "access_method": "direct_input"
+  },
+  "source_facts": [
+    {
+      "text": "The fictional center classified 32 of 40 synthetic queries correctly.",
+      "evidence_reference_ids": [
+        "src_498d74ae:e0"
+      ]
+    }
+  ],
+  "evidence_references": [
+    {
+      "id": "src_498d74ae:e0",
+      "source_record_id": "src_498d74ae",
+      "evidence_index": 0,
+      "text_reference": "Synthetic QA only: A fictional education center tested AI categorization on 40 synthetic queries. It classified 32 correctly and sent 8 for human correction. No time savings, satisfaction, or revenue impact has been measured.",
+      "source": "https://example.org/radar-release-qa",
+      "timestamp": null
+    }
+  ],
+  "payload": {
+    "derived_analysis": {
+      "target_audience": "Synthetic audience for stale-revision QA",
+      "content_angles": [],
+      "key_source_backed_claims": [
+        "The fictional center classified 32 of 40 synthetic queries correctly."
+      ],
+      "hooks": [],
+      "content_themes": [],
+      "suggested_formats": [],
+      "platform_considerations": [],
+      "unknowns_and_risks": [
+        "Unknown — not assessed"
+      ]
+    },
+    "human_notes": ""
+  },
+  "package_fingerprint": "b764e2396e4aef16"
+}

@@ -1,0 +1,72 @@
+{
+  "package_id": "delivery_creative_reference_ed11275977a5efbc",
+  "package_version": 1,
+  "contract_version": 1,
+  "target_product": "storyworld",
+  "handoff_type": "creative_reference",
+  "handoff_id": "handoff_creative_reference_c4f54920",
+  "handoff_fingerprint": "ccf7073c7086ab77",
+  "source_record_id": "src_ccee67b1",
+  "source_record_fingerprint": "2e0703b596b0cb9c",
+  "created_at": "2026-10-11T06:37:42.233Z",
+  "manifest": {
+    "format": "ai-pm-radar.delivery-package",
+    "package_version": 1,
+    "contract_version": 1,
+    "created_at": "2026-10-11T06:37:42.233Z",
+    "source_review_status": "reviewed",
+    "source_approval_status": "approved",
+    "handoff_status": "approved",
+    "handoff_reviewed_at": "2026-10-11T06:37:41.934Z",
+    "handoff_approved_at": "2026-10-11T06:37:42.082Z"
+  },
+  "source_snapshot": {
+    "title": "Synthetic AI PM education workflow",
+    "source_url": "https://example.org/synthetic-ai-pm-workflow",
+    "facts": [
+      "The team defines a Product Goal and orders its Product Backlog by expected value."
+    ]
+  },
+  "provenance": {
+    "source_url": "https://example.org/synthetic-ai-pm-workflow",
+    "source_url_original": "https://example.org/synthetic-ai-pm-workflow",
+    "source_url_final": "https://example.org/synthetic-ai-pm-workflow",
+    "captured_at": "2026-10-11T06:20:00.848Z",
+    "access_method": "direct_input"
+  },
+  "source_facts": [
+    {
+      "text": "The team defines a Product Goal and orders its Product Backlog by expected value.",
+      "evidence_reference_ids": [
+        "src_ccee67b1:e0"
+      ]
+    }
+  ],
+  "evidence_references": [
+    {
+      "id": "src_ccee67b1:e0",
+      "source_record_id": "src_ccee67b1",
+      "evidence_index": 0,
+      "text_reference": "Synthetic AI PM education workflow. A team defines a Product Goal and orders its Product Backlog by expected value. They preserve original evidence for each claim and send claims for human review. No time, cost, satisfaction, or revenue impact has been measured.",
+      "source": "https://example.org/synthetic-ai-pm-workflow",
+      "timestamp": null
+    }
+  ],
+  "payload": {
+    "derived_analysis": {
+      "themes": [],
+      "concepts": [],
+      "visual_motifs": [],
+      "tone": "",
+      "story_possibilities": [],
+      "character_or_worldbuilding_inspiration": [],
+      "factual_anchors": [],
+      "usage_notes": [],
+      "uncertainty": [
+        "Unknown — not assessed"
+      ]
+    },
+    "human_notes": ""
+  },
+  "package_fingerprint": "f036412f9df4a657"
+}

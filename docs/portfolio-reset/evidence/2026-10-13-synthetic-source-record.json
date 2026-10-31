@@ -1,0 +1,74 @@
+{
+  "record_version": 2,
+  "id": "src_863bf710",
+  "platform": "manual",
+  "source_type": "text",
+  "source_url": "https://example.com/fictional-radar-fixture",
+  "source_url_original": "https://example.com/fictional-radar-fixture",
+  "source_url_final": "https://example.com/fictional-radar-fixture",
+  "creator": "Synthetic QA Team",
+  "title": "Synthetic workshop report",
+  "description": null,
+  "published_at": null,
+  "captured_at": "2026-10-13T14:31:51.576Z",
+  "language": "zh-Hant",
+  "raw_text": "Synthetic training fixture: Twelve learners completed the first workshop.\nNine learners requested a follow-up exercise.\nAll statements here are fictional, and the results are unverified.",
+  "transcript": null,
+  "transcript_origin": "none",
+  "access_method": "direct_input",
+  "summary": "Synthetic workshop observations, not verified.",
+  "key_points": [],
+  "key_claims": [
+    {
+      "claim": "Twelve learners completed the first workshop.",
+      "evidence": [
+        {
+          "source": "https://example.com/fictional-radar-fixture",
+          "timestamp": null,
+          "text_reference": "Synthetic training fixture: Twelve learners completed the first workshop."
+        }
+      ]
+    }
+  ],
+  "timestamps": [],
+  "visual_moments": [],
+  "story_patterns": [],
+  "style_features": [],
+  "why_it_matters": "Shows how human-reviewed evidence is retained.",
+  "business_implication": "No business conclusions can be drawn from fictional data.",
+  "ai_pm_implication": "A PM should demand actual observations before deployment.",
+  "video_implication": null,
+  "content_ideas": [],
+  "case_candidate": false,
+  "library_targets": [],
+  "trend_tags": [],
+  "topic_tags": [],
+  "confidence": 0,
+  "evidence_grade": "C",
+  "evidence": [
+    {
+      "source": "https://example.com/fictional-radar-fixture",
+      "timestamp": null,
+      "text_reference": "Synthetic training fixture: Twelve learners completed the first workshop."
+    }
+  ],
+  "uncertainties": [],
+  "rights_note": "Rights and reuse permissions not assessed; review before publishing or repurposing.",
+  "material_status": "captured",
+  "analysis": {
+    "version": 1,
+    "status": "failed",
+    "provider": "none",
+    "model": null,
+    "analyzed_at": null,
+    "input_chars": 186,
+    "usage": null,
+    "error_code": "provider_not_configured",
+    "source_facts": [],
+    "inferences": [],
+    "use_cases": [],
+    "method_or_teaching_points": []
+  },
+  "review_status": "reviewed",
+  "approval_status": "approved"
+}

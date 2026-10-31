@@ -60,6 +60,49 @@ export function storeCloudBinding(binding: CloudSyncBinding): Promise<void> {
   }));
 }
 
+/** Update only the acknowledgement for the exact mapping previously read. */
+export function acknowledgeCloudBinding(
+  expected: CloudSyncBinding,
+  updated: CloudSyncBinding,
+): Promise<void> {
+  if (!validCloudBinding(expected) || !validCloudBinding(updated)
+    || expected.material_id !== updated.material_id
+    || expected.cloud_source_id !== updated.cloud_source_id
+    || updated.last_remote_revision === null || updated.last_remote_fingerprint === null
+    || updated.last_synced_at === null
+    || (expected.last_remote_revision !== null
+      && (updated.last_remote_revision < expected.last_remote_revision
+        || updated.last_remote_fingerprint === expected.last_remote_fingerprint))) {
+    return Promise.reject(Error("Invalid cloud acknowledgement update."));
+  }
+  return withDb((db) => new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    const store = tx.objectStore(STORE);
+    let conflict = false;
+    const request = store.get(expected.material_id);
+    request.onsuccess = () => {
+      const current: unknown = request.result;
+      if (!validCloudBinding(current)
+        || current.cloud_source_id !== expected.cloud_source_id
+        || current.last_remote_revision !== expected.last_remote_revision
+        || current.last_remote_fingerprint !== expected.last_remote_fingerprint) {
+        conflict = true;
+        tx.abort();
+        return;
+      }
+      store.put(structuredClone(updated), updated.material_id);
+    };
+    request.onerror = () => {
+      tx.abort();
+    };
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(conflict
+      ? Error("Cloud acknowledgement changed in another tab; reload before continuing.")
+      : tx.error ?? Error("Cloud acknowledgement update failed."));
+    tx.onerror = () => reject(tx.error ?? Error("Cloud acknowledgement update failed."));
+  }));
+}
+
 export function listCloudBindings(): Promise<CloudSyncBinding[]> {
   return withDb((db) => new Promise<CloudSyncBinding[]>((resolve, reject) => {
     const request = db.transaction(STORE, "readonly").objectStore(STORE).getAll();

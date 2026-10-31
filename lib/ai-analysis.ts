@@ -260,7 +260,7 @@ export function applyAIAnalysisDraft(
   record: SourceRecord,
   draft: AIAnalysisDraft,
   metadata: {
-    provider: "openai_responses" | "gemini";
+    provider: "openai_responses" | "gemini" | "ollama" | "openrouter";
     model: string;
     analyzedAt: string;
     usage: AnalysisUsage | null;

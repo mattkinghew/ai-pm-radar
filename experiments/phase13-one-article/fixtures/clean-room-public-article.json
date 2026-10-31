@@ -1,0 +1,110 @@
+{
+  "record_version": 2,
+  "id": "src_b374361cee7c6e132205267306a1e82b",
+  "platform": "manual",
+  "source_type": "text",
+  "source_url": null,
+  "source_url_original": null,
+  "source_url_final": null,
+  "creator": "AI-assisted clean-room pilot",
+  "title": "AI PM Radar：以可追溯證據與人工審核提高 AI 研究資料的可信度",
+  "description": "2026-10-15 AI PM Radar 雲端資料治理之原創教學文章（AI 輔助撰寫）；尚未對外發佈",
+  "published_at": null,
+  "captured_at": "2026-10-15T00:00:00.000Z",
+  "language": "zh-Hant",
+  "raw_text": "AI PM Radar：以可追溯證據與人工審核提高 AI 研究資料的可信度\n\n研究資料若只有 AI 生成摘要，讀者很難知道結論是否與來源一致。來源紀錄應保存原始文字、來源時間、關鍵主張和對應的逐字證據。\n\n在來源記錄中，每一個需要驗證的關鍵主張，都應連結至可在原始文字找到的證據。若找不到對應內容，就應標示待核對，而不應視為已證實。\n\n人工審核和發布批准是兩個不同決策。人工審核代表有人檢查證據；發布批准則表示該版本獲准供指定用途使用。若文章內容改動，原有批准不應自動延續。\n\n在兩部裝置協作時，版本號可以阻止舊裝置覆蓋較新的編輯。遇到衝突，使用者應保留本機備份，再決定採用雲端版本或手動合併。\n\n這篇文章是為 AI PM Radar 雲端遷移試點新寫的公開示範內容，不涉及真實客戶、業務成效、機密資料或個人資料。",
+  "transcript": null,
+  "transcript_origin": "none",
+  "access_method": "direct_input",
+  "summary": "以來源證據、獨立人工審核及版本衝突控制，示範 AI 研究工作流的資料治理。",
+  "key_points": [
+    "保存來源及逐字引用證據",
+    "人工 Review 與 Approval 必須分離",
+    "編輯後須重新核准，跨裝置衝突不得自動覆寫"
+  ],
+  "key_claims": [
+    {
+      "claim": "關鍵主張應連結可在原文找到的證據",
+      "evidence": [
+        {
+          "source": "owner-authored-clean-room",
+          "timestamp": null,
+          "text_reference": "在來源記錄中，每一個需要驗證的關鍵主張，都應連結至可在原始文字找到的證據。"
+        }
+      ]
+    },
+    {
+      "claim": "人工審核與發布批准是不同決策",
+      "evidence": [
+        {
+          "source": "owner-authored-clean-room",
+          "timestamp": null,
+          "text_reference": "人工審核和發布批准是兩個不同決策。"
+        }
+      ]
+    },
+    {
+      "claim": "版本號可阻止舊裝置覆寫新資料",
+      "evidence": [
+        {
+          "source": "owner-authored-clean-room",
+          "timestamp": null,
+          "text_reference": "在兩部裝置協作時，版本號可以阻止舊裝置覆蓋較新的編輯。"
+        }
+      ]
+    }
+  ],
+  "timestamps": [],
+  "visual_moments": [],
+  "story_patterns": [],
+  "style_features": [],
+  "why_it_matters": "來源證據與批准版本分離有助檢查生成內容是否忠於原始材料。",
+  "business_implication": "本文沒有量化或驗證的成本、收入或業務回報。",
+  "ai_pm_implication": "以最小可驗證流程測試審核、批准失效及 Revision CAS。",
+  "video_implication": null,
+  "content_ideas": [],
+  "case_candidate": false,
+  "library_targets": [],
+  "trend_tags": [],
+  "topic_tags": [],
+  "confidence": 0.8,
+  "evidence_grade": "B",
+  "evidence": [
+    {
+      "source": "owner-authored-clean-room",
+      "timestamp": null,
+      "text_reference": "在來源記錄中，每一個需要驗證的關鍵主張，都應連結至可在原始文字找到的證據。"
+    },
+    {
+      "source": "owner-authored-clean-room",
+      "timestamp": null,
+      "text_reference": "人工審核和發布批准是兩個不同決策。"
+    },
+    {
+      "source": "owner-authored-clean-room",
+      "timestamp": null,
+      "text_reference": "在兩部裝置協作時，版本號可以阻止舊裝置覆蓋較新的編輯。"
+    }
+  ],
+  "uncertainties": [
+    "本篇為教學性自撰內容，沒有實際業務研究或市場數據"
+  ],
+  "rights_note": "AI-assisted clean-room original drafted specifically for this pilot; Owner must review and confirm cloud-storage rights before genuine upload. No private source reused.",
+  "material_status": "captured",
+  "analysis": {
+    "version": 1,
+    "status": "not_requested",
+    "provider": "none",
+    "model": null,
+    "analyzed_at": null,
+    "input_chars": 0,
+    "usage": null,
+    "error_code": null,
+    "source_facts": [],
+    "inferences": [],
+    "use_cases": [],
+    "method_or_teaching_points": []
+  },
+  "review_status": "needs_review",
+  "approval_status": "not_approved"
+}

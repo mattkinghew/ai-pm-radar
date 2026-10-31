@@ -1,0 +1,128 @@
+- generic [active] [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=f1e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e5]: AI
+        - generic [ref=f1e6]:
+          - strong [ref=f1e7]: AI PM Radar
+          - paragraph [ref=f1e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=f1e9]:
+        - link "首頁" [ref=f1e10] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=f1e11] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=f1e12] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=f1e13] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=f1e14] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=f1e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=f1e16]:
+    - generic [ref=f1e17]:
+      - paragraph [ref=f1e18]: 來源工作台
+      - heading "輸入來源，整理成可核對草稿" [level=1] [ref=f1e19]
+      - paragraph [ref=f1e20]: 貼上公開文章連結或正文，先由規則整理基本草稿，再由你核對、補充原文證據、人工審核並批准下載。
+      - paragraph [ref=f1e21]: 本機優先：素材保存於目前瀏覽器；只有你按下 AI 整理時，正文才會送至本機設定的 server-side provider。不寫入 database，也不覆寫正式 daily data。
+      - paragraph [ref=f1e22]: 介面語言只影響操作文字；不會翻譯文章原文、使用者輸入、JSON keys、ID 或 enum values。
+      - generic "匯入素材" [ref=f1e23]:
+        - generic [ref=f1e24]: 1 匯入素材
+        - generic [ref=f1e25]: 2 核對草稿
+        - generic [ref=f1e26]: 3 批准與下載
+    - status [ref=f1e75]: 整理成草稿
+    - status [ref=f1e27]: 已保存於目前瀏覽器
+    - group [ref=f1e28]:
+      - generic "進階工具與來源設定" [ref=f1e29] [cursor=pointer]
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high"
+      - option "medium" [selected]
+      - option "low"
+    - region "素材清單" [ref=f1e76]:
+      - generic [ref=f1e77]:
+        - heading "素材清單" [level=2] [ref=f1e78]
+        - paragraph [ref=f1e79]: 連結模式每批最多 5 筆，一行一個；一筆失敗不會阻擋其他筆。
+      - article [ref=f1e81]:
+        - generic [ref=f1e82]:
+          - strong [ref=f1e83]: "#1 Synthetic AI classification pilot"
+          - generic [ref=f1e84]: 已取得素材
+        - paragraph [ref=f1e85]: https://example.org/radar-release-test-2026-10-08
+        - paragraph [ref=f1e86]:
+          - strong [ref=f1e87]: 下一步：
+          - text: 開啟後按 AI 整理
+        - button "查看這筆素材" [ref=f1e89] [cursor=pointer]
+    - generic [ref=f1e292]:
+      - generic [ref=f1e293]:
+        - paragraph [ref=f1e294]: 批准與下載
+        - heading "批准與下載" [level=2] [ref=f1e295]
+        - paragraph [ref=f1e296]: 審核與批准是兩個明確的人工作動；修改正文、原文證據、來源資料、分析或日期後，舊批准會失效。
+      - generic [ref=f1e297]:
+        - generic [ref=f1e298]:
+          - strong [ref=f1e299]: 目前狀態
+          - generic [ref=f1e300]:
+            - generic [ref=f1e301]:
+              - strong [ref=f1e302]: 審核狀態
+              - text: 已審核
+            - generic [ref=f1e303]:
+              - strong [ref=f1e304]: 批准狀態
+              - text: 未批准
+        - paragraph [ref=f1e305]: 批准只代表通過 candidate 輸出 gate，不等於事實已被獨立驗證，也不會變成 verified。
+      - generic [ref=f1e306]:
+        - button "返回編輯草稿" [ref=f1e307] [cursor=pointer]
+        - button "完成核對並標記已審核" [disabled] [ref=f1e308]
+        - button "拒絕此來源" [ref=f1e309] [cursor=pointer]
+        - button "批准並下載候選檔" [disabled] [ref=f1e310]
+      - region [ref=f1e311]:
+        - heading "批准並保存為可重用來源" [level=3] [ref=f1e312]
+        - paragraph [ref=f1e313]: 此動作只批准本 SourceRecord 進入目前瀏覽器的 Library；不代表 verified，也不批准 daily candidate。
+        - paragraph [ref=f1e314]: 重用批准要求：正文或逐字稿、可定位的原文 evidence、至少一項帶 evidence 的主張，並完成審核。
+        - button "已批准" [disabled] [ref=f1e348]
+        - status [ref=f1e349]: 已批准的 SourceRecord 已保存至本機 Library；可在研究簡報建立重用項目。
+      - paragraph [ref=f1e318]: SourceRecord 草稿保存在目前瀏覽器；不會寫入伺服器資料庫或正式 daily data。
+      - status [ref=f1e319]:
+        - strong [ref=f1e320]: 目前不能下載 candidate
+        - paragraph [ref=f1e321]: 未符合必要條件，下載按鈕已停用；請按下方提示返回編輯。
+      - list [ref=f1e322]:
+        - listitem [ref=f1e325]:
+          - link "SourceRecord 尚未明確批准輸出 daily candidate。" [ref=f1e326] [cursor=pointer]:
+            - /url: "#review-section"
+        - listitem [ref=f1e327]:
+          - link "輸出 candidate 前必須評估證據等級。" [ref=f1e328] [cursor=pointer]:
+            - /url: "#evidence-reference"
+        - listitem [ref=f1e329]:
+          - link "每日候選資料缺少 question_title。" [ref=f1e330] [cursor=pointer]:
+            - /url: "#daily-fields"
+        - listitem [ref=f1e331]:
+          - link "每日候選資料缺少 short_title。" [ref=f1e332] [cursor=pointer]:
+            - /url: "#daily-fields"
+        - listitem [ref=f1e333]:
+          - link "每日候選資料缺少 category。" [ref=f1e334] [cursor=pointer]:
+            - /url: "#daily-fields"
+      - generic [ref=f1e335]:
+        - generic [ref=f1e336]:
+          - heading "daily candidate 預覽" [level=3] [ref=f1e337]
+          - generic [ref=f1e338]: "{ \"date\": \"2026-10-08\", \"articles\": [] }"
+        - generic [ref=f1e339]:
+          - heading "完整 SourceRecord 預覽" [level=3] [ref=f1e340]
+          - generic [ref=f1e341]: "{ \"record_version\": 2, \"id\": \"src_b712fc33\", \"platform\": \"manual\", \"source_type\": \"text\", \"source_url\": \"https://example.org/radar-release-test-2026-10-08\", \"source_url_original\": \"https://example.org/radar-release-test-2026-10-08\", \"source_url_final\": \"https://example.org/radar-release-test-2026-10-08\", \"creator\": \"Synthetic Education Research Group\", \"title\": \"Synthetic AI classification pilot\", \"description\": null, \"published_at\": null, \"captured_at\": \"2026-10-08T15:20:31.936Z\", \"language\": \"zh-Hant\", \"raw_text\": \"Synthetic pilot: An education team reviewed 24 AI classification results. Reviewers corrected 5 results before any decision. The pilot did not measure time savings or learner outcomes.\", \"transcript\": null, \"transcript_origin\": \"none\", \"access_method\": \"direct_input\", \"summary\": \"合成教育分類試點中，24 筆結果有 5 筆在決策前由覆核者修正。\", \"key_points\": [ \"合成測試顯示分類結果需人工覆核，且效益尚未量度。\" ], \"key_claims\": [ { \"claim\": \"Reviewers corrected 5 results before any decision.\", \"evidence\": [ { \"source\": \"https://example.org/radar-release-test-2026-10-08\", \"timestamp\": null, \"text_reference\": \"Synthetic pilot: An education team reviewed 24 AI classification results. Reviewers corrected 5 results before any decision. The pilot did not measure time savings or learner outcomes.\" } ] } ], \"timestamps\": [], \"visual_moments\": [], \"story_patterns\": [], \"style_features\": [], \"why_it_matters\": \"此測試只能說明人工覆核仍存在，不足以證明整體效益。\", \"business_implication\": \"部署分類工具時需保留覆核流程，並量度修正率與工作時間。\", \"ai_pm_implication\": \"以錯誤修正率和覆核成本設計試點評估，不將分類準確度當成唯一指標。\", \"video_implication\": null, \"content_ideas\": [ \"如何為教育 AI 分類試點保留人工覆核與成效量度\" ], \"case_candidate\": true, \"library_targets\": [], \"trend_tags\": [], \"topic_tags\": [], \"confidence\": 0, \"evidence_grade\": \"ungraded\", \"evidence\": [ { \"source\": \"https://example.org/radar-release-test-2026-10-08\", \"timestamp\": null, \"text_reference\": \"Synthetic pilot: An education team reviewed 24 AI classification results. Reviewers corrected 5 results before any decision. The pilot did not measure time savings or learner outcomes.\" } ], \"uncertainties\": [ \"是否節省時間、改善學習成效或提升滿意度尚未量度。\" ], \"rights_note\": \"Rights and reuse permissions not assessed; review before publishing or repurposing.\", \"material_status\": \"captured\", \"analysis\": { \"version\": 1, \"status\": \"not_requested\", \"provider\": \"none\", \"model\": null, \"analyzed_at\": null, \"input_chars\": 184, \"usage\": null, \"error_code\": null, \"source_facts\": [], \"inferences\": [], \"use_cases\": [], \"method_or_teaching_points\": [] }, \"review_status\": \"reviewed\", \"approval_status\": \"not_approved\" }"
+      - paragraph [ref=f1e342]: candidate 與 SourceRecord 檔名共用日期與 SourceRecord ID；正式 data/daily/ 不會被修改。
+      - generic [ref=f1e343]:
+        - button "下載 daily candidate JSON" [disabled] [ref=f1e344]
+        - button "下載 SourceRecord 備份" [ref=f1e345] [cursor=pointer]
+        - button "清除本頁草稿" [ref=f1e346] [cursor=pointer]
+      - paragraph [ref=f1e347]: 清除會刪除目前瀏覽器中保存的素材與草稿；如要保留，請先下載備份。重新整理會載入最近一次已保存的版本。
+  - contentinfo [ref=f1e46]:
+    - generic [ref=f1e47]:
+      - generic [ref=f1e48]:
+        - heading "使用限制" [level=2] [ref=f1e49]
+        - paragraph [ref=f1e50]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=f1e51]:
+        - heading "安全邊界" [level=2] [ref=f1e52]
+        - paragraph [ref=f1e53]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=f1e59] [cursor=pointer]
+  - alert [ref=f1e63]

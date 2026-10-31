@@ -30,7 +30,7 @@ import {
   type DailyCandidateMetadata,
   type ManualEnrichment,
 } from "@/lib/daily-candidate";
-import type { Messages } from "@/lib/i18n";
+import { formatSourceInboxBlocker, type Messages } from "@/lib/i18n";
 import {
   importedEvidenceCandidates,
   validateUploadedTextMaterial,
@@ -48,6 +48,8 @@ import {
   type AIAnalysisDraft,
 } from "@/lib/ai-analysis";
 import { parseSourceDrafts, serializeSourceDrafts } from "@/lib/source-draft-storage";
+import { SOURCE_INBOX_DRAFT_DB_NAME, SOURCE_INBOX_DRAFT_STORE } from "@/lib/source-inbox-draft-summary";
+import { parseQuickCapture, QUICK_CAPTURE_SESSION_KEY } from "@/lib/quick-capture";
 import {
   decideResearchImport,
   researchFormFingerprint,
@@ -304,29 +306,6 @@ function buildDailyMetadata(form: WorkbenchFormState): DailyCandidateMetadata {
   };
 }
 
-function formatBlocker(reason: string, validation: Messages["sourceInbox"]["validation"], invalidDate: string) {
-  if (reason === invalidDate) return invalidDate;
-  const known = new Map([
-    ["SourceRecord is not human reviewed.", validation.notReviewed],
-    ["SourceRecord is not explicitly approved for daily candidate output.", validation.notApproved],
-    ["SourceRecord was rejected during human review.", validation.rejected],
-    ["A publishable daily article requires a source URL.", validation.sourceUrl],
-    ["A publishable daily article requires a source name or creator.", validation.creator],
-    ["SourceRecord has no source body or transcript; use manual recovery first.", validation.body],
-    ["SourceRecord has no evidence items.", validation.evidence],
-    ["SourceRecord has no reviewed key claims.", validation.claims],
-    ["SourceRecord evidence_grade must be assessed before candidate output.", validation.evidenceGrade],
-  ]);
-  const exact = known.get(reason);
-  if (exact) return exact;
-  const missingDaily = reason.match(/^Daily candidate metadata is missing (.+)\.$/);
-  if (missingDaily) return `${validation.dailyMissing} ${missingDaily[1]}。`;
-  const missingEnrichment = reason.match(/^Manual enrichment is missing (.+)\.$/);
-  if (missingEnrichment) return `${validation.enrichmentMissing} ${missingEnrichment[1]}。`;
-  if (reason.startsWith("SourceRecord invalid:")) return `${validation.invalid}：${reason.slice(24).trim()}`;
-  return `${validation.generic}：${reason}`;
-}
-
 function blockerId(reason: string) {
   if (reason.includes("日期") || reason.includes("Date")) return "candidate-date";
   if (reason.includes("source URL")) return "source-url";
@@ -408,6 +387,10 @@ type MaterialCard = {
   error: string;
   form: WorkbenchFormState | null;
   researchImport?: ResearchImportMetadata;
+  reviewedFingerprint?: string | null;
+  approvedFingerprint?: string | null;
+  approvalSeal?: string | null;
+  rejectedFingerprint?: string | null;
 };
 
 type PendingResearchImport = {
@@ -528,9 +511,9 @@ function formFromFeedItem(item: FeedItem): WorkbenchFormState {
   };
 }
 
-const DRAFT_DB_NAME = "ai-pm-radar-source-inbox";
+const DRAFT_DB_NAME = SOURCE_INBOX_DRAFT_DB_NAME;
 const DRAFT_DB_VERSION = 3;
-const DRAFT_STORE = "workbench";
+const DRAFT_STORE = SOURCE_INBOX_DRAFT_STORE;
 
 function openDraftDatabase(dbName = DRAFT_DB_NAME) {
   return new Promise<IDBDatabase>((resolve, reject) => {
@@ -635,6 +618,8 @@ export function SourceInboxWorkbench({
   materialsRef.current = materials;
   const latestFormRef = useRef(form);
   latestFormRef.current = form;
+  const quickCaptureConsumedRef = useRef(false);
+  const quickCaptureAutoAnalyzeRef = useRef(false);
 
   useEffect(() => {
     setCandidateDate(localDate());
@@ -656,9 +641,21 @@ export function SourceInboxWorkbench({
         setApprovedFingerprint(saved.approvedFingerprint ?? null);
         setApprovalSeal(saved.approvalSeal ?? null);
         setRejectedFingerprint(saved.rejectedFingerprint ?? null);
-        setMaterials(saved.materials.map((material) => material.id === restoredActiveId
-          ? { ...material, form: restoredForm }
-          : { ...material, form: material.form ? { ...EMPTY_FORM, ...material.form } : null }));
+        setMaterials(saved.materials.map((material) => {
+          const isActive = material.id === restoredActiveId;
+          return {
+            ...material,
+            form: isActive ? restoredForm : material.form ? { ...EMPTY_FORM, ...material.form } : null,
+            reviewedFingerprint: Object.prototype.hasOwnProperty.call(material, "reviewedFingerprint")
+              ? material.reviewedFingerprint ?? null : isActive ? saved.reviewedFingerprint ?? null : null,
+            approvedFingerprint: Object.prototype.hasOwnProperty.call(material, "approvedFingerprint")
+              ? material.approvedFingerprint ?? null : isActive ? saved.approvedFingerprint ?? null : null,
+            approvalSeal: Object.prototype.hasOwnProperty.call(material, "approvalSeal")
+              ? material.approvalSeal ?? null : isActive ? saved.approvalSeal ?? null : null,
+            rejectedFingerprint: Object.prototype.hasOwnProperty.call(material, "rejectedFingerprint")
+              ? material.rejectedFingerprint ?? null : isActive ? saved.rejectedFingerprint ?? null : null,
+          };
+        }));
         setActiveMaterialId(restoredActiveId);
       }
       hydratedRef.current = true;
@@ -732,8 +729,11 @@ export function SourceInboxWorkbench({
   }, [isHydrated]);
 
   const currentWorkbench = (): PersistedWorkbench => ({
-    stage, inputMode, inputValue, form, candidateDate, materials, activeMaterialId,
-    reviewedFingerprint, approvedFingerprint, approvalSeal, rejectedFingerprint,
+    stage, inputMode, inputValue, form, candidateDate,
+    materials: materials.map((material) => material.id === activeMaterialId ? {
+      ...material, reviewedFingerprint, approvedFingerprint, approvalSeal, rejectedFingerprint,
+    } : material),
+    activeMaterialId, reviewedFingerprint, approvedFingerprint, approvalSeal, rejectedFingerprint,
   });
 
   // Serialize writes so an older debounce cannot overwrite a newer explicit save.
@@ -858,6 +858,10 @@ export function SourceInboxWorkbench({
       error: material.error?.code ?? "",
       form: nextForm,
       researchImport: researchImportMetadata(material, nextForm),
+      reviewedFingerprint: null,
+      approvedFingerprint: null,
+      approvalSeal: null,
+      rejectedFingerprint: null,
     } : item));
     setForm(nextForm);
     setDraftOrigin("extracted");
@@ -873,43 +877,45 @@ export function SourceInboxWorkbench({
     showNotice("info", "researchImportKept");
   };
 
-  const createTextDraft = () => {
-    if (!inputValue.trim()) {
+  const createTextDraft = (value = inputValue, appendAsNew = false) => {
+    if (!value.trim()) {
       showNotice("error", "emptyBody");
       return;
     }
     const now = new Date().toISOString();
-    const title = provisionalTitle(inputValue);
-    const activeMaterial = materialsRef.current.find((material) => material.id === activeMaterialId);
-    const preservedUrl = form.sourceUrl.trim() || activeMaterial?.sourceUrl || "";
+    const title = provisionalTitle(value);
+    const activeMaterial = appendAsNew ? null : materialsRef.current.find((material) => material.id === activeMaterialId);
+    const currentForm = appendAsNew ? EMPTY_FORM : form;
+    const preservedUrl = currentForm.sourceUrl.trim() || activeMaterial?.sourceUrl || "";
     const isRecovery = Boolean(activeMaterial && (activeMaterial.status === "failed" || activeMaterial.status === "manual_only") && preservedUrl);
     const nextForm: WorkbenchFormState = {
       ...EMPTY_FORM,
-      body: inputValue,
-      sourceTitle: form.sourceTitle || title,
+      body: value,
+      sourceTitle: currentForm.sourceTitle || title,
       sourceUrl: preservedUrl,
-      creator: form.creator || sourceWebsiteName(preservedUrl),
-      originalUrl: form.originalUrl || preservedUrl,
-      finalUrl: form.finalUrl || preservedUrl,
+      creator: currentForm.creator || sourceWebsiteName(preservedUrl),
+      originalUrl: currentForm.originalUrl || preservedUrl,
+      finalUrl: currentForm.finalUrl || preservedUrl,
       capturedAt: now,
-      evidenceSource: form.evidenceSource || form.sourceUrl || "使用者貼上正文",
-      evidenceReference: form.evidenceReference || title,
+      evidenceSource: currentForm.evidenceSource || currentForm.sourceUrl || "使用者貼上正文",
+      evidenceReference: currentForm.evidenceReference || title,
       analysisStatus: "not_requested" as const,
       analysisError: "",
       analysisProvider: "none" as const,
       analysisModel: "",
       analysisUsage: "",
-      accessMethod: isRecovery ? "manual_fallback" as const : form.accessMethod,
+      accessMethod: isRecovery ? "manual_fallback" as const : currentForm.accessMethod,
       sourceKind: (() => {
-        const kind = detectInputKind(inputValue);
+        const kind = detectInputKind(value);
         return kind === "markdown" || kind === "srt" || kind === "vtt" ? kind : "paste_text";
       })(),
     };
+    setInputValue(value);
     setForm(nextForm);
     const materialId = activeMaterial?.id ?? `material-${Date.now()}`;
     const material: MaterialCard = {
       id: materialId,
-      input: activeMaterial?.input ?? inputValue,
+      input: activeMaterial?.input ?? value,
       status: "captured",
       title: nextForm.sourceTitle,
       sourceUrl: nextForm.sourceUrl,
@@ -917,13 +923,47 @@ export function SourceInboxWorkbench({
       form: nextForm,
       researchImport: activeMaterial?.researchImport,
     };
-    setMaterials((current) => current.some((item) => item.id === materialId)
+    setMaterials((current) => !appendAsNew && current.some((item) => item.id === materialId)
       ? current.map((item) => item.id === materialId ? material : item)
       : [...current, material]);
     setActiveMaterialId(materialId);
     setDraftOrigin("manual");
     setStage("draft");
+    setReviewedFingerprint(null);
+    setApprovedFingerprint(null);
+    setApprovalSeal(null);
+    setRejectedFingerprint(null);
     showNotice("success", "makeDraft");
+  };
+
+  const createFileDraft = (value: string, fileName: string, appendAsNew = false) => {
+    try {
+      const materialInput = validateUploadedTextMaterial(value, fileName);
+      const now = new Date().toISOString();
+      const nextForm = {
+        ...EMPTY_FORM,
+        body: materialInput.body,
+        sourceTitle: materialInput.title,
+        capturedAt: now,
+        sourceKind: materialInput.kind,
+        evidenceSource: materialInput.fileName,
+        evidenceReference: "",
+        evidenceTimestamp: "",
+      };
+      const material = { id: `material-${Date.now()}`, input: materialInput.fileName, status: "captured" as const, title: nextForm.sourceTitle, sourceUrl: "", error: "", form: nextForm };
+      setForm(nextForm);
+      setMaterials((current) => appendAsNew ? [...current, material] : [material]);
+      setActiveMaterialId(material.id);
+      setReviewedFingerprint(null);
+      setApprovedFingerprint(null);
+      setApprovalSeal(null);
+      setRejectedFingerprint(null);
+      setImportFileError(null);
+      setDraftOrigin("manual");
+      setStage("draft");
+    } catch (error) {
+      setImportFileError(error instanceof Error ? error.message : "The text file could not be read; paste text instead.");
+    }
   };
 
   const loadPreviewSource = (source: SourceRecord) => {
@@ -1002,7 +1042,7 @@ export function SourceInboxWorkbench({
     return { platform, fetched: payload };
   };
 
-  const createUrlDraft = async (requestedUrl = inputValue) => {
+  const createUrlDraft = async (requestedUrl = inputValue, appendAsNew = false) => {
     if (isolatedPreview) return;
     const urls = requestedUrl.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
     if (urls.length === 0) {
@@ -1017,8 +1057,13 @@ export function SourceInboxWorkbench({
     setNotice(null);
     setNoticeKey(null);
     const cards = urls.map((url, index) => ({ id: `material-${Date.now()}-${index}`, input: url, status: "pending" as const, title: url, sourceUrl: url, error: "", form: null }));
-    setMaterials(cards);
+    setInputValue(requestedUrl);
+    setMaterials((current) => appendAsNew ? [...current, ...cards] : cards);
     setActiveMaterialId(cards[0]?.id ?? null);
+    setReviewedFingerprint(null);
+    setApprovedFingerprint(null);
+    setApprovalSeal(null);
+    setRejectedFingerprint(null);
     let firstReady = false;
     let partial = false;
     let firstFailure: NoticeKey | null = null;
@@ -1066,6 +1111,49 @@ export function SourceInboxWorkbench({
     else showNotice("success", "fetchSuccess");
     setIsFetching(false);
   };
+
+  useEffect(() => {
+    if (!isHydrated || isolatedPreview || quickCaptureConsumedRef.current
+      || new URLSearchParams(window.location.search).get("quickCapture") !== "1") return;
+    quickCaptureConsumedRef.current = true;
+    try {
+      const raw = sessionStorage.getItem(QUICK_CAPTURE_SESSION_KEY);
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.delete("quickCapture");
+      window.history.replaceState(window.history.state, "", `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+      if (!raw) {
+        if (!form.body.trim() && materials.length === 0) setImportFileError(messages.home.quickCaptureInvalid);
+        return;
+      }
+      const handoff = parseQuickCapture(raw);
+      sessionStorage.removeItem(QUICK_CAPTURE_SESSION_KEY);
+      quickCaptureAutoAnalyzeRef.current = handoff.autoAnalyze === true;
+      setInputValue(handoff.value);
+      setInputMode(handoff.fileName ? "text" : detectSourceEntryMode(handoff.value));
+      if (handoff.fileName) createFileDraft(handoff.value, handoff.fileName, true);
+      else if (detectSourceEntryMode(handoff.value) === "url") void createUrlDraft(handoff.value, true);
+      else createTextDraft(handoff.value, true);
+    } catch {
+      setImportFileError(messages.home.quickCaptureInvalid);
+    }
+  }, [isHydrated]);
+
+  // Quick Capture "AI 整理": once the draft has real source text, run the same /analyze flow once.
+  // If there is no usable text (e.g. a video link that needs login / has no transcript) we do not
+  // fake a summary; the local draft stays and the platform/fetch notice explains what is missing.
+  useEffect(() => {
+    if (!quickCaptureAutoAnalyzeRef.current || isFetching || stage !== "draft") return;
+    quickCaptureAutoAnalyzeRef.current = false;
+    if (!form.body.trim()) return;
+    void analyzeCurrent();
+  }, [stage, isFetching, form.body]);
+
+  useEffect(() => {
+    if (!quickCaptureAutoAnalyzeRef.current || isFetching) return;
+    if (stage === "import" && materials.length > 0 && materials.every((item) => item.status !== "pending")) {
+      quickCaptureAutoAnalyzeRef.current = false;
+    }
+  }, [isFetching, stage, materials]);
 
   const retryMaterial = async (material: MaterialCard) => {
     setMaterials((items) => items.map((item) => item.id === material.id ? { ...item, status: "pending", error: "" } : item));
@@ -1148,7 +1236,7 @@ export function SourceInboxWorkbench({
       let analyzed: SourceRecord;
       try {
         analyzed = applyAIAnalysisDraft(currentRecord, canonicalDraft, {
-          provider: payload.provider === "gemini" ? "gemini" : "openai_responses",
+          provider: payload.provider === "gemini" || payload.provider === "ollama" || payload.provider === "openrouter" ? payload.provider : "openai_responses",
           model: payload.model || "unknown",
           analyzedAt,
           usage: payload.usage ?? null,
@@ -1188,7 +1276,7 @@ export function SourceInboxWorkbench({
         analysisInferences: [canonicalDraft.business_implication, canonicalDraft.ai_pm_implication, ...canonicalDraft.use_cases].filter(Boolean).join("\n"),
         analysisStatus: "draft",
         analysisError: hasOmittedMethods ? "method_points_omitted" : "",
-        analysisProvider: payload.provider === "gemini" ? "gemini" : "openai_responses",
+        analysisProvider: payload.provider === "gemini" || payload.provider === "ollama" || payload.provider === "openrouter" ? payload.provider : "openai_responses",
         analysisModel: payload.model || "unknown",
         analysisAnalyzedAt: analyzedAt,
         analysisUsage: payload.usage ? JSON.stringify(payload.usage) : "",
@@ -1227,6 +1315,14 @@ export function SourceInboxWorkbench({
     setRejectedFingerprint(null);
     setDraftOrigin("manual");
     setApprovedFingerprint(null);
+    setApprovalSeal(null);
+    setMaterials((current) => current.map((material) => material.id === activeMaterialId ? {
+      ...material,
+      reviewedFingerprint: fingerprint,
+      approvedFingerprint: null,
+      approvalSeal: null,
+      rejectedFingerprint: null,
+    } : material));
   };
 
   const approveAndDownload = async () => {
@@ -1244,9 +1340,20 @@ export function SourceInboxWorkbench({
     }
     setIsApprovingCandidate(true);
     try {
-      await persistWorkbench({ ...currentWorkbench(), approvedFingerprint: fingerprint, approvalSeal: seal });
+      const snapshot = currentWorkbench();
+      await persistWorkbench({
+        ...snapshot,
+        materials: snapshot.materials.map((material) => material.id === activeMaterialId
+          ? { ...material, approvedFingerprint: fingerprint, approvalSeal: seal }
+          : material),
+        approvedFingerprint: fingerprint,
+        approvalSeal: seal,
+      });
       setApprovedFingerprint(fingerprint);
       setApprovalSeal(seal);
+      setMaterials((current) => current.map((material) => material.id === activeMaterialId ? {
+        ...material, approvedFingerprint: fingerprint, approvalSeal: seal,
+      } : material));
       await assertApprovalIntegrity(sealPayload, seal);
       download(candidateFileName, approvedCandidate.candidate);
     } catch {
@@ -1296,6 +1403,13 @@ export function SourceInboxWorkbench({
   const reject = () => {
     setRejectedFingerprint(fingerprint);
     setApprovedFingerprint(null);
+    setApprovalSeal(null);
+    setMaterials((current) => current.map((material) => material.id === activeMaterialId ? {
+      ...material,
+      approvedFingerprint: null,
+      approvalSeal: null,
+      rejectedFingerprint: fingerprint,
+    } : material));
   };
 
   const reset = () => {
@@ -1350,8 +1464,22 @@ export function SourceInboxWorkbench({
       setApprovedFingerprint(saved.approvedFingerprint ?? null);
       setApprovalSeal(saved.approvalSeal ?? null);
       setRejectedFingerprint(saved.rejectedFingerprint ?? null);
-      setMaterials(saved.materials);
-      setActiveMaterialId(saved.activeMaterialId ?? saved.materials[0]?.id ?? null);
+      const restoredActiveId = saved.activeMaterialId ?? saved.materials[0]?.id ?? null;
+      setMaterials(saved.materials.map((material) => {
+        const isActive = material.id === restoredActiveId;
+        return {
+          ...material,
+          reviewedFingerprint: Object.prototype.hasOwnProperty.call(material, "reviewedFingerprint")
+            ? material.reviewedFingerprint ?? null : isActive ? saved.reviewedFingerprint ?? null : null,
+          approvedFingerprint: Object.prototype.hasOwnProperty.call(material, "approvedFingerprint")
+            ? material.approvedFingerprint ?? null : isActive ? saved.approvedFingerprint ?? null : null,
+          approvalSeal: Object.prototype.hasOwnProperty.call(material, "approvalSeal")
+            ? material.approvalSeal ?? null : isActive ? saved.approvalSeal ?? null : null,
+          rejectedFingerprint: Object.prototype.hasOwnProperty.call(material, "rejectedFingerprint")
+            ? material.rejectedFingerprint ?? null : isActive ? saved.rejectedFingerprint ?? null : null,
+        };
+      }));
+      setActiveMaterialId(restoredActiveId);
       setPendingResearchImport(null);
       showNotice("success", "backupImported");
     } catch {
@@ -1366,9 +1494,10 @@ export function SourceInboxWorkbench({
     setStage("draft");
     setDraftOrigin(material.status === "captured" ? "extracted" : "manual");
     setPendingResearchImport(null);
-    setReviewedFingerprint(null);
-    setApprovedFingerprint(null);
-    setRejectedFingerprint(null);
+    setReviewedFingerprint(material.reviewedFingerprint ?? null);
+    setApprovedFingerprint(material.approvedFingerprint ?? null);
+    setApprovalSeal(material.approvalSeal ?? null);
+    setRejectedFingerprint(material.rejectedFingerprint ?? null);
   };
 
   const candidateFileName = `daily-candidate-${candidateDate || "undated"}-${record.id}.json`;
@@ -1393,6 +1522,26 @@ export function SourceInboxWorkbench({
       {importFileError ? <div className="workbench-notice notice-error" role="alert">{importFileError}</div> : null}
 
       {pendingResearchImport ? <div className="workbench-notice notice-info" role="status"><p>{copy.researchImportConflict}</p><div className="action-row"><button type="button" className="secondary-button" onClick={keepLocalResearchDraft}>{copy.keepLocalDraft}</button><button type="button" className="primary-button" onClick={usePendingResearchImport}>{copy.useBackgroundResult}</button></div></div> : null}
+
+      {stage === "import" && !isolatedPreview ? (
+        <ImportPanel
+          copy={copy}
+          mode={inputMode}
+          value={inputValue}
+          sourceUrl={form.sourceUrl}
+          isFetching={isFetching}
+          isHydrated={isHydrated}
+          onModeChange={setInputMode}
+          onValueChange={(value) => {
+            setInputValue(value);
+            if (value.trim()) setInputMode(detectSourceEntryMode(value));
+          }}
+          onSourceUrlChange={(value) => updateField("sourceUrl", value)}
+          onSubmit={inputMode === "url" ? () => void createUrlDraft() : () => createTextDraft()}
+          onImportFile={createFileDraft}
+          onImportError={setImportFileError}
+        />
+      ) : null}
 
       <div className="workbench-save-bar">
         <p className="field-hint persistence-status" role="status">
@@ -1446,56 +1595,17 @@ export function SourceInboxWorkbench({
         <SourceSubscriptions copy={copy} onItemsImported={importFeedItems} />
       </details>}
 
-      {materials.length > 0 ? <MaterialCards copy={copy} materials={materials} activeMaterialId={activeMaterialId} onSelect={selectMaterial} onRetry={retryMaterial} /> : null}
+      {materials.length > 0 ? <MaterialCards
+        copy={copy}
+        materials={materials}
+        activeMaterialId={activeMaterialId}
+        candidateDate={candidateDate}
+        activeReviewState={{ reviewedFingerprint, approvedFingerprint, rejectedFingerprint }}
+        onSelect={selectMaterial}
+        onRetry={retryMaterial}
+      /> : null}
 
-      {stage === "import" && !isolatedPreview ? (
-        <ImportPanel
-          copy={copy}
-          mode={inputMode}
-          value={inputValue}
-          sourceUrl={form.sourceUrl}
-          isFetching={isFetching}
-          isHydrated={isHydrated}
-          onModeChange={setInputMode}
-          onValueChange={(value) => {
-            setInputValue(value);
-            if (value.trim()) setInputMode(detectSourceEntryMode(value));
-          }}
-          onSourceUrlChange={(value) => updateField("sourceUrl", value)}
-          onSubmit={inputMode === "url" ? () => void createUrlDraft() : createTextDraft}
-          onImportFile={(value, fileName) => {
-            try {
-              const materialInput = validateUploadedTextMaterial(value, fileName);
-              const now = new Date().toISOString();
-              const nextForm = {
-                ...EMPTY_FORM,
-                body: materialInput.body,
-                sourceTitle: materialInput.title,
-                capturedAt: now,
-                sourceKind: materialInput.kind,
-                evidenceSource: materialInput.fileName,
-                // Suggested chunks are shown for explicit manual selection; nothing is pre-approved.
-                evidenceReference: "",
-                evidenceTimestamp: "",
-              };
-              const material = { id: `material-${Date.now()}`, input: materialInput.fileName, status: "captured" as const, title: nextForm.sourceTitle, sourceUrl: "", error: "", form: nextForm };
-              setForm(nextForm);
-              setMaterials([material]);
-              setActiveMaterialId(material.id);
-              setReviewedFingerprint(null);
-              setApprovedFingerprint(null);
-              setApprovalSeal(null);
-              setRejectedFingerprint(null);
-              setImportFileError(null);
-              setDraftOrigin("manual");
-              setStage("draft");
-            } catch (error) {
-              setImportFileError(error instanceof Error ? error.message : "The text file could not be read; paste text instead.");
-            }
-          }}
-          onImportError={setImportFileError}
-        />
-      ) : (
+      {stage !== "import" ? (
         <>
           {stage === "draft" ? (
             <DraftPanel
@@ -1535,7 +1645,6 @@ export function SourceInboxWorkbench({
             <ReviewPanel
               copy={copy}
               record={record}
-              candidate={candidateResult.candidate}
               onUpdate={updateField}
               blockers={blockers}
               isReady={isReady}
@@ -1561,7 +1670,7 @@ export function SourceInboxWorkbench({
             />
           )}
         </>
-      )}
+      ) : null}
     </main>
   );
 }
@@ -1570,10 +1679,12 @@ function stageIndex(stage: Stage) {
   return stage === "import" ? 1 : stage === "draft" ? 2 : 3;
 }
 
-function MaterialCards({ copy, materials, activeMaterialId, onSelect, onRetry }: {
+function MaterialCards({ copy, materials, activeMaterialId, candidateDate, activeReviewState, onSelect, onRetry }: {
   copy: Messages["sourceInbox"];
   materials: MaterialCard[];
   activeMaterialId: string | null;
+  candidateDate: string;
+  activeReviewState: { reviewedFingerprint: string | null; approvedFingerprint: string | null; rejectedFingerprint: string | null };
   onSelect: (material: MaterialCard) => void;
   onRetry: (material: MaterialCard) => void;
 }) {
@@ -1582,6 +1693,17 @@ function MaterialCards({ copy, materials, activeMaterialId, onSelect, onRetry }:
     <div className="material-card-grid">
       {materials.map((material, index) => {
         const status = material.status === "captured" ? copy.materialCaptured : material.status === "manual_only" ? copy.materialManual : material.status === "failed" ? copy.materialFailed : copy.materialPending;
+        const isActive = material.id === activeMaterialId;
+        const reviewFingerprint = JSON.stringify({ form: material.form, date: candidateDate });
+        const reviewState = getReviewGateState(
+          reviewFingerprint,
+          isActive ? activeReviewState.reviewedFingerprint : material.reviewedFingerprint ?? null,
+          isActive ? activeReviewState.approvedFingerprint : material.approvedFingerprint ?? null,
+          isActive ? activeReviewState.rejectedFingerprint : material.rejectedFingerprint ?? null,
+        );
+        const reviewLabel = reviewState.review_status === "reviewed" ? copy.reviewed
+          : reviewState.review_status === "rejected" ? copy.rejected : copy.notReviewed;
+        const approvalLabel = reviewState.approval_status === "approved" ? copy.approved : copy.notApproved;
         const nextStep = material.status === "pending"
           ? copy.materialNextFetch
           : material.status === "failed"
@@ -1596,7 +1718,14 @@ function MaterialCards({ copy, materials, activeMaterialId, onSelect, onRetry }:
                     ? copy.analysisProcessing
                     : copy.materialNextAnalyze;
         return <article className={material.id === activeMaterialId ? "material-card active" : "material-card"} key={material.id}>
-          <div className="material-card-heading"><strong>#{index + 1} {material.title}</strong><span className={`status-pill status-${material.status}`}>{status}</span></div>
+          <div className="material-card-heading">
+            <strong>#{index + 1} {material.title}</strong>
+            <div className="material-card-statuses">
+              <span className={`status-pill status-${material.status}`}>{status}</span>
+              <span className={`status-pill status-${reviewState.review_status}`}>{reviewLabel}</span>
+              <span className={`status-pill status-${reviewState.approval_status}`}>{approvalLabel}</span>
+            </div>
+          </div>
           <p>{material.sourceUrl || material.input.slice(0, 140)}</p>
           <p className="material-next-step"><strong>{copy.materialNextStep}：</strong>{nextStep}</p>
           {material.error ? <p className="field-hint">{copy.fetchFailure}</p> : null}
@@ -1678,11 +1807,19 @@ function DraftPanel({ copy, form, candidateDate, draftOrigin, sourceParagraphs, 
   analysisErrorMessage: string;
   evidenceIssueLocations: ReturnType<typeof summariseAnalysisEvidenceIssueLocations>;
 }) {
+  const readingStatusCopy = form.analysisStatus === "draft"
+    ? copy.readingNeedsReview
+    : form.analysisStatus === "processing"
+      ? copy.analysisProcessing
+      : form.analysisStatus === "failed"
+        ? copy.analysisFailedStatus
+        : copy.readingRuleDraft;
+
   return (
     <section className="workbench-section draft-panel">
       <div className="workbench-section-heading"><p className="eyebrow">{copy.draftTitle}</p><h2>{copy.draftTitle}</h2><p>{copy.draftHint}</p></div>
       <section className="radar-reading-card" aria-label={copy.readingTitle}>
-        <p className="radar-reading-eyebrow">{copy.readingTitle} · {form.analysisStatus === "draft" ? copy.readingNeedsReview : copy.readingAwaitingAnalysis}</p>
+        <p className="radar-reading-eyebrow">{copy.readingTitle} · {readingStatusCopy}</p>
         <h3>{form.sourceTitle || copy.readingUntitled}</h3>
         {form.summary ? <p className="radar-reading-lead">{form.summary}</p> : <p className="field-hint">{copy.readingEmptyHint}</p>}
         {lines(form.keyPoints).length ? <div className="radar-reading-group"><strong>{copy.readingKeyPoints}</strong><ul>{lines(form.keyPoints).slice(0, 5).map((point,index)=><li key={index}>{point}</li>)}</ul></div> : null}
@@ -1822,10 +1959,9 @@ function DraftPanel({ copy, form, candidateDate, draftOrigin, sourceParagraphs, 
   );
 }
 
-function ReviewPanel({ copy, record, candidate, onUpdate, blockers, isReady, reviewStatus, approvalStatus, approvedFingerprint, fingerprint, candidateFileName, sourceRecordFileName, onBack, onMarkReviewed, onReject, onApproveAndDownload, isApprovingCandidate, onApproveSourceForReuse, reusableSourceBlockers, reusableSourceSaved, reusableSourceSaving, reusableSourceError, onDownloadCandidate, onDownloadSourceRecord, onReset }: {
+function ReviewPanel({ copy, record, onUpdate, blockers, isReady, reviewStatus, approvalStatus, approvedFingerprint, fingerprint, candidateFileName, sourceRecordFileName, onBack, onMarkReviewed, onReject, onApproveAndDownload, isApprovingCandidate, onApproveSourceForReuse, reusableSourceBlockers, reusableSourceSaved, reusableSourceSaving, reusableSourceError, onDownloadCandidate, onDownloadSourceRecord, onReset }: {
   copy: Messages["sourceInbox"];
   record: SourceRecord;
-  candidate: unknown;
   onUpdate: <K extends keyof WorkbenchFormState>(field: K, value: WorkbenchFormState[K]) => void;
   blockers: string[];
   isReady: boolean;
@@ -1901,11 +2037,7 @@ function ReviewPanel({ copy, record, candidate, onUpdate, blockers, isReady, rev
       </details>
       <p className="field-hint">{copy.notSaved}</p>
       <div className={isReady ? "ready-message" : "blocked-message"} role="status"><strong>{isReady ? copy.outputReady : copy.outputBlocked}</strong>{!isReady ? <p>{copy.downloadUnavailable}</p> : null}</div>
-      {blockers.length > 0 ? <ul className="validation-list">{blockers.map((reason) => <li key={reason}><a href={`#${blockerId(reason)}`}>{formatBlocker(reason, copy.validation, copy.invalidDate)}</a></li>)}</ul> : null}
-      <details className="workbench-details radar-json-inspector">
-        <summary>{copy.reviewTechnicalPreview}</summary>
-        <div className="output-grid"><Preview title={copy.candidatePreview} value={candidate} /><Preview title={copy.sourceRecordPreview} value={record} /></div>
-      </details>
+      {blockers.length > 0 ? <ul className="validation-list">{blockers.map((reason) => <li key={reason}><a href={`#${blockerId(reason)}`}>{formatSourceInboxBlocker(reason, copy.validation, copy.invalidDate)}</a></li>)}</ul> : null}
       <p className="field-hint">{copy.traceHint}</p>
       <div className="action-row">
         <button type="button" className="primary-button" disabled={!isReady} onClick={onDownloadCandidate}>{copy.downloadCandidate}</button>
@@ -1944,8 +2076,4 @@ function ReadOnlyMeta({ label, value }: { label: string; value: string }) {
 
 function StatusPill({ label, value, tone }: { label: string; value: string; tone: string }) {
   return <span className={`status-pill status-${tone}`}><strong>{label}</strong> {value}</span>;
-}
-
-function Preview({ title, value }: { title: string; value: unknown }) {
-  return <section className="preview-panel"><h3>{title}</h3><pre>{JSON.stringify(value, null, 2)}</pre></section>;
 }

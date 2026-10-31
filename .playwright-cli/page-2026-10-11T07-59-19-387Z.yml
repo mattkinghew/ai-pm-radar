@@ -1,0 +1,109 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e814]:
+    - generic [ref=e815]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=e816] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e817]: AI
+        - generic [ref=e818]:
+          - strong [ref=e819]: AI PM Radar
+          - paragraph [ref=e820]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=e821]:
+        - link "首頁" [ref=e822] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=e823] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=e824] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=e825] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=e826] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=e827] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=e828]:
+    - generic [ref=e829]:
+      - paragraph [ref=e830]: 研究簡報草稿
+      - heading "今日研究簡報草稿" [level=1] [ref=e831]
+      - paragraph [ref=e832]: 顯示本機 runner 收集及分析的有限結果；草稿仍需人工核對，不是正式 daily 或 verified 內容。
+      - paragraph [ref=e833]: 這是 AI／規則產生的研究簡報草稿；evidence 可定位不代表主張已獨立查證，也不代表已批准或發布。
+    - region [ref=e834]:
+      - generic [ref=e835]:
+        - heading "已批准 SourceRecord Library" [level=2] [ref=e836]
+        - paragraph [ref=e837]: 以下是同一瀏覽器保存的已審核來源快照。建立簡報會直接使用該 SourceRecord，不重新抓取或抽取原文。
+      - generic [ref=e838]:
+        - button "匯出 Source Library 與交接備份" [ref=e839] [cursor=pointer]
+        - generic [ref=e840] [cursor=pointer]:
+          - text: 匯入 Source Library 備份
+          - button "匯入 Source Library 備份" [ref=e841]
+      - article [ref=e843]:
+        - generic [ref=e844]:
+          - heading "Synthetic classification routing acceptance exercise" [level=3] [ref=e845]
+          - generic [ref=e846]: reviewed · approved
+        - paragraph [ref=e847]: https://example.org/synthetic-v04
+        - paragraph [ref=e848]: 作者：未知 · 發布：未知
+        - paragraph [ref=e849]:
+          - text: 批准時間：2026年10月11日 下午3:59 · SourceRecord ID：
+          - code [ref=e850]: src_3db4cc9c
+        - group [ref=e851]:
+          - generic "來源明確內容" [ref=e852]
+        - region [ref=e853]:
+          - generic [ref=e854]:
+            - heading "Intelligence 評估與路由建議" [level=3] [ref=e855]
+            - paragraph [ref=e856]: 僅使用已批准 SourceRecord 的現有欄位；分數是規則分析，不是來源事實、查證或批准。
+          - button "評估 intelligence value" [ref=e857] [cursor=pointer]
+          - paragraph [ref=e858]: 尚未建立評估。
+        - generic [ref=e859]:
+          - button "以此來源建立 Research Brief" [ref=e860] [cursor=pointer]
+          - button "下載 SourceRecord 備份" [ref=e861] [cursor=pointer]
+        - region [ref=e862]:
+          - generic [ref=e863]:
+            - heading "重用來源建立下游交接" [level=3] [ref=e864]
+            - paragraph [ref=e865]: 每次只建立一種可匯出的交接；沿用同一 SourceRecord，不重新抓取來源。
+          - generic [ref=e866]:
+            - strong [ref=e867]: 來源事實與分析分開
+            - paragraph [ref=e868]: 以下主張及引文取自已審核 SourceRecord；引文可定位不代表主張已獨立查證。下游分析是衍生內容，不會回寫來源。
+            - paragraph [ref=e869]:
+              - text: 來源 ID：
+              - code [ref=e870]: src_3db4cc9c
+              - text: · 來源審核／批准：reviewed / approved
+          - generic [ref=e871]:
+            - article [ref=e872]:
+              - strong [ref=e873]: 內容候選（Content Ops）
+              - generic [ref=e874]: 尚未建立
+            - article [ref=e875]:
+              - strong [ref=e876]: 學習包（Cyber Kuma）
+              - generic [ref=e877]: 尚未建立
+            - article [ref=e878]:
+              - strong [ref=e879]: 創作參考（Storyworld）
+              - generic [ref=e880]: 尚未建立
+            - article [ref=e881]:
+              - strong [ref=e882]: 案例參考（Diagnostic）
+              - generic [ref=e883]: 尚未建立
+          - generic [ref=e884]:
+            - generic [ref=e885]:
+              - text: 選擇下游用途
+              - combobox "選擇下游用途" [ref=e886]:
+                - option "內容候選（Content Ops）" [selected]
+                - option "學習包（Cyber Kuma）"
+                - option "創作參考（Storyworld）"
+                - option "案例參考（Diagnostic）"
+            - button "建立交接草稿" [ref=e887] [cursor=pointer]
+          - region "Delivery Outbox" [ref=e888]:
+            - generic [ref=e889]:
+              - heading "Delivery Outbox" [level=4] [ref=e890]
+              - paragraph [ref=e891]: 只保存已批准 handoff 的不可變快照；匯出不代表接收或發布。
+            - paragraph [ref=e892]: 尚無 delivery packages。先完成 handoff 人工審核與批准。
+    - generic [ref=e893]:
+      - button "重新讀取結果" [ref=e894] [cursor=pointer]
+      - link "回來源工作台立即執行" [ref=e895] [cursor=pointer]:
+        - /url: /source-inbox/
+    - status [ref=e896]: 本機研究服務未啟動，或尚未交接來源；可先在來源工作台保存來源設定。
+  - contentinfo [ref=e267]:
+    - generic [ref=e268]:
+      - generic [ref=e269]:
+        - heading "使用限制" [level=2] [ref=e270]
+        - paragraph [ref=e271]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=e272]:
+        - heading "安全邊界" [level=2] [ref=e273]
+        - paragraph [ref=e274]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=e280] [cursor=pointer]
+  - alert [ref=e284]

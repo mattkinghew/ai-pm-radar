@@ -18,12 +18,17 @@ const API_ROUTES = new Map([
   ["POST /api/feed", "/feed"],
   ["GET /api/automation/status", "/automation/status"],
   ["GET /api/automation/state", "/automation/state"],
+  ["GET /api/automation/collector-inbox", "/automation/collector-inbox"],
   ["GET /api/automation/export", "/automation/export"],
   ["POST /api/automation/config", "/automation/config"],
   ["POST /api/automation/run", "/automation/run"],
   ["POST /api/automation/feedback", "/automation/feedback"],
+  ["GET /api/content-ops/status", "/content-ops/status"],
+  ["POST /api/content-ops/dispatch", "/content-ops/dispatch"],
+  ["POST /api/content-ops/import-status", "/content-ops/import-status"],
 ]);
 const MAX_PROXY_REQUEST_BYTES = 200_000;
+const MAX_CONTENT_OPS_DISPATCH_BYTES = 1_000_000;
 const MAX_PROXY_RESPONSE_BYTES = 2_000_000;
 export const PROXY_TIMEOUT_MS = 70_000;
 
@@ -89,13 +94,13 @@ function forwardedProtocol(request) {
   return "";
 }
 
-async function readRequestBody(request) {
+async function readRequestBody(request, maxBytes = MAX_PROXY_REQUEST_BYTES) {
   const chunks = [];
   let total = 0;
   for await (const chunk of request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     total += buffer.length;
-    if (total > MAX_PROXY_REQUEST_BYTES) throw new Error("request_too_large");
+    if (total > maxBytes) throw new Error("request_too_large");
     chunks.push(buffer);
   }
   return Buffer.concat(chunks);
@@ -107,9 +112,15 @@ async function proxyApi(request, response, requestUrl, options) {
     writeJson(response, 404, { code: "api_route_not_found", error: "Unknown API route." });
     return;
   }
+  if (["/api/content-ops/dispatch", "/api/content-ops/import-status"].includes(requestUrl.pathname)
+    && request.headers.origin !== options.publicOrigin) {
+    writeJson(response, 403, { code: "same_origin_required", error: "This action requires the authenticated Radar origin." });
+    return;
+  }
   let body;
   try {
-    body = request.method === "GET" || request.method === "HEAD" ? undefined : await readRequestBody(request);
+    const maxBytes = requestUrl.pathname === "/api/content-ops/dispatch" ? MAX_CONTENT_OPS_DISPATCH_BYTES : MAX_PROXY_REQUEST_BYTES;
+    body = request.method === "GET" || request.method === "HEAD" ? undefined : await readRequestBody(request, maxBytes);
   } catch {
     writeJson(response, 413, { code: "request_too_large", error: "The API request is too large." });
     return;
@@ -254,7 +265,7 @@ export function createMobileProductionServer({
     }
 
     if (isApiPath(requestUrl.pathname)) {
-      await proxyApi(request, response, requestUrl, { helperOrigin, helperAllowedOrigin });
+      await proxyApi(request, response, requestUrl, { helperOrigin, helperAllowedOrigin, publicOrigin: expected.origin });
       return;
     }
     await serveStatic(request, response, requestUrl, outDir);

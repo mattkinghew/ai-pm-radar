@@ -273,12 +273,16 @@ async function captureAndAnalyse(material, config, state, run, runtimeDir, servi
       sourceUrl: record.source_url ?? material.feed_item.article_url ?? material.feed_item.feed_url,
       language: record.language,
       maxAttempts: Math.min(RESEARCH_LIMITS.maxProviderAttemptsPerAnalysis, remainingAnalysisRequests),
-      onAttempt: async () => {
+      onAttempt: async (_attempt, meta) => {
         if (!quotaAvailable(state, "analysis_attempts", RESEARCH_LIMITS.maxAnalysisAttemptsPerDay)) {
           const quotaError = new Error("Daily AI request quota was reached.");
           quotaError.code = "daily_analysis_limit_reached";
           throw quotaError;
         }
+        const providerKey = meta?.provider || "unknown";
+        const byProvider = state.daily.quota.analysis_attempts_by_provider ?? {};
+        byProvider[providerKey] = (byProvider[providerKey] ?? 0) + 1;
+        state.daily.quota.analysis_attempts_by_provider = byProvider;
         await writeRuntimeState(state, runtimeDir);
       },
     });
@@ -291,6 +295,7 @@ async function captureAndAnalyse(material, config, state, run, runtimeDir, servi
     const brief = {
       ...buildResearchBrief(analyzed, material.material_id, nowIso(), config.projects, contentScope),
       selection_reasons: material.selection_reasons ?? [],
+      fallback_from: result.fallback_from ?? null,
     };
     if (brief.suggested_action) {
       if (state.daily.quota.actions_suggested >= RESEARCH_LIMITS.maxActionsPerDay) brief.suggested_action = null;

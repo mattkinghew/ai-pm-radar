@@ -146,7 +146,7 @@ export async function readRuntimeState(runtimeDir = getRuntimeDir()) {
     briefs_created: (parsed.materials ?? []).filter((material) => material.brief && new Intl.DateTimeFormat("en-CA", { timeZone: RESEARCH_TIMEZONE }).format(new Date(material.brief.generated_at)) === parsed.daily?.date).length,
     actions_suggested: Math.min(1, (parsed.materials ?? []).filter((material) => material.brief?.suggested_action && new Intl.DateTimeFormat("en-CA", { timeZone: RESEARCH_TIMEZONE }).format(new Date(material.brief.generated_at)) === parsed.daily?.date).length),
   };
-  const quota = legacyQuota;
+  const quota = { ...legacyQuota, analysis_attempts_by_provider: { ...(legacyQuota.analysis_attempts_by_provider ?? {}) } };
   return {
     ...parsed,
     version: RESEARCH_RUNTIME_VERSION,

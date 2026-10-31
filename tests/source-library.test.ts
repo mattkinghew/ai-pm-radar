@@ -335,7 +335,7 @@ test("package snapshots remain immutable, become outdated after handoff edits, a
 
 test("delivery lifecycle distinguishes export from explicit import confirmation and supports JSON/Markdown readback", () => {
   const entry = createSourceLibraryEntry(approvedRecord(), capturedAt);
-  const handoff = approvedHandoff(entry, "content_candidate");
+  const handoff = approvedHandoff(entry, "learning_pack");
   const item = createDeliveryPackage(entry, handoff, "2026-09-23T00:00:00.000Z");
   const packaged = { package: item, state: "packaged" as const, exported_at: null, import_confirmed_at: null };
   assert.throws(() => confirmDeliveryPackageImported(packaged, capturedAt), /exported/);

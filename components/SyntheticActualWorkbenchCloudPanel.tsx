@@ -13,6 +13,7 @@ type CloudHead = {
   approvals:{reviewed:boolean;daily:boolean;reuse:boolean};
 };
 type Fixture={record:SourceRecord;daily:unknown};
+type CloudSyncState="local"|"pending"|"cloud_saved"|"failed"|"conflict";
 const ID=/^qa12_[A-Za-z0-9_-]{6,70}$/;
 const SUMMARIES=[
   "Synthetic source: students requested more practice.",
@@ -41,6 +42,7 @@ export function SyntheticActualWorkbenchCloudPanel({record,materialId,localSaved
  const [selected,setSelected]=useState<string>("");
  const [ack,setAck]=useState<number|null>(null);
  const [busy,setBusy]=useState(false);
+ const [syncState,setSyncState]=useState<CloudSyncState>("local");
  const [notice,setNotice]=useState("正在驗證同源 Cloudflare Access Gateway…");
  const [backupHash,setBackupHash]=useState<string|null>(null);
  const [confirmed,setConfirmed]=useState(false);
@@ -103,6 +105,7 @@ export function SyntheticActualWorkbenchCloudPanel({record,materialId,localSaved
 
  useEffect(()=>{
   setBackupHash(null);setConfirmed(false);
+  setSyncState("local");
  },[materialId,formFingerprint]);
 
  const start=()=>{
@@ -110,6 +113,7 @@ export function SyntheticActualWorkbenchCloudPanel({record,materialId,localSaved
   const id="qa12_"+Date.now().toString(36)+"_"+crypto.randomUUID().replaceAll("-","").slice(0,12);
   const synthetic=structuredClone(fixture.record);synthetic.id=id;
   setSelected(id);setCloud(null);setAck(null);
+  setSyncState("local");
   setBackupHash(null);setConfirmed(false);
   onLoadSynthetic(synthetic);
   setNotice("已將完整合成 SourceRecord v2 載入真正的 Source Inbox 表單（只在本機）。");
@@ -117,6 +121,7 @@ export function SyntheticActualWorkbenchCloudPanel({record,materialId,localSaved
  const choose=async(id:string)=>{
   if(!id||!enabled)return;
   setSelected(id);setCloud(null);setBackupHash(null);setConfirmed(false);
+  setSyncState("local");
   try{
    const remote=await read(id);
    if(!remote)return;
@@ -143,18 +148,30 @@ export function SyntheticActualWorkbenchCloudPanel({record,materialId,localSaved
   setAck(cloud.revision);window.localStorage.setItem(ACK_KEY+cloud.source_id,String(cloud.revision));
   onLoadSynthetic(cloud.record);
   setBackupHash(null);setConfirmed(false);
+  setSyncState("local");
   setNotice("已明確將雲端合成文章載入真正 Source Inbox 表單；本機與雲端 Approval 不互相冒認。");
  };
  const write=async()=>{
   if(!writeable||!fixture)return;
   setBusy(true);
+  setSyncState("pending");
   try{
    const id=selected;
    const preflight=await api("/api/cloud/records/"+id);
    if(preflight.status!==200&&preflight.status!==404)throw Error("Preflight failed HTTP "+preflight.status);
    if((preflight.status===200&&(ack===null||(preflight.data.revision as number)!==ack))
       ||preflight.status===404&&ack!==null){
-    if(preflight.status===200)setCloud(preflight.data as unknown as CloudHead);
+    if(preflight.status===200){
+     const observed=await read(id);
+     if(ack===null&&prepared&&observed
+       &&sourceRecordFingerprint(observed.record)===sourceRecordFingerprint(prepared.record)){
+      setAck(observed.revision);window.localStorage.setItem(ACK_KEY+id,String(observed.revision));
+      setSyncState("cloud_saved");
+      await list().catch(()=>undefined);
+      setNotice("先前寫入已由伺服器讀回確認；採用既有 Revision "+observed.revision+"，沒有重複建立。");return;
+     }
+    }
+    setSyncState("conflict");
     setNotice("409：雲端版本已變更；拒絕覆寫，請人工選擇保留或採用遠端。");return;
    }
    // Every mutable field comes from the ACTUAL React Workbench SourceRecord.
@@ -168,16 +185,24 @@ export function SyntheticActualWorkbenchCloudPanel({record,materialId,localSaved
    const result=await api(create?"/api/cloud/records":"/api/cloud/records/"+id,
     create?"POST":"PUT",create?{source_id:id,record:canon}:{expectedRevision:ack,record:canon});
    if(result.status===409){
-    await read(id);setNotice("HTTP 409：另一裝置已更新，沒有覆寫。");return;
+    await read(id);setSyncState("conflict");setNotice("HTTP 409：另一裝置已更新，沒有覆寫。");return;
    }
    if(result.status!==200&&result.status!==201)throw Error("Cloud refused "+result.status+" "+result.data.code);
    const saved=result.data as unknown as CloudHead;
-   setCloud(saved);setAck(saved.revision);setSelected(id);
-   window.localStorage.setItem(ACK_KEY+id,String(saved.revision));
+   if(saved.source_id!==id||!Number.isSafeInteger(saved.revision)
+     ||sourceRecordFingerprint(saved.record)!==sourceRecordFingerprint(canon))
+    throw Error("Server acknowledgement did not match the submitted source.");
+   const verified=await read(id);
+   if(!verified||verified.source_id!==id||verified.revision!==saved.revision
+     ||sourceRecordFingerprint(verified.record)!==sourceRecordFingerprint(canon))
+    throw Error("Server read-back did not match the submitted source.");
+   setCloud(verified);setAck(verified.revision);setSelected(id);
+   window.localStorage.setItem(ACK_KEY+id,String(verified.revision));
    setBackupHash(null);setConfirmed(false);
-   await list();
-   setNotice("完整 SourceRecord v2 合成欄位已逐筆上傳及讀回 v"+saved.revision+"；修改後必須重新人工 Review／Approval。");
-  }catch(err){setNotice((err as Error).message)}
+   await list().catch(()=>undefined);
+   setSyncState("cloud_saved");
+   setNotice("完整 SourceRecord v2 已取得伺服器逐筆讀回確認：Revision "+verified.revision+"；修改後必須重新人工 Review／Approval。");
+  }catch(err){setSyncState("failed");setNotice((err as Error).message)}
   finally{setBusy(false)}
  };
  const applyPreset=()=>{
@@ -195,6 +220,7 @@ export function SyntheticActualWorkbenchCloudPanel({record,materialId,localSaved
    source.analysis.method_or_teaching_points=[...alt.analysis_methods];
    onLoadSynthetic(source);
    setBackupHash(null);setConfirmed(false);
+   setSyncState("local");
    setNotice("已把 16 個來源欄位及 3 個分析欄位的合成替代版本載入真正 React 表單；請檢查 Evidence，再備份確認。");
  };
  const approve=async(path:string,label:string)=>{
@@ -241,6 +267,10 @@ export function SyntheticActualWorkbenchCloudPanel({record,materialId,localSaved
    <span>雲端 Revision：{cloud?.revision??"尚未建立"}</span>
    <span>已確認本機 Revision：{ack??"無"}</span>
   </div>
+  <p role="status" aria-live="polite" data-testid="cloud-sync-state" data-state={syncState}>
+   <strong>{syncState==="local"?"Local":syncState==="pending"?"Pending":syncState==="cloud_saved"?"Cloud Saved":syncState==="failed"?"Failed":"Conflict"}</strong>
+   {syncState==="cloud_saved"&&cloud?" · Revision "+cloud.revision:""}
+  </p>
   <p>React SourceRecord 本機結構：{!mapped?(materialId?"身份或來源不符合，禁止上雲":"尚未載入來源"):
    fieldBlockers.length?"合成欄位校驗 BLOCKED（"+fieldBlockers.join("；")+"）":"全欄位合成驗證 PASS"}。</p>
   {prepared?<p className="field-hint" data-testid="full-field-sync-stats">同步版本：Schema v2／合成 Full-field v1，合成欄位 {SYNTHETIC_MUTABLE_FIELDS.length} 項＋Analysis 3 項；與雲端比較：{sourceChanged?"內容已變更":"無待同步修改"}。</p>:null}

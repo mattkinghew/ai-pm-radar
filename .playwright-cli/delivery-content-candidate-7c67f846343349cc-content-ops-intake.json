@@ -1,0 +1,48 @@
+{
+  "packageType": "content-ops-handoff",
+  "version": 1,
+  "sourceSystem": "ai_pm_radar",
+  "exportedAt": "2026-10-09T07:25:26.644Z",
+  "items": [
+    {
+      "externalId": "delivery_content_candidate_7c67f846343349cc",
+      "kind": "content_candidate",
+      "title": "Synthetic QA: AI categorization test",
+      "url": "https://example.org/radar-release-qa",
+      "text": "{\n  \"source_facts\": [\n    {\n      \"text\": \"The fictional center classified 32 of 40 synthetic queries correctly.\",\n      \"evidence_reference_ids\": [\n        \"src_498d74ae:e0\"\n      ]\n    }\n  ],\n  \"derived_analysis\": {\n    \"target_audience\": \"Synthetic audience for stale-revision QA\",\n    \"content_angles\": [],\n    \"key_source_backed_claims\": [\n      \"The fictional center classified 32 of 40 synthetic queries correctly.\"\n    ],\n    \"hooks\": [],\n    \"content_themes\": [],\n    \"suggested_formats\": [],\n    \"platform_considerations\": [],\n    \"unknowns_and_risks\": [\n      \"Unknown — not assessed\"\n    ]\n  },\n  \"human_notes\": \"\"\n}",
+      "createdAt": "2026-10-09T07:25:26.644Z",
+      "metadata": {
+        "radarDelivery": {
+          "package_id": "delivery_content_candidate_7c67f846343349cc",
+          "package_version": 1,
+          "contract_version": 1,
+          "package_fingerprint": "b764e2396e4aef16",
+          "source_record_id": "src_498d74ae",
+          "source_record_fingerprint": "172f1bda343ae043",
+          "handoff_id": "handoff_content_candidate_25104a1b",
+          "handoff_fingerprint": "dee260416e4fbf29",
+          "provenance": {
+            "source_url": "https://example.org/radar-release-qa",
+            "source_url_original": "https://example.org/radar-release-qa",
+            "source_url_final": "https://example.org/radar-release-qa",
+            "captured_at": "2026-10-09T07:16:43.712Z",
+            "access_method": "direct_input"
+          },
+          "evidence_references": [
+            {
+              "id": "src_498d74ae:e0",
+              "source_record_id": "src_498d74ae",
+              "evidence_index": 0,
+              "text_reference": "Synthetic QA only: A fictional education center tested AI categorization on 40 synthetic queries. It classified 32 correctly and sent 8 for human correction. No time savings, satisfaction, or revenue impact has been measured.",
+              "source": "https://example.org/radar-release-qa",
+              "timestamp": null
+            }
+          ],
+          "source_approval": "approved",
+          "handoff_reviewed_at": "2026-10-09T07:24:56.019Z",
+          "handoff_approved_at": "2026-10-09T07:25:12.032Z"
+        }
+      }
+    }
+  ]
+}

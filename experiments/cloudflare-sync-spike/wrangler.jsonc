@@ -1,0 +1,15 @@
+{
+  "name": "radar-phase1-sync-spike-local-only",
+  "main": "./worker.mjs",
+  "compatibility_date": "2026-09-01",
+  "vars": {
+    "ACCESS_ISSUER": "https://synthetic.cloudflareaccess.com",
+    "ACCESS_AUD": "radar-synthetic-local",
+    "ALLOWED_EMAILS": "owner-a@example.test,owner-b@example.test"
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "radar-phase1-synthetic-local",
+    "database_id": "11111111-1111-4111-8111-111111111111"
+  }]
+}

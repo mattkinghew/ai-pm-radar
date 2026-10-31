@@ -1,0 +1,195 @@
+- generic [active] [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - generic [ref=f1e3]:
+      - link "AI AI PM Radar 每日 AI 與商業訊號，支援實務決策" [ref=f1e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e5]: AI
+        - generic [ref=f1e6]:
+          - strong [ref=f1e7]: AI PM Radar
+          - paragraph [ref=f1e8]: 每日 AI 與商業訊號，支援實務決策
+      - navigation "主要導覽" [ref=f1e9]:
+        - link "首頁" [ref=f1e10] [cursor=pointer]:
+          - /url: /
+        - link "每日 Radar" [ref=f1e11] [cursor=pointer]:
+          - /url: /archive/
+        - link "研究簡報" [ref=f1e12] [cursor=pointer]:
+          - /url: /research/
+        - link "關於" [ref=f1e13] [cursor=pointer]:
+          - /url: /about/
+        - link "來源工作台" [ref=f1e14] [cursor=pointer]:
+          - /url: /source-inbox/
+      - button "目前語言：繁體中文" [ref=f1e15] [cursor=pointer]: 切換至繁中＋英文
+  - main [ref=f1e16]:
+    - generic [ref=f1e17]:
+      - paragraph [ref=f1e18]: 來源工作台
+      - heading "輸入來源，整理成可核對草稿" [level=1] [ref=f1e19]
+      - paragraph [ref=f1e20]: 貼上公開文章連結或正文，先由規則整理基本草稿，再由你核對、補充原文證據、人工審核並批准下載。
+      - paragraph [ref=f1e21]: 本機優先：素材保存於目前瀏覽器；只有你按下 AI 整理時，正文才會送至本機設定的 server-side provider。不寫入 database，也不覆寫正式 daily data。
+      - paragraph [ref=f1e22]: 介面語言只影響操作文字；不會翻譯文章原文、使用者輸入、JSON keys、ID 或 enum values。
+      - generic "匯入素材" [ref=f1e23]:
+        - generic [ref=f1e24]: 1 匯入素材
+        - generic [ref=f1e25]: 2 核對草稿
+        - generic [ref=f1e26]: 3 批准與下載
+    - status [ref=f1e75]: 整理成草稿
+    - status [ref=f1e27]: 已保存於目前瀏覽器
+    - group [ref=f1e28]:
+      - generic "進階工具與來源設定" [ref=f1e29] [cursor=pointer]
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high" [selected]
+      - option "medium"
+      - option "low"
+      - option "high"
+      - option "medium" [selected]
+      - option "low"
+    - region "素材清單" [ref=f1e76]:
+      - generic [ref=f1e77]:
+        - heading "素材清單" [level=2] [ref=f1e78]
+        - paragraph [ref=f1e79]: 連結模式每批最多 5 筆，一行一個；一筆失敗不會阻擋其他筆。
+      - article [ref=f1e81]:
+        - generic [ref=f1e82]:
+          - strong [ref=f1e83]: "#1 Synthetic education team reviewed 24 AI classifications. Reviewers corrected 5 results before decisions. No time savings or learner outcomes"
+          - generic [ref=f1e84]: 已取得素材
+        - paragraph [ref=f1e85]: https://example.org/synthetic-routing-study
+        - paragraph [ref=f1e86]:
+          - strong [ref=f1e87]: 下一步：
+          - text: 開啟後按 AI 整理
+        - button "查看這筆素材" [ref=f1e89] [cursor=pointer]
+    - generic [ref=f1e90]:
+      - generic [ref=f1e91]:
+        - paragraph [ref=f1e92]: 核對草稿
+        - heading "核對草稿" [level=2] [ref=f1e93]
+        - paragraph [ref=f1e94]: 以下是規則整理與可編輯欄位，不是 AI 摘要；無法從來源推導的分析保持待填。
+      - generic [ref=f1e95]:
+        - generic [ref=f1e96]:
+          - heading "來源與正文" [level=3] [ref=f1e97]
+          - paragraph [ref=f1e98]: 先核對來源資料與原文。帶 * 的欄位是 candidate 輸出前必要資料。
+        - generic [ref=f1e99]:
+          - generic [ref=f1e100]:
+            - generic [ref=f1e101]:
+              - generic [ref=f1e102]: 來源標題
+              - textbox "來源標題" [ref=f1e104]: Synthetic education team reviewed 24 AI classifications. Reviewers corrected 5 results before decisions. No time savings or learner outcomes
+            - generic [ref=f1e105]:
+              - generic [ref=f1e106]:
+                - generic [ref=f1e107]: 來源 URL
+                - emphasis [ref=f1e108]: 可選
+              - textbox "來源 URL 可選" [ref=f1e109]: https://example.org/synthetic-routing-study
+            - generic [ref=f1e110]:
+              - generic [ref=f1e111]:
+                - generic [ref=f1e112]: 來源名稱／作者
+                - emphasis [ref=f1e113]: 可選
+              - textbox "來源名稱／作者 可選" [ref=f1e114]
+            - generic [ref=f1e115]:
+              - generic [ref=f1e116]:
+                - generic [ref=f1e117]: 原文語言
+                - emphasis [ref=f1e118]: 可選
+              - textbox "原文語言 可選" [ref=f1e119]: zh-Hant
+            - generic [ref=f1e120]:
+              - generic [ref=f1e121]:
+                - generic [ref=f1e122]: 發布時間
+                - emphasis [ref=f1e123]: 可選
+              - textbox "發布時間 可選" [ref=f1e124]
+            - generic [ref=f1e125]:
+              - generic [ref=f1e126]:
+                - generic [ref=f1e127]: 來源描述
+                - emphasis [ref=f1e128]: 可選
+              - textbox "來源描述 可選" [ref=f1e129]
+          - paragraph [ref=f1e130]: 暫定標題（由正文首個非空行整理，尚未確認）
+          - paragraph [ref=f1e131]: 最終 URL：example.org（網域只作參考，不代表已確認出版者。）
+          - group "資料不足時仍可補救" [ref=f1e132]:
+            - paragraph [ref=f1e133]: 可返回編輯區補正文、evidence、subtitle 或 notes；擷取失敗不會清空已填資料。
+            - generic [ref=f1e134]:
+              - button "重試讀取連結" [ref=f1e135] [cursor=pointer]
+              - button "改貼正文" [ref=f1e136] [cursor=pointer]
+          - generic [ref=f1e137]:
+            - generic [ref=f1e138]:
+              - strong [ref=f1e139]: 原始 URL
+              - code [ref=f1e140]: https://example.org/synthetic-routing-study
+            - generic [ref=f1e141]:
+              - strong [ref=f1e142]: 最終 URL
+              - code [ref=f1e143]: https://example.org/synthetic-routing-study
+            - generic [ref=f1e144]:
+              - strong [ref=f1e145]: 擷取時間
+              - code [ref=f1e146]: 2026-10-09T07:00:46.476Z
+            - generic [ref=f1e147]:
+              - strong [ref=f1e148]: 資料來源
+              - code [ref=f1e149]: 人工輸入
+          - generic [ref=f1e150]:
+            - generic [ref=f1e151]:
+              - generic [ref=f1e152]: 正文
+              - generic [ref=f1e153]: "*"
+            - textbox "正文 * 只保留你有權使用或已匿名化的原文；不會翻譯或改寫。" [ref=f1e154]: Synthetic education team reviewed 24 AI classifications. Reviewers corrected 5 results before decisions. No time savings or learner outcomes were measured.
+            - generic [ref=f1e155]: 只保留你有權使用或已匿名化的原文；不會翻譯或改寫。
+      - generic [ref=f1e156]:
+        - generic [ref=f1e157]:
+          - heading "原文證據與定位" [level=3] [ref=f1e158]
+          - paragraph [ref=f1e159]: 可直接從正文選取段落作為原文摘錄；不需再複製貼上。重要主張會保留同一筆來源追溯。
+        - generic [ref=f1e160]:
+          - generic [ref=f1e161]:
+            - generic [ref=f1e162]: 選取一段作為原文摘錄
+            - combobox "選取一段作為原文摘錄" [ref=f1e164]:
+              - option "尚未選取原文段落" [selected]
+              - option "#1 Synthetic education team reviewed 24 AI classifications. Reviewers corrected 5 results before decisi"
+          - generic "原文預覽" [ref=f1e165]:
+            - button "#1 Synthetic education team reviewed 24 AI classifications. Reviewers corrected 5 results before decisions. No time savings or learner outcomes were measured." [ref=f1e166] [cursor=pointer]:
+              - generic [ref=f1e167]: "#1"
+              - text: Synthetic education team reviewed 24 AI classifications. Reviewers corrected 5 results before decisions. No time savings or learner outcomes were measured.
+          - paragraph [ref=f1e168]: 原文摘錄（規則預填，請核對）
+          - generic [ref=f1e169]:
+            - generic [ref=f1e170]:
+              - generic [ref=f1e171]:
+                - generic [ref=f1e172]: 證據來源
+                - emphasis [ref=f1e173]: 可選
+              - textbox "證據來源 可選" [ref=f1e174]: https://example.org/synthetic-routing-study
+            - generic [ref=f1e175]:
+              - generic [ref=f1e176]:
+                - generic [ref=f1e177]: 時間戳（可留空）
+                - emphasis [ref=f1e178]: 可選
+              - textbox "時間戳（可留空） 可選" [ref=f1e179]
+            - generic [ref=f1e180]:
+              - generic [ref=f1e181]:
+                - generic [ref=f1e182]: 原文摘錄／文字定位
+                - emphasis [ref=f1e183]: 可選
+              - textbox "原文摘錄／文字定位 可選" [ref=f1e184]:
+                - /placeholder: 先在上方選取正文段落，或填寫可核對的文字定位
+                - text: Synthetic education team reviewed 24 AI classifications. Reviewers corrected 5 results before decisions. No time savings or learner outcomes
+      - generic [ref=f1e185]:
+        - generic [ref=f1e186]:
+          - heading "AI 分析草稿" [level=3] [ref=f1e187]
+          - paragraph [ref=f1e188]: 按下 AI 整理後才會傳送這筆正文至已設定的 provider；不會自動分析舊草稿。工作台手動分析不計入每日 runner 的 10 次上限，但仍受供應商配額約束。
+        - generic [ref=f1e190]:
+          - strong [ref=f1e191]: AI 分析狀態
+          - text: 尚未要求 AI 分析
+        - button "AI 整理（會傳送正文）" [ref=f1e193] [cursor=pointer]
+        - generic [ref=f1e194]:
+          - generic [ref=f1e195]:
+            - generic [ref=f1e196]: 來源明確內容（AI 摘錄，待核對）
+            - textbox "來源明確內容（AI 摘錄，待核對）" [ref=f1e198]
+          - generic [ref=f1e199]:
+            - generic [ref=f1e200]: 來源明確提供的方法／教學片段（逐字，待核對）
+            - textbox "來源明確提供的方法／教學片段（逐字，待核對）" [ref=f1e202]
+          - generic [ref=f1e203]:
+            - generic [ref=f1e204]: 模型分析／推論（待人工核對）
+            - textbox "模型分析／推論（待人工核對）" [ref=f1e206]
+      - group [ref=f1e207]:
+        - generic "人工分析與補充（可展開）" [ref=f1e208] [cursor=pointer]
+        - option "ungraded" [selected]
+        - option "A"
+        - option "B"
+        - option "C"
+      - group [ref=f1e209]:
+        - generic "每日候選資料（可展開）" [ref=f1e210] [cursor=pointer]
+    - generic [ref=f1e211]:
+      - button "返回編輯草稿" [ref=f1e212] [cursor=pointer]
+      - button "下一步：進入批准與下載" [ref=f1e213] [cursor=pointer]
+  - contentinfo [ref=f1e46]:
+    - generic [ref=f1e47]:
+      - generic [ref=f1e48]:
+        - heading "使用限制" [level=2] [ref=f1e49]
+        - paragraph [ref=f1e50]: 摘要只供學習與業務認知，不構成財務、法律或醫療建議。
+      - generic [ref=f1e51]:
+        - heading "安全邊界" [level=2] [ref=f1e52]
+        - paragraph [ref=f1e53]: 第一版為靜態站；前端不暴露 API key，也不收集使用者資料。
+  - button "Open Next.js Dev Tools" [ref=f1e59] [cursor=pointer]
+  - alert [ref=f1e63]

@@ -122,9 +122,12 @@ def infer_missing_fields(item: Dict[str, Any], result: Dict[str, Any], metadata_
     return output
 
 
-def build_quick_link_results(links_path: Path = LINKS_TXT) -> List[Dict[str, Any]]:
-    manual_map = read_manual_listing_map(LISTINGS_CSV)
-    candidates = build_candidates(links_path, LISTINGS_CSV)
+def build_quick_link_results(
+    links_path: Path = LINKS_TXT,
+    manual_csv_path: Path = LISTINGS_CSV,
+) -> List[Dict[str, Any]]:
+    manual_map = read_manual_listing_map(manual_csv_path)
+    candidates = build_candidates(links_path, manual_csv_path)
     links = read_links(links_path)
     results: List[Dict[str, Any]] = []
 
@@ -468,12 +471,14 @@ def write_quick_checklist(output_dir: Path) -> None:
 
 def run_quick(
     links_path: Path | None = None,
+    manual_csv_path: Path | None = None,
     requirement_files: Sequence[Path] | None = None,
     output_dir: Path | None = None,
 ) -> Dict[str, Any]:
     reports_dir = ensure_output_dir(output_dir)
     has_links = links_path is not None
     has_requirements = bool(requirement_files)
+    selected_manual_csv_path = manual_csv_path or LISTINGS_CSV
 
     if not has_links and not has_requirements:
         default_links_exists = LINKS_TXT.exists()
@@ -502,7 +507,7 @@ def run_quick(
 
     results: List[Dict[str, Any]] = []
     if has_links and links_path is not None:
-        results = build_quick_link_results(links_path)
+        results = build_quick_link_results(links_path, selected_manual_csv_path)
         write_quick_report(results, reports_dir, requirement_summary)
         write_quick_csv(results, reports_dir)
         write_quick_questions(reports_dir)
@@ -514,6 +519,7 @@ def run_quick(
 
     return {
         "links_path": links_path,
+        "manual_csv_path": selected_manual_csv_path if has_links else None,
         "requirement_files": list(requirement_files or []),
         "output_dir": reports_dir,
         "results": results,
@@ -527,6 +533,8 @@ def print_quick_summary(summary: Dict[str, Any]) -> None:
     print("Quick analyze completed.")
     if summary.get("links_path"):
         print(f"Links input: {summary['links_path']}")
+        if summary.get("manual_csv_path"):
+            print(f"Listings metadata: {summary['manual_csv_path']}")
         print(f"Analyzed {len(results)} link candidate(s).")
     if summary.get("requirement_files"):
         reqs = ", ".join(str(path) for path in summary["requirement_files"])
