@@ -9,7 +9,9 @@ export const FEEDS = [
   { id: "huggingface", category: "FREEBIE_CERT_DEAL", url: "https://huggingface.co/blog/feed.xml" },
 ];
 export const HN_URL = "https://hn.algolia.com/api/v1/search_by_date?query=AI%20OR%20LLM&tags=story&hitsPerPage=30";
-const strip = (s) => String(s ?? "").replace(/<[^>]+>/gu, " ").replace(/\s+/gu, " ").trim();
+const NAMED = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", hellip: "…", mdash: "—", ndash: "–", rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "“" };
+export const decodeEntities = (s) => String(s ?? "").replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/giu, (m, d, h, n) => d ? String.fromCodePoint(+d) : h ? String.fromCodePoint(parseInt(h, 16)) : NAMED[n.toLowerCase()] ?? m);
+const strip = (s) => decodeEntities(decodeEntities(String(s ?? "").replace(/<!\[CDATA\[|\]\]>/gu, "")).replace(/<[^>]+>/gu, " ")).replace(/\s+/gu, " ").trim();
 
 export function parseFeed(xml, feed, limit = 5) {
   const doc = new XMLParser({ ignoreAttributes: false }).parse(xml);
@@ -30,7 +32,7 @@ export async function collect(fetchImpl = fetch) {
   try {
     const r = await fetchImpl(HN_URL);
     if (r.ok) for (const h of ((await r.json()).hits ?? []).slice(0, 10)) if (h.title) out.push({
-      title: h.title, url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`, excerpt: h.title, source: "hn", category: "AI_TECH_NEWS" });
+      title: decodeEntities(h.title), url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`, excerpt: h.title, source: "hn", category: "AI_TECH_NEWS" });
   } catch { /* skip */ }
   return out;
 }

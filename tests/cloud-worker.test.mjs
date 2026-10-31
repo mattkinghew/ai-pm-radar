@@ -125,3 +125,8 @@ test("轉中文: Gemini bad output / insufficient -> Workers AI once; friendly c
   const r2 = await handle(req("/api/capture", capBody), mkEnv(boom), { authFetch, fetchImpl: gem("nope") });
   assert.equal(r2.status, 502); assert.equal((await r2.json()).error, "workers_ai_error");
 });
+import { decodeEntities } from "../cloud/src/collector.mjs";
+test("collector decodes HTML entities in titles", () => {
+  assert.equal(decodeEntities("Intel&#8217;s &amp; &#x2014; &rsquo;x&rsquo; &bogus;"), "Intel’s & — ’x’ &bogus;");
+  assert.equal(parseFeed(`<rss><channel><item><title>Intel&amp;#8217;s stock</title><link>https://e.t/1</link></item></channel></rss>`, { id: "x", category: "C" })[0].title, "Intel’s stock");
+});
