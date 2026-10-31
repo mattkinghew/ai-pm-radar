@@ -1,5 +1,5 @@
 // AI summarize/translate with per-provider daily caps. Gemini first (free-tier cap), Workers AI overflow (free 10k neurons/day). Never logs keys.
-const PROMPT = `你是 AI PM Radar 的知識編輯。將以下內容整理為 JSON：{"title_original":string(原文標題),"title_zh":string(繁體中文標題),"summary":string(繁體中文,<=150字),"summary_en":string(English,<=80 words),"key_points_zh":string[3-5](繁體中文),"key_points_en":string[3-5](English),"score":number(0-10, 對 AI PM/證照/職涯/內容營運的知識轉化價值)}。只輸出 JSON，不要解釋。內容不足時輸出 {"error":"insufficient_content"}。`;
+const PROMPT = `你是 AI PM Radar 的知識編輯。將以下內容整理為 JSON：{"title_original":string(原文標題),"title_zh":string(繁體中文標題),"summary":string(繁體中文,<=150字),"summary_en":string(English,<=80 words),"key_points_zh":string[3-5](繁體中文),"key_points_en":string[3-5](English),"score":number(0-10, 對 AI PM/證照/職涯/內容營運的知識轉化價值),"reco_score":number(0-10, 對讀者的「資訊優勢」),"reco_reason":string(繁體中文,<=60字,說明對讀者具體有何用處)}。讀者畫像：在市場推廣公司任 AI PM、負責建立內部管理系統；正籌備數碼轉型顧問副業；經營個人 IP（Content Ops 社交內容、Cyber Kuma AI 學習遊戲）。reco_score 高 = 可即時用於工作決策、顧問服務、或轉化為個人 IP 內容的新穎資訊；泛泛新聞給低分。只輸出 JSON，不要解釋。內容不足時輸出 {"error":"insufficient_content"}。`;
 
 export function hktDay(nowMs = Date.now()) { return new Date(nowMs + 8 * 3600_000).toISOString().slice(0, 10); }
 // Usage counters use the UTC day: resets 00:00 UTC = 08:00 HKT, same as Workers AI free allocation.
@@ -31,7 +31,8 @@ export function parseAiJson(text) {
   const titleZh = String(j.title_zh ?? j.title ?? "").slice(0, 200);
   return { title: titleZh, title_zh: titleZh, title_original: String(j.title_original ?? "").slice(0, 300),
     summary: j.summary.slice(0, 2000), summary_en: typeof j.summary_en === "string" ? j.summary_en.slice(0, 2000) : null,
-    key_points: kz, key_points_en: arr(j.key_points_en), score: Math.max(0, Math.min(10, Number(j.score) || 0)) };
+    key_points: kz, key_points_en: arr(j.key_points_en), score: Math.max(0, Math.min(10, Number(j.score) || 0)),
+    reco_score: j.reco_score == null ? null : Math.max(0, Math.min(10, Number(j.reco_score) || 0)), reco_reason: typeof j.reco_reason === "string" ? j.reco_reason.slice(0, 200) : null };
 }
 
 async function gemini(env, text, fetchImpl) {
