@@ -105,3 +105,23 @@ test("轉中文 translate endpoint on imported item keeps status, counts cap", a
   assert.equal((await handle(req(`/api/items/${id}/translate`, { method: "POST" }), env, d)).status, 429);
   assert.equal((await handle(req(`/api/items/${crypto.randomUUID()}/translate`, { method: "POST" }), env, d)).status, 404);
 });
+
+import { parseAiJson } from "../cloud/src/ai.mjs";
+test("parseAiJson strips ```json fences and Qwen <think> blocks", () => {
+  assert.equal(parseAiJson("<think>hmm {x}</think>\n```json\n" + JSON.stringify(BI) + "\n```").title_zh, "OpenAI 推出 X");
+  assert.throws(() => parseAiJson("<think>unterminated"), /ai_bad_output/);
+});
+test("轉中文: Gemini bad output / insufficient -> Workers AI once; friendly codes", async () => {
+  const gem = (t) => async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: t }] } }] }));
+  const on = { AI: wai(), AI_FALLBACK_PROVIDER: "workers-ai" };
+  for (const t of ["not json", '{"error":"insufficient_content"}']) {
+    const r = await handle(req("/api/capture", capBody), mkEnv(on), { authFetch, fetchImpl: gem(t) });
+    assert.equal(r.status, 201); assert.equal((await r.json()).provider, "workers-ai");
+  }
+  const bad = { AI: { run: async () => ({ response: '{"error":"insufficient_content"}' }) }, AI_FALLBACK_PROVIDER: "workers-ai" };
+  const r = await handle(req("/api/capture", capBody), mkEnv(bad), { authFetch, fetchImpl: gem('{"error":"insufficient_content"}') });
+  assert.equal(r.status, 422); assert.equal((await r.json()).error, "insufficient_content");
+  const boom = { AI: { run: async () => { throw new Error("3040: capacity"); } }, AI_FALLBACK_PROVIDER: "workers-ai" };
+  const r2 = await handle(req("/api/capture", capBody), mkEnv(boom), { authFetch, fetchImpl: gem("nope") });
+  assert.equal(r2.status, 502); assert.equal((await r2.json()).error, "workers_ai_error");
+});

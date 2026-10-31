@@ -7,7 +7,8 @@ const json = (body, status = 200) => new Response(JSON.stringify(body), { status
 const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at";
 const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
 const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en) });
-const aiErr = (e) => json({ error: e.message === "ai_daily_cap_reached" ? "ai_daily_cap_reached" : "ai_failed", detail: e.message }, e.message === "ai_daily_cap_reached" ? 429 : 502);
+const aiErr = (e) => { const code = /^[a-z0-9_]+$/u.test(e.message || "") ? e.message : "ai_error"; console.log(JSON.stringify({ ai_error: code, cause: e.cause?.message?.slice(0, 200) }));
+  return json({ error: code, detail: code }, code === "ai_daily_cap_reached" ? 429 : code === "insufficient_content" ? 422 : 502); };
 
 // Local-only test hook: lets wrangler dev smoke tests use a mocked JWKS. Ignored unless ENVIRONMENT === "local".
 function authFetch(env) {

@@ -21,7 +21,7 @@ export async function usage(env, nowMs = Date.now()) {
 
 const arr = (v) => (Array.isArray(v) ? v.map(String).filter(Boolean).slice(0, 8) : []);
 export function parseAiJson(text) {
-  const s = String(text ?? "").replace(/<think>[\s\S]*?<\/think>/gu, "");
+  const s = String(text ?? "").replace(/<think>[\s\S]*?(<\/think>|$)/gu, "").replace(/```(?:json)?/giu, "");
   const m = s.match(/\{[\s\S]*\}/u);
   if (!m) throw new Error("ai_bad_output");
   let j; try { j = JSON.parse(m[0]); } catch { throw new Error("ai_bad_output"); }
@@ -57,19 +57,21 @@ async function workersAi(env, text) {
   return out?.choices?.[0]?.message?.content ?? "";
 }
 
-// Gemini while under its cap; on cap reached / 429 / 5xx / timeout / missing key -> Workers AI under its own cap.
+// Gemini while under its cap; on ANY Gemini failure except 401/403 key errors (cap, 429, 5xx, 400, timeout, bad output, insufficient_content) -> Workers AI once under its own cap.
+// If Gemini was capped and Workers AI fails with bad output, nothing else to try. Errors keep their code for the UI.
 export async function summarize(env, text, { fetchImpl = fetch, nowMs = Date.now() } = {}) {
   const c = caps(env); let gemErr = null;
   if (await reserve(env.DB, "gemini", c.gemini, nowMs)) {
     try { return { ...parseAiJson(await gemini(env, text, fetchImpl)), provider: "gemini" }; }
-    catch (err) {
-      if (/insufficient_content/u.test(err.message)) throw err;
-      const fb = err.fallback || err.name === "TimeoutError" || err.name === "AbortError" || err.message === "ai_bad_output";
-      if (!fb) throw err;
-      gemErr = err;
-    }
+    catch (err) { if (/^gemini_http_40[13]$/u.test(err.message)) throw err; gemErr = err; } // key errors: surface, don't mask
   }
   if (env.AI_FALLBACK_PROVIDER !== "workers-ai") throw gemErr ?? new Error("ai_daily_cap_reached");
-  if (!(await reserve(env.DB, "workers-ai", c["workers-ai"], nowMs))) throw new Error("ai_daily_cap_reached");
-  return { ...parseAiJson(await workersAi(env, text)), provider: "workers-ai" };
+  if (!(await reserve(env.DB, "workers-ai", c["workers-ai"], nowMs))) throw gemErr ?? new Error("ai_daily_cap_reached");
+  try { return { ...parseAiJson(await workersAi(env, text)), provider: "workers-ai" }; }
+  catch (err) {
+    if (!err.message || !/^(ai_bad_output|insufficient_content|workers_ai_unbound)$/u.test(err.message)) err = Object.assign(new Error("workers_ai_error"), { cause: err });
+    // Prefer the more informative: insufficient_content from either provider wins.
+    if (gemErr?.message === "insufficient_content") throw gemErr;
+    throw err;
+  }
 }

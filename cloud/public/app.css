@@ -5,3 +5,5 @@ main{padding:12px}.card{background:#1e293b;border-radius:12px;padding:12px;margi
 .card a{color:#38bdf8}.acts{display:flex;gap:8px;margin-top:8px}.acts button,form button{padding:10px 14px;border-radius:8px;border:0;background:#38bdf8;color:#0f172a;font-weight:600}.acts .rej{background:#475569;color:#e2e8f0}
 label{display:block;margin-bottom:12px}input,textarea{width:100%;margin-top:4px;padding:10px;border-radius:8px;border:1px solid #334155;background:#0b1220;color:inherit;font:inherit}
 #lang{display:flex;gap:6px;padding:8px 12px 0}#lang button{flex:1;padding:6px;border-radius:8px;border:1px solid #334155;background:none;color:#94a3b8;font-size:13px}#lang button.on{background:#334155;color:#e2e8f0}.orig{font-size:13px;color:#94a3b8;margin:2px 0 6px}.acts .sec{background:#a78bfa}
+
+.err{color:#c0392b;font-size:.9em;margin-top:6px}

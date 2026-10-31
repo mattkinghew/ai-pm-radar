@@ -1,6 +1,10 @@
 const view = document.getElementById("view");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const api = async (p, o) => { const r = await fetch(p, { credentials: "same-origin", ...o }); const j = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(j.error || r.status), { j }); return j; };
+const MSG = { ai_daily_cap_reached: "今日 AI 額度已用完（08:00 重設）", insufficient_content: "內容太短，請打開原文貼上正文（用「＋擷取」）",
+  ai_bad_output: "AI 回覆格式有誤，請稍後再試", workers_ai_error: "後備 AI 暫時出錯，請稍後再試", workers_ai_unbound: "後備 AI 未設定",
+  gemini_key_missing: "Gemini key 未設定", unauthorized: "登入已過期，請重新整理頁面", not_found: "找不到此文章" };
+const msgOf = (e) => e.j?.hint || MSG[e.message] || (/^gemini_http_/.test(e.message) ? "Gemini 暫時出錯，請稍後再試" : "處理失敗，請稍後再試") + "";
 let lang = localStorage.getItem("radar-lang") || "zh";
 const PV = { gemini: "Gemini", "workers-ai": "Workers AI" };
 const ul = (a) => (a || []).length ? "<ul>" + a.map((k) => `<li>${esc(k)}</li>`).join("") + "</ul>" : "";
@@ -26,12 +30,13 @@ function bindCapture() {
   document.getElementById("cap-form").addEventListener("submit", async (ev) => {
     ev.preventDefault(); const f = new FormData(ev.target); const msg = document.getElementById("cap-msg"); msg.textContent = "AI 整理中…";
     try { await api("/api/capture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ url: f.get("url"), text: f.get("text") }) }); msg.textContent = "已存為草稿，請到「待審核」核對。"; ev.target.reset(); }
-    catch (e) { msg.textContent = "失敗：" + (e.j?.hint || e.message); }
+    catch (e) { msg.textContent = "失敗：" + msgOf(e); }
   });
 }
 view.addEventListener("click", async (ev) => { const b = ev.target.closest("[data-act]"); if (!b) return; b.disabled = true;
   if (b.dataset.act === "translate") b.textContent = "AI 處理中…";
-  try { await api(`/api/items/${b.dataset.id}/${b.dataset.act}`, { method: "POST" }); } catch (e) { alert(e.message === "ai_daily_cap_reached" ? "今日 AI 額度已用完（08:00 重設）" : e.message); }
+  try { await api(`/api/items/${b.dataset.id}/${b.dataset.act}`, { method: "POST" }); }
+  catch (e) { refreshCap(); const n = document.createElement("div"); n.className = "err"; n.textContent = msgOf(e); b.closest(".acts").after(n); b.disabled = false; if (b.dataset.act === "translate") b.textContent = "轉中文"; return; }
   refreshCap();
   show(document.querySelector("nav button.on").dataset.tab); });
 document.querySelector("nav").addEventListener("click", (ev) => { const t = ev.target.dataset.tab; if (t) show(t); });
