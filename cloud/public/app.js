@@ -14,15 +14,16 @@ function body(it) {
   if (lang === "both") return `<h3>${esc(zhT)}</h3>${orT !== zhT ? `<div class="orig">${esc(orT)}</div>` : ""}<p>${esc(zhS)}</p>${it.summary_en ? `<p class="orig">${esc(it.summary_en)}</p>` : ""}${ul(it.key_points)}${ul(it.key_points_en)}`;
   return `<h3>${esc(zhT)}</h3><p>${esc(zhS)}</p>${ul(it.key_points)}`;
 }
-const card = (it) => `<div class="card">${body(it)}<div class="meta">${esc(it.source || "")} · ${esc(it.status)}${it.score != null ? " · 評分 " + esc(it.score) : ""}${it.ai_provider ? " · " + esc(PV[it.ai_provider] || it.ai_provider) : ""}</div>
+const size = (it, i) => i === 0 ? "feat" : (i < 3 || (it.score ?? 0) >= 8) ? "wide" : "";
+const card = (it, i = 9) => `<article class="card ${size(it, i)}">${it.category || it.source ? `<div class="kicker">${esc(it.category || it.source)}</div>` : ""}${body(it)}<div class="meta">${esc(it.source || "")} · ${esc(it.status)}${it.score != null ? " · 評分 " + esc(it.score) : ""}${it.ai_provider ? " · " + esc(PV[it.ai_provider] || it.ai_provider) : ""}</div>
 ${it.url ? `<a href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">原文</a>` : ""}
-<div class="acts">${!it.title_zh ? `<button class="sec" data-act="translate" data-id="${it.id}">轉中文</button>` : ""}${it.status === "draft" ? `<button data-act="review" data-id="${it.id}">已審核</button>` : ""}${it.status === "reviewed" ? `<button data-act="approve" data-id="${it.id}">批准重用</button>` : ""}${["draft", "reviewed"].includes(it.status) ? `<button class="rej" data-act="reject" data-id="${it.id}">拒絕</button>` : ""}</div></div>`;
-const list = (items) => items.length ? items.map(card).join("") : "<p class='meta'>暫時冇內容</p>";
+<div class="acts">${!it.title_zh ? `<button class="sec" data-act="translate" data-id="${it.id}">轉中文</button>` : ""}${it.status === "draft" ? `<button data-act="review" data-id="${it.id}">已審核</button>` : ""}${it.status === "reviewed" ? `<button data-act="approve" data-id="${it.id}">批准重用</button>` : ""}${["draft", "reviewed"].includes(it.status) ? `<button class="rej" data-act="reject" data-id="${it.id}">拒絕</button>` : ""}</div></article>`;
+const list = (items) => items.length ? `<div class="grid">${items.map(card).join("")}</div>` : "<p class='meta'>暫時冇內容</p>";
 async function show(tab) {
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
   try {
     if (tab === "capture") { view.innerHTML = ""; view.append(document.getElementById("capture-tpl").content.cloneNode(true)); return bindCapture(); }
-    if (tab === "daily") { const d = await api("/api/daily"); view.innerHTML = `<p class="meta">日期：${esc(d.date || "未有")}</p>` + list(d.items); }
+    if (tab === "daily") { const d = await api("/api/daily"); view.innerHTML = `<p class="dateline">${esc(d.date || "未有")} · 今日焦點 ${d.items.length} 則</p>` + list(d.items); }
     else { const d = await api(tab === "draft" ? "/api/library?status=all" : "/api/library?status=approved"); view.innerHTML = list(tab === "draft" ? d.items.filter((i) => ["draft", "reviewed"].includes(i.status)) : d.items); }
   } catch (e) { view.innerHTML = `<p>載入失敗：${esc(e.message)}</p>`; }
 }
