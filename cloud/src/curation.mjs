@@ -49,7 +49,7 @@ export function dedup(items, maxDist = 3) {
     const u = it.url_norm || normalizeUrl(it.url); const h = simhash(it.title_original || it.title);
     let dupOf = u ? seenUrl.get(u) : undefined;
     if (!dupOf && h != null) dupOf = kept.find((k) => k._h != null && hamming(k._h, h) <= maxDist && normTitle(k.title_original || k.title).length >= 12);
-    if (dupOf) { dupOf.dup_count = (dupOf.dup_count || 0) + 1; (dupOf.dup_sources ||= []).push(it.source); continue; }
+    if (dupOf) { dupOf.dup_count = (dupOf.dup_count || 0) + 1; (dupOf.dup_sources ||= []).push({ source: it.source, url: it.url || null, title: it.title_zh || it.title || "" }); continue; }
     const k = { ...it, _h: h }; kept.push(k); if (u) seenUrl.set(u, k);
   }
   return kept.map(({ _h, ...k }) => k);

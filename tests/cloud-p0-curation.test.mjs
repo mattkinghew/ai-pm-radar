@@ -29,7 +29,7 @@ test("dedup + quotas: X <= 30%, per-handle <= 2, mutes", () => {
   const news = Array.from({ length: 7 }, (_, i) => ({ id: "n" + i, title: ["Anthropic raises funding round","Nvidia earnings beat estimates","Meta open sources Llama model","Apple adds AI to Siri","Mistral launches coding agent","EU passes AI Act update","Coursera free prompt course"][i], url: `https://n.com/${i}`, source: "rss", category: "AI_TECH_NEWS" }));
   const xs = Array.from({ length: 10 }, (_, i) => ({ id: "x" + i, title: ["alpha bravo charlie","delta echo foxtrot","golf hotel india","juliet kilo lima","mike november oscar","papa quebec romeo","sierra tango uniform","victor whiskey xray","yankee zulu one","two three four five"][i], url: `https://x.com/h${i % 2}/status/${i}`, source: `x:@h${i % 2}`, category: "X_POST" }));
   const dup = { ...news[0], id: "d", url: "https://www.n.com/0/?utm_source=t" };
-  const d = dedup([news[0], dup, ...news.slice(1), ...xs]); assert.equal(d.length, 17); assert.equal(d[0].dup_count, 1);
+  const d = dedup([news[0], dup, ...news.slice(1), ...xs]); assert.equal(d.length, 17); assert.equal(d[0].dup_count, 1); assert.deepEqual(d[0].dup_sources, [{ source: "rss", url: "https://www.n.com/0/?utm_source=t", title: dup.title }]);
   const q = applyQuotas(d); const nx = q.items.filter((i) => i.source.startsWith("x:")).length;
   assert.equal(nx, 3); assert.ok(nx / q.items.length <= 0.3 + 1e-9);
   const q2 = applyQuotas([...news, ...news.map((n) => ({ ...n, id: n.id + "b" })), ...xs]); // 14 non-X -> xCap 6 but 2 handles x 2 = 4
@@ -77,4 +77,11 @@ test("API: actions, feedback weights, mutes, curated daily, KB export", async ()
   assert.equal((await (await call(env, "/api/kb")).json()).entries[0].origin, "approved");
   // bearer token still cannot reach new routes
   assert.equal((await handle(new Request("https://r.x/api/kb/export", { headers: { authorization: `Bearer ${TOKEN}` } }), env)).status, 401);
+});
+
+test("UI: ⋯ menu is accessible (aria, Esc, outside click) and dup sources listed", async () => {
+  const { readFileSync } = await import("node:fs");
+  const js = readFileSync(new URL("../cloud/public/app.js", import.meta.url), "utf8");
+  for (const s of ['aria-haspopup="menu"', 'aria-expanded', 'role="menuitem"', '"Escape"', 'closest(".more")', "dup_sources", "<details"]) assert.ok(js.includes(s), s);
+  assert.ok(!js.includes("個來源報道同一件事"));
 });

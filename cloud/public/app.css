@@ -42,3 +42,11 @@ select{margin-top:6px;padding:12px;border-radius:4px;border:1px solid #9a9184;ba
 .acts2{margin-top:.4rem;flex-wrap:wrap}.acts2 select{font:inherit;padding:.3rem;border-radius:6px}
 h2.sub{margin:1.5rem 0 .5rem}a.btn{display:inline-block;padding:.45rem .8rem;border:1px solid currentColor;border-radius:6px;text-decoration:none;margin-right:.6rem}
 .filters{align-items:center;flex-wrap:wrap}.acts{align-items:center}a.btn{color:var(--acc);font:700 14px var(--sans);border-color:var(--acc)}
+.acts{flex-wrap:nowrap}.acts button{padding:10px 12px;white-space:nowrap}
+.more{position:relative;margin-left:auto}.more-btn{min-width:44px;font-size:18px!important}
+.more .menu{position:absolute;right:0;top:calc(100% + 4px);z-index:20;min-width:190px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,.15);padding:4px;display:flex;flex-direction:column}
+.more .menu[hidden]{display:none}
+.more .menu button{background:none!important;color:var(--ink)!important;border:0!important;text-align:left;min-height:44px;padding:8px 12px;font:600 14px var(--sans)}
+.more .menu button:hover,.more .menu button:focus-visible{background:#f1ede6!important}
+.more .menu .ni{display:flex;align-items:center;gap:8px;padding:8px 12px;font:600 14px var(--sans);color:var(--ink)}.more .menu select{font:inherit;padding:6px;border-radius:4px}
+.dups{margin-top:8px;font-size:13px}.dups ul{margin:4px 0 0;padding-left:18px}.dups-h,.dups summary{margin:0;font-weight:600;color:var(--mut);cursor:pointer}.card.feat .dups-h,.card.feat .dups summary{color:#ddd}
