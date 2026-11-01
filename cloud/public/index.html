@@ -3,7 +3,7 @@
 <meta name="theme-color" content="#f6f3ee"><link rel="manifest" href="/manifest.webmanifest">
 <title>AI PM Radar</title><link rel="stylesheet" href="/app.css"></head><body>
 <header><h1>AI PM <span>Radar</span></h1><span id="cap" aria-label="今日 AI 用量"></span></header>
-<nav><button data-tab="daily" class="on">今日</button><button data-tab="draft">待審核</button><button data-tab="approved">知識庫</button><button data-tab="sources">訊息源</button><button data-tab="capture">＋ 擷取</button></nav>
+<nav><button data-tab="daily" class="on">今日</button><button data-tab="draft">待審核</button><button data-tab="later">稍後讀</button><button data-tab="kb">知識庫</button><button data-tab="sources">訊息源</button><button data-tab="capture">＋ 擷取</button></nav>
 <div id="lang"><button data-lang="zh">中文</button><button data-lang="both">中英對照</button><button data-lang="orig">原文</button></div>
 <main id="view"></main>
 <template id="capture-tpl"><form id="cap-form">
@@ -12,5 +12,5 @@
 <button type="submit">AI 整理成知識文章</button><p id="cap-msg" role="status"></p></form></template>
 <template id="sources-tpl"><form id="src-form" class="panel"><div class="row"><label>類型<select name="type"><option value="rss">RSS</option><option value="x">X 帳號</option></select></label>
 <label class="grow">網址 / @handle<input name="value" required placeholder="https://… 或 @handle"></label></div>
-<label>名稱（可選）<input name="label" maxlength="60"></label><button type="submit">新增訊息源</button><p id="src-msg" role="status"></p></form><div id="src-list"></div></template>
+<label>名稱（可選）<input name="label" maxlength="60"></label><button type="submit">新增訊息源</button><p id="src-msg" role="status"></p></form><div id="src-list"></div><h2 class="sub">靜音</h2><form id="mute-form" class="panel"><div class="row"><label>類型<select name="kind"><option value="keyword">關鍵字</option><option value="topic">題材（類別）</option><option value="handle">X 帳號</option></select></label><label class="grow">值<input name="value" required maxlength="80" placeholder="例如 crypto / X_POST / @handle"></label></div><button type="submit">新增靜音</button><p id="mute-msg" role="status"></p></form><div id="mute-list"></div></template>
 <script src="/app.js" type="module"></script></body></html>
