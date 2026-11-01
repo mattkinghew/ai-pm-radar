@@ -2,14 +2,30 @@ import { verifyCloudflareAccessOwner } from "./access-jwt.mjs";
 import { summarize, usage } from "./ai.mjs";
 import { runDaily, analyzePending, AI_UPDATE, aiBind } from "./collector.mjs";
 import { hktDay } from "./ai.mjs";
+import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath } from "./curation.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
-const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason";
+const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason";
 const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
 const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), metrics: r.metrics ? pj(r.metrics) : null });
 const SRC = "id,type,value,label,enabled,created_at,updated_at";
 const HANDLE = /^@?([A-Za-z0-9_]{1,15})$/u;
+const RANK = "(COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)+COALESCE((SELECT weight FROM feedback_weights WHERE key='cat:'||items.category),0))";
+const REASONS = ["not_relevant", "duplicate", "low_quality", "already_known", "too_much_x", "other"];
+const KB = "id,item_id,title,url,source,category,summary,key_points,tags,note,score,origin,created_at,updated_at";
+const kbShape = (r) => r && ({ ...r, key_points: pj(r.key_points), tags: pj(r.tags) });
+// Feedback learning: clamp weights to [-2, 3].
+async function bump(db, key, delta, now) {
+  if (!key || !delta) return; const pos = delta > 0 ? 1 : 0, neg = delta < 0 ? 1 : 0;
+  await db.prepare(`INSERT INTO feedback_weights(key,weight,pos,neg,updated_at) VALUES(?,?,?,?,?)
+    ON CONFLICT(key) DO UPDATE SET weight=MIN(3, MAX(-2, weight+?)), pos=pos+?, neg=neg+?, updated_at=?`).bind(key, Math.max(-2, Math.min(3, delta)), pos, neg, now, delta, pos, neg, now).run();
+}
+async function kbUpsert(db, item, origin, now) {
+  await db.prepare(`INSERT INTO kb_entries(${KB}) VALUES(?,?,?,?,?,?,?,?,'[]',NULL,?,?,?,?)
+    ON CONFLICT(item_id) DO UPDATE SET title=excluded.title, summary=excluded.summary, key_points=excluded.key_points, score=excluded.score, updated_at=excluded.updated_at`)
+    .bind(crypto.randomUUID(), item.id, item.title_zh || item.title, item.url, item.source, item.category, item.summary, item.key_points ?? "[]", item.score, origin, now, now).run();
+}
 
 // Bearer INGEST_TOKEN (Worker secret) for Jun's automation; constant-time compare over SHA-256 digests.
 async function bearerOk(request, env) {
@@ -31,9 +47,9 @@ async function ingestX(request, env) {
     if (!hm || !/^\d{1,25}$/u.test(pid) || !text) { rejected.push(i); continue; }
     const handle = hm[1]; const url = /^https:\/\/(x|twitter)\.com\//u.test(p.url || "") ? p.url : `https://x.com/${handle}/status/${pid}`;
     const title = text.replace(/\s+/gu, " ").slice(0, 140);
-    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,url,source,category,raw_excerpt,run_date,external_id,metrics,created_at,updated_at)
-      VALUES(?, 'daily', 'draft', ?, ?, ?, 'X_POST', ?, ?, ?, ?, ?, ?)`)
-      .bind(crypto.randomUUID(), title, url, `x:@${handle}`, text.slice(0, 4000), day, `x:${pid}`, p.metrics ? JSON.stringify(p.metrics).slice(0, 1000) : null,
+    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,url,url_norm,source,category,raw_excerpt,run_date,external_id,metrics,created_at,updated_at)
+      VALUES(?, 'daily', 'draft', ?, ?, ?, ?, 'X_POST', ?, ?, ?, ?, ?, ?)`)
+      .bind(crypto.randomUUID(), title, url, normalizeUrl(url), `x:@${handle}`, text.slice(0, 4000), day, `x:${pid}`, p.metrics ? JSON.stringify(p.metrics).slice(0, 1000) : null,
         /^\d{4}-\d{2}-\d{2}T/u.test(p.created_at || "") ? p.created_at : now, now).run();
     res.meta?.changes > 0 ? inserted++ : duplicate++;
   }
@@ -86,15 +102,67 @@ export async function handle(request, env, deps = {}) {
   if (url.pathname === "/api/library" && m === "GET") {
     const status = url.searchParams.get("status") || "approved";
     if (!["draft", "reviewed", "approved", "rejected", "all"].includes(status)) return json({ error: "bad_status" }, 400);
-    const q = status === "all" ? db.prepare(`SELECT ${ROW} FROM items ORDER BY (COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)) DESC, updated_at DESC LIMIT 200`)
-      : db.prepare(`SELECT ${ROW} FROM items WHERE status=? ORDER BY (COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)) DESC, updated_at DESC LIMIT 200`).bind(status);
+    const q = status === "all" ? db.prepare(`SELECT ${ROW} FROM items ORDER BY ${RANK} DESC, updated_at DESC LIMIT 200`)
+      : db.prepare(`SELECT ${ROW} FROM items WHERE status=? ORDER BY ${RANK} DESC, updated_at DESC LIMIT 200`).bind(status);
     return json({ items: (await q.all()).results.map(shape) });
   }
   if (url.pathname === "/api/daily" && m === "GET") {
     const date = url.searchParams.get("date") || (await db.prepare("SELECT MAX(run_date) d FROM items WHERE kind='daily'").first())?.d;
     if (date && !/^\d{4}-\d{2}-\d{2}$/u.test(date)) return json({ error: "bad_date" }, 400);
-    const r = await db.prepare(`SELECT ${ROW} FROM items WHERE kind='daily' AND run_date=? ORDER BY (COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)) DESC, reco_score DESC NULLS LAST, score DESC NULLS LAST`).bind(date ?? "").all();
-    return json({ date: date ?? null, items: r.results.map(shape) });
+    const r = await db.prepare(`SELECT ${ROW},url_norm FROM items WHERE kind='daily' AND run_date=? ORDER BY ${RANK} DESC, reco_score DESC NULLS LAST, score DESC NULLS LAST`).bind(date ?? "").all();
+    const mutes = (await db.prepare("SELECT kind,value FROM mutes").all()).results;
+    const all = r.results.map(shape);
+    if (url.searchParams.get("all") === "1") return json({ date: date ?? null, items: all, mode: "all" });
+    const visible = all.filter((i) => !i.dismissed_reason && !isMuted(i, mutes));
+    const deduped = dedup(visible); const q = applyQuotas(deduped);
+    return json({ date: date ?? null, items: q.items, mode: "curated", stats: { total: all.length, hidden: all.length - visible.length, duplicates: visible.length - deduped.length, quota_held: q.held, x_cap: q.xCap } });
+  }
+  if (url.pathname === "/api/read-later" && m === "GET") {
+    return json({ items: (await db.prepare(`SELECT ${ROW} FROM items WHERE read_later=1 ORDER BY updated_at DESC LIMIT 200`).all()).results.map(shape) });
+  }
+  if (url.pathname === "/api/mutes" && m === "GET") return json({ mutes: (await db.prepare("SELECT id,kind,value,created_at FROM mutes ORDER BY created_at").all()).results });
+  if (url.pathname === "/api/mutes" && m === "POST") {
+    const b = await request.json().catch(() => ({})); const kind = b?.kind; let value = String(b?.value ?? "").trim().slice(0, 80);
+    if (!["topic", "keyword", "handle"].includes(kind) || !value) return json({ error: "bad_mute", hint: "kind: topic|keyword|handle, value 必填" }, 400);
+    if (kind === "handle") { const hm = value.match(HANDLE); if (!hm) return json({ error: "bad_mute", hint: "X 帳號格式：@handle" }, 400); value = "@" + hm[1]; }
+    const id = crypto.randomUUID(); const r = await db.prepare("INSERT OR IGNORE INTO mutes(id,kind,value,created_at) VALUES(?,?,?,?)").bind(id, kind, value, now).run();
+    if (!r.meta.changes) return json({ error: "duplicate_mute" }, 409);
+    await bump(db, kind === "handle" ? `x:${value}` : kind === "topic" ? `cat:${value}` : null, -1, now);
+    return json({ mute: { id, kind, value, created_at: now } }, 201);
+  }
+  const mm = url.pathname.match(/^\/api\/mutes\/([0-9a-f-]{36})$/u);
+  if (mm && m === "DELETE") { const r = await db.prepare("DELETE FROM mutes WHERE id=?").bind(mm[1]).run(); return r.meta.changes ? json({ ok: true }) : json({ error: "not_found" }, 404); }
+  if (url.pathname === "/api/kb" && m === "GET") {
+    return json({ entries: (await db.prepare(`SELECT ${KB} FROM kb_entries ORDER BY updated_at DESC LIMIT 500`).all()).results.map(kbShape) });
+  }
+  if (url.pathname === "/api/kb/export" && m === "GET") {
+    // Markdown + YAML frontmatter for Obsidian. format=json -> [{path, content}], default -> one concatenated .md
+    const since = url.searchParams.get("since"); if (since && !/^\d{4}-\d{2}-\d{2}/u.test(since)) return json({ error: "bad_since" }, 400);
+    const rows = (await (since ? db.prepare(`SELECT ${KB} FROM kb_entries WHERE updated_at>=? ORDER BY updated_at`).bind(since) : db.prepare(`SELECT ${KB} FROM kb_entries ORDER BY updated_at`)).all()).results.map(kbShape);
+    if (url.searchParams.get("format") === "json") return json({ count: rows.length, files: rows.map((e) => ({ id: e.id, path: kbPath(e), updated_at: e.updated_at, content: kbMarkdown(e) })) });
+    return new Response(rows.map(kbMarkdown).join("\n\n"), { headers: { "content-type": "text/markdown; charset=utf-8", "content-disposition": "attachment; filename=radar-kb.md", ...SEC } });
+  }
+  const km = url.pathname.match(/^\/api\/kb\/([0-9a-f-]{32,36})$/u);
+  if (km && m === "PATCH") {
+    const b = await request.json().catch(() => ({})); const tags = Array.isArray(b?.tags) ? JSON.stringify(b.tags.map((t) => String(t).slice(0, 40)).slice(0, 20)) : null;
+    const r = await db.prepare("UPDATE kb_entries SET note=COALESCE(?,note), tags=COALESCE(?,tags), updated_at=? WHERE id=?").bind(typeof b?.note === "string" ? b.note.slice(0, 5000) : null, tags, now, km[1]).run();
+    return r.meta.changes ? json({ entry: kbShape(await db.prepare(`SELECT ${KB} FROM kb_entries WHERE id=?`).bind(km[1]).first()) }) : json({ error: "not_found" }, 404);
+  }
+  if (km && m === "DELETE") { const r = await db.prepare("DELETE FROM kb_entries WHERE id=?").bind(km[1]).run(); return r.meta.changes ? json({ ok: true }) : json({ error: "not_found" }, 404); }
+  const act = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})\/action$/u);
+  if (act && m === "POST") {
+    const b = await request.json().catch(() => ({})); const a = b?.action; const reason = b?.reason ?? null;
+    if (!["star", "unstar", "read_later", "unread_later", "not_interested", "restore"].includes(a)) return json({ error: "bad_action" }, 400);
+    if (a === "not_interested" && !REASONS.includes(reason)) return json({ error: "bad_reason", hint: REASONS.join("|") }, 400);
+    const it = await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(act[1]).first(); if (!it) return json({ error: "not_found" }, 404);
+    const set = { star: "starred=1", unstar: "starred=0", read_later: "read_later=1", unread_later: "read_later=0", not_interested: "dismissed_reason=?", restore: "dismissed_reason=NULL" }[a];
+    await db.prepare(`UPDATE items SET ${set}, updated_at=? WHERE id=?`).bind(...(a === "not_interested" ? [reason, now, it.id] : [now, it.id])).run();
+    await db.prepare("INSERT INTO item_actions(id,item_id,action,reason,created_at) VALUES(?,?,?,?,?)").bind(crypto.randomUUID(), it.id, a, reason, now).run();
+    const w = { star: [0.6, 0.3], unstar: [-0.3, -0.15], read_later: [0.2, 0.1], unread_later: [0, 0], not_interested: [reason === "duplicate" || reason === "already_known" ? -0.2 : -0.5, -0.25], restore: [0.2, 0.1] }[a];
+    await bump(db, it.source, w[0], now); if (it.category) await bump(db, `cat:${it.category}`, w[1], now);
+    if (a === "star") await kbUpsert(db, it, "star", now);
+    if (a === "unstar") await db.prepare("DELETE FROM kb_entries WHERE item_id=? AND origin='star'").bind(it.id).run();
+    return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()) });
   }
   const one = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})(?:\/(review|approve|reject|translate))?$/u);
   if (one && m === "GET" && !one[2]) {
@@ -117,12 +185,9 @@ export async function handle(request, env, deps = {}) {
     if (!row || !from.includes(row.status)) return json({ error: "invalid_transition" }, 409);
     const res = await db.prepare(`UPDATE items SET status=?, updated_at=? WHERE id=? AND status IN (${from.map(() => "?").join(",")})`).bind(to, now, one[1], ...from).run();
     if (!res.meta.changes) return json({ error: "invalid_transition" }, 409);
-    if (row.source) {
-      const delta = one[2] === "reject" ? -0.5 : 0.3;
-      await db.prepare(`INSERT INTO feedback_weights(key,weight,pos,neg,updated_at) VALUES(?,?,?,?,?)
-        ON CONFLICT(key) DO UPDATE SET weight=CASE WHEN weight+? > 3 THEN 3 WHEN weight+? < -2 THEN -2 ELSE weight+? END, pos=pos+?, neg=neg+?, updated_at=?`)
-        .bind(row.source, delta, one[2]==="reject"?0:1, one[2]==="reject"?1:0, now, delta, delta, delta, one[2]==="reject"?0:1, one[2]==="reject"?1:0, now).run();
-    }
+    const delta = one[2] === "reject" ? -0.5 : 0.3;
+    await bump(db, row.source, delta, now);
+    if (one[2] === "approve") await kbUpsert(db, await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(one[1]).first(), "approved", now);
     return json({ ok: true, status: to });
   }
   if (url.pathname === "/api/capture" && m === "POST") {

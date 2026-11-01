@@ -1,5 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import { summarize, hktDay } from "./ai.mjs";
+import { normalizeUrl } from "./curation.mjs";
 
 export const FEEDS = [
   { id: "openai", category: "AI_TECH_NEWS", url: "https://openai.com/news/rss.xml" },
@@ -7,6 +8,12 @@ export const FEEDS = [
   { id: "techcrunch-ai", category: "AI_TECH_NEWS", url: "https://techcrunch.com/category/artificial-intelligence/feed/" },
   { id: "coursera-ai", category: "FREEBIE_CERT_DEAL", url: "https://blog.coursera.org/tag/ai/feed/" },
   { id: "huggingface", category: "FREEBIE_CERT_DEAL", url: "https://huggingface.co/blog/feed.xml" },
+  // Added 2026-11-01 after curl check (HTTP 200 + valid RSS/Atom with items).
+  { id: "mit-tr-ai", category: "AI_TECH_NEWS", url: "https://www.technologyreview.com/topic/artificial-intelligence/feed" },
+  { id: "google-ai", category: "AI_TECH_NEWS", url: "https://blog.google/technology/ai/rss/" },
+  { id: "verge-ai", category: "AI_TECH_NEWS", url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml" },
+  { id: "simonwillison", category: "AI_PRACTICE", url: "https://simonwillison.net/atom/everything/" },
+  { id: "rundown-ai", category: "AI_TECH_NEWS", url: "https://www.therundown.ai/feed" },
 ];
 export const HN_URL = "https://hn.algolia.com/api/v1/search_by_date?query=AI%20OR%20LLM&tags=story&hitsPerPage=30";
 const NAMED = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", hellip: "…", mdash: "—", ndash: "–", rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "“" };
@@ -50,8 +57,10 @@ export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = 
   const items = await collect(fetchImpl, await userFeeds(env.DB));
   let collected = 0, analyzed = 0, error = null;
   for (const it of items) {
-    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,url,source,category,raw_excerpt,run_date,created_at,updated_at)
-      VALUES(?, 'daily', 'draft', ?, ?, ?, ?, ?, ?, ?, ?)`).bind(crypto.randomUUID(), it.title, it.url, it.source, it.category, it.excerpt, day, now, now).run();
+    const un = normalizeUrl(it.url);
+    if (un && await env.DB.prepare("SELECT 1 FROM items WHERE url_norm=? LIMIT 1").bind(un).first()) continue; // cross-source / tracking-param dup
+    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,url,url_norm,source,category,raw_excerpt,run_date,created_at,updated_at)
+      VALUES(?, 'daily', 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(crypto.randomUUID(), it.title, it.url, un, it.source, it.category, it.excerpt, day, now, now).run();
     if (res.meta?.changes > 0) collected++;
   }
   if (env.AI_ANALYSIS_ENABLED !== "false") ({ analyzed, error } = await analyzePending(env, { fetchImpl, nowMs, day }));

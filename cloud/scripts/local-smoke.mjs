@@ -25,6 +25,11 @@ try {
   const s = await fetch(`${base}/__scheduled?cron=0+0+*+*+*`); check("__scheduled cron", s.ok);
   let daily = { items: [] };
   for (let i = 0; i < 45 && !daily.items.length; i++) { await new Promise((r) => setTimeout(r, 1000)); daily = await (await fetch(`${base}/api/daily`, { headers: H })).json(); } check("cron collected daily items (AI off)", daily.items.length > 0, `n=${daily.items.length} date=${daily.date}`);
+  check("daily curated mode (P0 quotas/dedup)", daily.mode === "curated" && !!daily.stats, JSON.stringify(daily.stats));
+  const it0 = daily.items[0];
+  if (it0) { const st = await fetch(`${base}/api/items/${it0.id}/action`, { method: "POST", headers: { ...H, "content-type": "application/json" }, body: JSON.stringify({ action: "star" }) }); check("star action 200", st.status === 200); }
+  const kbx = await fetch(`${base}/api/kb/export?format=json`, { headers: H }); const kbj = await kbx.json(); check("KB export (D1)", kbx.status === 200 && kbj.count > 0, `count=${kbj.count}`);
+  const mu = await fetch(`${base}/api/mutes`, { method: "POST", headers: { ...H, "content-type": "application/json" }, body: JSON.stringify({ kind: "keyword", value: "smoke-test-keyword" }) }); check("mute create", mu.status === 201 || mu.status === 409);
   const c = await fetch(`${base}/api/capture`, { method: "POST", headers: { ...H, "content-type": "application/json" }, body: JSON.stringify({ text: "x".repeat(100) }) });
   check("capture w/o GEMINI key -> 502 (no fake summary)", c.status === 502);
 } finally {
