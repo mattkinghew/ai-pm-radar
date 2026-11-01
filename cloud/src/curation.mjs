@@ -70,10 +70,13 @@ export function applyQuotas(items, { xShare = 0.3, perHandle = 2, perCategory = 
 const y = (v) => JSON.stringify(v ?? null); // JSON scalars are valid YAML
 export function slug(s) { return String(s || "note").normalize("NFKC").replace(/[\\/:*?"<>|#^[\]\n\r]+/gu, " ").replace(/\s+/gu, "-").replace(/^-+|-+$/gu, "").slice(0, 60) || "note"; }
 export function kbMarkdown(e) {
-  const kp = Array.isArray(e.key_points) ? e.key_points : []; const tags = Array.isArray(e.tags) ? e.tags : [];
-  const fm = ["---", `radar_id: ${y(e.id)}`, `title: ${y(e.title)}`, `url: ${y(e.url)}`, `source: ${y(e.source)}`, `category: ${y(e.category)}`,
-    `score: ${e.score ?? "null"}`, `origin: ${y(e.origin)}`, `tags: [${["radar", ...tags].map(y).join(", ")}]`, `created: ${y(e.created_at)}`, `updated: ${y(e.updated_at)}`, "---"];
-  return [...fm, "", `# ${e.title}`, "", e.summary || "", "", ...(kp.length ? ["## 重點", ...kp.map((k) => `- ${k}`), ""] : []),
-    ...(e.note ? ["## 筆記", e.note, ""] : []), ...(e.url ? [`[原文](${e.url})`, ""] : [])].join("\n");
+  const kp = Array.isArray(e.key_points) ? e.key_points : []; const tags = Array.isArray(e.tags) ? e.tags : []; const hl = Array.isArray(e.highlights) ? e.highlights : [];
+  const type = e.kb_type || "item";
+  const fm = ["---", `radar_id: ${y(e.id)}`, `title: ${y(e.title)}`, `type: ${y(type)}`, `url: ${y(e.url)}`, `source: ${y(e.source)}`, `category: ${y(e.category)}`,
+    `score: ${e.score ?? "null"}`, `origin: ${y(e.origin)}`, `tags: [${["radar", ...tags].map(y).join(", ")}]`, ...(Array.isArray(e.source_ids) && e.source_ids.length ? [`sources: [${e.source_ids.map(y).join(", ")}]`] : []),
+    `created: ${y(e.created_at)}`, `updated: ${y(e.updated_at)}`, "---"];
+  const body = type === "synthesis" ? [e.note || ""] : [e.summary || "", "", ...(kp.length ? ["## 重點", ...kp.map((k) => `- ${k}`), ""] : []),
+    ...(hl.length ? ["## 標記重點", ...hl.map((h) => `> ${h.text}${h.note ? `\n\n${h.note}` : ""}\n`), ""] : []), ...(e.note ? ["## 筆記", e.note, ""] : [])];
+  return [...fm, "", `# ${e.title}`, "", ...body, ...(e.url ? ["", `[原文](${e.url})`, ""] : [])].join("\n");
 }
 export const kbPath = (e) => `${String(e.created_at || "").slice(0, 10)}-${slug(e.title)}-${String(e.id).slice(0, 8)}.md`;

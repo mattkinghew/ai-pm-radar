@@ -14,3 +14,9 @@ Global constraints for EVERY goal:
 | 02 | Obsidian sync via Mac launchd (P1) |
 | 03 | Learned ranking from item_actions (P1) |
 | 04 | worker.mjs router refactor (P2) |
+
+## P1 新增
+- [05 headless 擷取](05-headless-extraction.md)
+- [06 PDF／YouTube 字幕](06-pdf-youtube-transcripts.md)
+- [07 FTS5 全文搜尋](07-fts5-search.md)
+- [08 AI 自動標籤](08-ai-auto-tagging.md)

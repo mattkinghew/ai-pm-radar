@@ -2,6 +2,7 @@ import { verifyCloudflareAccessOwner } from "./access-jwt.mjs";
 import { summarize, usage } from "./ai.mjs";
 import { runDaily, analyzePending, AI_UPDATE, aiBind } from "./collector.mjs";
 import { hktDay } from "./ai.mjs";
+import { handleP1, KB_COLS, kbShape as kbShapeP1 } from "./routes-p1.mjs";
 import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath } from "./curation.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
@@ -13,8 +14,8 @@ const SRC = "id,type,value,label,enabled,created_at,updated_at";
 const HANDLE = /^@?([A-Za-z0-9_]{1,15})$/u;
 const RANK = "(COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)+COALESCE((SELECT weight FROM feedback_weights WHERE key='cat:'||items.category),0))";
 const REASONS = ["not_relevant", "duplicate", "low_quality", "already_known", "too_much_x", "other"];
-const KB = "id,item_id,title,url,source,category,summary,key_points,tags,note,score,origin,created_at,updated_at";
-const kbShape = (r) => r && ({ ...r, key_points: pj(r.key_points), tags: pj(r.tags) });
+const KB = KB_COLS;
+const kbShape = kbShapeP1;
 // Feedback learning: clamp weights to [-2, 3].
 async function bump(db, key, delta, now) {
   if (!key || !delta) return; const pos = delta > 0 ? 1 : 0, neg = delta < 0 ? 1 : 0;
@@ -22,7 +23,7 @@ async function bump(db, key, delta, now) {
     ON CONFLICT(key) DO UPDATE SET weight=MIN(3, MAX(-2, weight+?)), pos=pos+?, neg=neg+?, updated_at=?`).bind(key, Math.max(-2, Math.min(3, delta)), pos, neg, now, delta, pos, neg, now).run();
 }
 async function kbUpsert(db, item, origin, now) {
-  await db.prepare(`INSERT INTO kb_entries(${KB}) VALUES(?,?,?,?,?,?,?,?,'[]',NULL,?,?,?,?)
+  await db.prepare(`INSERT INTO kb_entries(id,item_id,title,url,source,category,summary,key_points,tags,note,score,origin,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,'[]',NULL,?,?,?,?)
     ON CONFLICT(item_id) DO UPDATE SET title=excluded.title, summary=excluded.summary, key_points=excluded.key_points, score=excluded.score, updated_at=excluded.updated_at`)
     .bind(crypto.randomUUID(), item.id, item.title_zh || item.title, item.url, item.source, item.category, item.summary, item.key_points ?? "[]", item.score, origin, now, now).run();
 }
@@ -76,6 +77,7 @@ export async function handle(request, env, deps = {}) {
   if (!owner) return url.pathname.startsWith("/api/") ? json({ error: "unauthorized" }, 401) : new Response("Unauthorized", { status: 401, headers: SEC });
   if (!url.pathname.startsWith("/api/")) return env.ASSETS ? env.ASSETS.fetch(request) : new Response("Not found", { status: 404 });
   const db = env.DB; const now = new Date().toISOString(); const m = request.method;
+  const p1 = await handleP1(request, env, deps, url, m, db, now); if (p1) return p1;
 
   if (url.pathname === "/api/cloud/capabilities" && m === "GET") {
     return json({ backend: "cloudflare", d1: !!db, ai: { gemini: !!env.GEMINI_API_KEY, fallback: env.AI_FALLBACK_PROVIDER || "none", dailyCap: Number(env.AI_DAILY_CAP || 10), usage: await usage(env) }, cron: "0 0 * * * (08:00 HKT)", humanReviewRequired: true });
@@ -139,6 +141,7 @@ export async function handle(request, env, deps = {}) {
     // Markdown + YAML frontmatter for Obsidian. format=json -> [{path, content}], default -> one concatenated .md
     const since = url.searchParams.get("since"); if (since && !/^\d{4}-\d{2}-\d{2}/u.test(since)) return json({ error: "bad_since" }, 400);
     const rows = (await (since ? db.prepare(`SELECT ${KB} FROM kb_entries WHERE updated_at>=? ORDER BY updated_at`).bind(since) : db.prepare(`SELECT ${KB} FROM kb_entries ORDER BY updated_at`)).all()).results.map(kbShape);
+    const hls = (await db.prepare("SELECT item_id,text,note FROM highlights ORDER BY created_at").all()).results; for (const e of rows) e.highlights = e.item_id ? hls.filter((h) => h.item_id === e.item_id) : [];
     if (url.searchParams.get("format") === "json") return json({ count: rows.length, files: rows.map((e) => ({ id: e.id, path: kbPath(e), updated_at: e.updated_at, content: kbMarkdown(e) })) });
     return new Response(rows.map(kbMarkdown).join("\n\n"), { headers: { "content-type": "text/markdown; charset=utf-8", "content-disposition": "attachment; filename=radar-kb.md", ...SEC } });
   }

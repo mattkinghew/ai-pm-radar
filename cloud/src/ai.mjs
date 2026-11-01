@@ -38,13 +38,13 @@ export function parseAiJson(text) {
     side_income_reason: (j.side_income_new === true || j.side_income_new === "true") && typeof j.side_income_reason === "string" ? j.side_income_reason.slice(0, 200) : null };
 }
 
-async function gemini(env, text, fetchImpl) {
+async function gemini(env, text, fetchImpl, prompt = PROMPT, maxIn = 12000) {
   if (!env.GEMINI_API_KEY) { const e = new Error("gemini_key_missing"); e.fallback = true; throw e; }
   const model = env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   const r = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST", signal: AbortSignal.timeout(25_000),
     headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-    body: JSON.stringify({ contents: [{ parts: [{ text: `${PROMPT}\n\n---\n${text.slice(0, 12000)}` }] }],
+    body: JSON.stringify({ contents: [{ parts: [{ text: `${prompt}\n\n---\n${text.slice(0, maxIn)}` }] }],
       generationConfig: { responseMimeType: "application/json", temperature: 0.3 } }),
   });
   if (!r.ok) { const e = new Error(`gemini_http_${r.status}`); e.fallback = r.status === 429 || r.status >= 500; throw e; }
@@ -52,10 +52,10 @@ async function gemini(env, text, fetchImpl) {
   return j?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ?? "";
 }
 
-async function workersAi(env, text) {
+async function workersAi(env, text, prompt = PROMPT, maxIn = 6000, maxOut = 1200) {
   if (!env.AI) throw new Error("workers_ai_unbound");
   const out = await env.AI.run(env.WORKERS_AI_MODEL || "@cf/qwen/qwen3-30b-a3b-fp8", {
-    messages: [{ role: "system", content: `${PROMPT} /no_think` }, { role: "user", content: text.slice(0, 6000) }], max_tokens: 1200, temperature: 0.3 });
+    messages: [{ role: "system", content: `${prompt} /no_think` }, { role: "user", content: text.slice(0, maxIn) }], max_tokens: maxOut, temperature: 0.3 });
   if (typeof out?.response === "string") return out.response;
   if (out?.response && typeof out.response === "object") return JSON.stringify(out.response);
   return out?.choices?.[0]?.message?.content ?? "";
@@ -78,4 +78,18 @@ export async function summarize(env, text, { fetchImpl = fetch, nowMs = Date.now
     if (gemErr?.message === "insufficient_content") throw gemErr;
     throw err;
   }
+}
+
+// Generic JSON task (reader translate/summary, KB synthesis) with the same caps + Gemini -> Workers AI fallback.
+export async function generate(env, prompt, text, parse, { fetchImpl = fetch, nowMs = Date.now(), maxOut = 2000 } = {}) {
+  const c = caps(env); let gemErr = null;
+  const json = (t) => { const m = String(t ?? "").replace(/<think>[\s\S]*?(<\/think>|$)/gu, "").replace(/```(?:json)?/giu, "").match(/\{[\s\S]*\}/u); if (!m) throw new Error("ai_bad_output"); let j; try { j = JSON.parse(m[0]); } catch { throw new Error("ai_bad_output"); } if (j.error) throw new Error(String(j.error)); return parse(j); };
+  if (await reserve(env.DB, "gemini", c.gemini, nowMs)) {
+    try { return { ...json(await gemini(env, text, fetchImpl, prompt, 12000)), provider: "gemini" }; }
+    catch (err) { if (/^gemini_http_40[13]$/u.test(err.message)) throw err; gemErr = err; }
+  }
+  if (env.AI_FALLBACK_PROVIDER !== "workers-ai") throw gemErr ?? new Error("ai_daily_cap_reached");
+  if (!(await reserve(env.DB, "workers-ai", c["workers-ai"], nowMs))) throw gemErr?.message === "ai_bad_output" ? gemErr : new Error("ai_daily_cap_reached");
+  try { return { ...json(await workersAi(env, text, prompt, 6000, maxOut)), provider: "workers-ai" }; }
+  catch (err) { if (!/^(ai_bad_output|insufficient_content|workers_ai_unbound)$/u.test(err.message || "")) err = Object.assign(new Error("workers_ai_error"), { cause: err }); throw err; }
 }
