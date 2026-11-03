@@ -10,6 +10,8 @@ import {
   detectPlatformFromUrl,
   mergeEditableKeyClaims,
   normaliseSourceInput,
+  parseUrlBatch,
+  splitPasteTextBlocks,
   type EvidenceGrade,
   type SourceCollectionProvenance,
   type SourceLibrary,
@@ -181,7 +183,7 @@ type FetchedDraft = {
 };
 
 type FetchFailureCode = "invalid_url" | "unsafe_target" | "access_denied" | "timeout" | "not_html" | "no_article_body" | "not_article" | "too_many_redirects" | "response_too_large" | "fetch_failed" | "access_session_expired" | "companion_service_unavailable";
-type NoticeKey = "emptyBody" | "makeDraft" | "fetchSuccess" | "partialContent" | "accessSessionExpired" | "fetchUnavailable" | "fetchFailure" | "fetchAccessDenied" | "fetchTimeout" | "fetchNotHtml" | "fetchTooLarge" | "fetchNoBody" | "platformFallback" | "nonArticle" | "analysisUnavailable" | "analysisMissingKey" | "analysisAuthFailed" | "analysisPermissionDenied" | "analysisRegionUnsupported" | "analysisModelUnavailable" | "analysisModelUnavailableForAccount" | "analysisResourceNotFound" | "analysisRateLimited" | "analysisTimeout" | "analysisRefused" | "analysisIncomplete" | "analysisNoCandidate" | "analysisNoText" | "analysisInvalidJson" | "analysisSchema" | "analysisSchemaMismatch" | "analysisMapping" | "analysisSnapshotStale" | "analysisFailed" | "analysisEvidence" | "analysisTooLong" | "analysisSuccess" | "analysisMethodOmitted" | "backupImported" | "backupInvalid" | "researchImportAdded" | "researchImportUpdated" | "researchImportKept";
+type NoticeKey = "emptyBody" | "batchTooLarge" | "makeDraft" | "fetchSuccess" | "partialContent" | "accessSessionExpired" | "fetchUnavailable" | "fetchFailure" | "fetchAccessDenied" | "fetchTimeout" | "fetchNotHtml" | "fetchTooLarge" | "fetchNoBody" | "platformFallback" | "nonArticle" | "analysisUnavailable" | "analysisMissingKey" | "analysisAuthFailed" | "analysisPermissionDenied" | "analysisRegionUnsupported" | "analysisModelUnavailable" | "analysisModelUnavailableForAccount" | "analysisResourceNotFound" | "analysisRateLimited" | "analysisTimeout" | "analysisRefused" | "analysisIncomplete" | "analysisNoCandidate" | "analysisNoText" | "analysisInvalidJson" | "analysisSchema" | "analysisSchemaMismatch" | "analysisMapping" | "analysisSnapshotStale" | "analysisFailed" | "analysisEvidence" | "analysisTooLong" | "analysisSuccess" | "analysisMethodOmitted" | "backupImported" | "backupInvalid" | "researchImportAdded" | "researchImportUpdated" | "researchImportKept";
 
 function localDate() {
   const now = new Date();
@@ -878,8 +880,51 @@ export function SourceInboxWorkbench({
   };
 
   const createTextDraft = (value = inputValue, appendAsNew = false) => {
-    if (!value.trim()) {
-      showNotice("error", "emptyBody");
+    const split = splitPasteTextBlocks(value);
+    if (!split.ok) {
+      showNotice("error", split.reason === "over_cap" ? "batchTooLarge" : "emptyBody");
+      return;
+    }
+    if (split.blocks.length > 1) {
+      const now = new Date().toISOString();
+      const cards: MaterialCard[] = split.blocks.map((block, index) => {
+        const title = provisionalTitle(block);
+        const kind = detectInputKind(block);
+        const nextForm: WorkbenchFormState = {
+          ...EMPTY_FORM,
+          body: block,
+          sourceTitle: title,
+          capturedAt: now,
+          evidenceSource: "使用者貼上正文",
+          evidenceReference: title,
+          sourceKind: kind === "markdown" || kind === "srt" || kind === "vtt" ? kind : "paste_text",
+        };
+        return {
+          id: `material-${Date.now()}-${index}`,
+          input: block,
+          status: "captured",
+          title,
+          sourceUrl: "",
+          error: "",
+          form: nextForm,
+          reviewedFingerprint: null,
+          approvedFingerprint: null,
+          approvalSeal: null,
+          rejectedFingerprint: null,
+        };
+      });
+      const first = cards[0];
+      setInputValue(value);
+      setForm(first.form ?? EMPTY_FORM);
+      setMaterials((current) => appendAsNew ? [...current, ...cards] : cards);
+      setActiveMaterialId(first.id);
+      setDraftOrigin("manual");
+      setStage("draft");
+      setReviewedFingerprint(null);
+      setApprovedFingerprint(null);
+      setApprovalSeal(null);
+      setRejectedFingerprint(null);
+      showNotice("success", "makeDraft");
       return;
     }
     const now = new Date().toISOString();
@@ -1044,15 +1089,14 @@ export function SourceInboxWorkbench({
 
   const createUrlDraft = async (requestedUrl = inputValue, appendAsNew = false) => {
     if (isolatedPreview) return;
-    const urls = requestedUrl.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
-    if (urls.length === 0) {
-      showNotice("error", "fetchFailure");
+    const batch = parseUrlBatch(requestedUrl);
+    if (!batch.ok && batch.reason !== "not_url_batch") {
+      showNotice("error", batch.reason === "over_cap" ? "batchTooLarge" : "fetchFailure");
       return;
     }
-    if (urls.length > 5) {
-      showNotice("error", "fetchFailure");
-      return;
-    }
+    const urls = batch.ok
+      ? batch.urls
+      : requestedUrl.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
     setIsFetching(true);
     setNotice(null);
     setNoticeKey(null);
