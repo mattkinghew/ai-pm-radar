@@ -11,10 +11,14 @@ import {
   mergeEditableKeyClaims,
   normaliseSourceInput,
   parseSubtitle,
+  parseUrlBatch,
+  SOURCE_INBOX_MAX_BATCH,
+  splitPasteTextBlocks,
   validateSourceInput,
   validateSourceRecord,
   xAdapter,
 } from "../lib/source-inbox.ts";
+import { messages } from "../lib/i18n.ts";
 import {
   applyAIAnalysisDraft,
   canonicaliseAIAnalysisEvidence,
@@ -55,6 +59,98 @@ test("detects URL entry without discarding mixed text input", () => {
   assert.equal(detectSourceEntryMode("https://example.com/a\nhttps://example.com/b"), "url");
   assert.equal(detectSourceEntryMode("https://example.com/article\nA note to review"), "text");
   assert.equal(detectSourceEntryMode("A pasted source note."), "text");
+});
+
+test("splits pasted text on blank lines into separate draft blocks", () => {
+  const split = splitPasteTextBlocks("First post line\n\nSecond post\nstill second\n\n\nThird post");
+  assert.equal(split.ok, true);
+  if (!split.ok) return;
+  assert.deepEqual(split.blocks, ["First post line", "Second post\nstill second", "Third post"]);
+});
+
+test("splits pasted text on a line that is only ---", () => {
+  const split = splitPasteTextBlocks("Alpha\n---\nBeta\r\n  ---  \r\nGamma");
+  assert.equal(split.ok, true);
+  if (!split.ok) return;
+  assert.deepEqual(split.blocks, ["Alpha", "Beta", "Gamma"]);
+  const notARule = splitPasteTextBlocks("Alpha\n----\nBeta");
+  assert.equal(notARule.ok, true);
+  if (!notARule.ok) return;
+  assert.deepEqual(notARule.blocks, ["Alpha\n----\nBeta"]);
+});
+
+test("keeps a paste with no delimiter as one draft block", () => {
+  const split = splitPasteTextBlocks("  One note\nwith a single line break.  ");
+  assert.equal(split.ok, true);
+  if (!split.ok) return;
+  assert.deepEqual(split.blocks, ["One note\nwith a single line break."]);
+  assert.deepEqual(splitPasteTextBlocks(""), { ok: false, reason: "empty", blockCount: 0, maxBatch: SOURCE_INBOX_MAX_BATCH });
+  assert.deepEqual(splitPasteTextBlocks("---\n\n---"), { ok: false, reason: "empty", blockCount: 0, maxBatch: SOURCE_INBOX_MAX_BATCH });
+});
+
+test("rejects a paste over the batch cap without returning a truncated block list", () => {
+  const blocks = Array.from({ length: SOURCE_INBOX_MAX_BATCH + 1 }, (_, index) => `Post ${index + 1}`);
+  const over = splitPasteTextBlocks(blocks.join("\n---\n"));
+  assert.deepEqual(over, {
+    ok: false,
+    reason: "over_cap",
+    blockCount: SOURCE_INBOX_MAX_BATCH + 1,
+    maxBatch: SOURCE_INBOX_MAX_BATCH,
+  });
+  assert.equal("blocks" in over, false);
+
+  const atCap = splitPasteTextBlocks(blocks.slice(0, SOURCE_INBOX_MAX_BATCH).join("\n\n"));
+  assert.equal(atCap.ok, true);
+  if (!atCap.ok) return;
+  assert.equal(atCap.blocks.length, SOURCE_INBOX_MAX_BATCH);
+});
+
+test("raises the URL batch cap and still leaves mixed lines out of URL mode", () => {
+  const urls = Array.from({ length: 6 }, (_, index) => `https://example.com/item-${index + 1}`);
+  const accepted = parseUrlBatch(urls.join("\n"));
+  assert.equal(accepted.ok, true);
+  if (!accepted.ok) return;
+  assert.equal(accepted.urls.length, 6);
+  assert.equal(detectSourceEntryMode(urls.join("\n")), "url");
+
+  const tooMany = Array.from({ length: SOURCE_INBOX_MAX_BATCH + 1 }, (_, index) => `https://example.com/item-${index + 1}`);
+  const rejected = parseUrlBatch(tooMany.join("\n"));
+  assert.deepEqual(rejected, {
+    ok: false,
+    reason: "over_cap",
+    count: SOURCE_INBOX_MAX_BATCH + 1,
+    maxBatch: SOURCE_INBOX_MAX_BATCH,
+  });
+  assert.equal("urls" in rejected, false);
+
+  const mixed = "https://example.com/article\nA note to review";
+  assert.equal(detectSourceEntryMode(mixed), "text");
+  assert.deepEqual(parseUrlBatch(mixed), {
+    ok: false,
+    reason: "not_url_batch",
+    count: 2,
+    maxBatch: SOURCE_INBOX_MAX_BATCH,
+  });
+});
+
+test("source inbox copy tells the owner the batch cap and paste delimiters", () => {
+  const cap = String(SOURCE_INBOX_MAX_BATCH);
+  for (const locale of ["zh-Hant", "zh-en"] as const) {
+    const copy = messages[locale].sourceInbox;
+    assert.match(copy.maxBatch, new RegExp(cap));
+    assert.match(copy.maxBatch, /---/);
+    assert.match(copy.textInputHint, new RegExp(cap));
+    assert.match(copy.textInputHint, /---/);
+    assert.match(copy.urlInputHint, new RegExp(cap));
+    assert.match(copy.batchTooLarge, new RegExp(cap));
+    assert.match(messages[locale].home.quickCapturePlaceholder, new RegExp(cap));
+    assert.match(messages[locale].home.quickCapturePlaceholder, /---/);
+  }
+  assert.match(messages["zh-Hant"].sourceInbox.textInputHint, /空行/);
+  assert.match(messages["zh-Hant"].sourceInbox.optionalUrlHint, /不會自動套到每一則/);
+  assert.match(messages["zh-en"].sourceInbox.optionalUrlHint, /does not copy this URL/i);
+  assert.match(messages["zh-Hant"].sourceInbox.batchTooLarge, /沒有建立任何草稿/);
+  assert.match(messages["zh-en"].sourceInbox.maxBatch, /never auto-approved/i);
 });
 
 test("normalises manual URL and pasted text into the same SourceRecord contract", () => {

@@ -433,6 +433,9 @@ export function detectInputKind(value: string, fileName?: string): SourceInputKi
 
 export type SourceEntryMode = "url" | "text";
 
+/** Shared cap for one URL batch and one paste-text batch. Over the cap, create nothing. */
+export const SOURCE_INBOX_MAX_BATCH = 10;
+
 /**
  * Selects the initial collection mode without discarding mixed input.
  * A URL batch is only treated as URL input when every non-empty line is a
@@ -441,6 +444,58 @@ export type SourceEntryMode = "url" | "text";
 export function detectSourceEntryMode(value: string): SourceEntryMode {
   const entries = value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
   return entries.length > 0 && entries.every((entry) => isValidHttpUrl(entry)) ? "url" : "text";
+}
+
+export type PasteTextSplitResult =
+  | { ok: true; blocks: string[] }
+  | { ok: false; reason: "empty" | "over_cap"; blockCount: number; maxBatch: number };
+
+/**
+ * Split pasted text into draft blocks.
+ * A delimiter is one or more blank lines, or a line whose trimmed text is exactly `---`.
+ * Non-empty blocks keep their internal single newlines. No delimiter means one block.
+ * Over the cap returns an error and no block list, so callers cannot silently truncate.
+ */
+export function splitPasteTextBlocks(value: string, maxBatch = SOURCE_INBOX_MAX_BATCH): PasteTextSplitResult {
+  const lines = value.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+  const blocks: string[] = [];
+  let current: string[] = [];
+
+  const flush = () => {
+    const text = current.join("\n").trim();
+    current = [];
+    if (text) blocks.push(text);
+  };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed === "" || trimmed === "---") flush();
+    else current.push(line);
+  }
+  flush();
+
+  if (blocks.length === 0) return { ok: false, reason: "empty", blockCount: 0, maxBatch };
+  if (blocks.length > maxBatch) return { ok: false, reason: "over_cap", blockCount: blocks.length, maxBatch };
+  return { ok: true, blocks };
+}
+
+export type UrlBatchParseResult =
+  | { ok: true; urls: string[] }
+  | { ok: false; reason: "empty" | "over_cap" | "not_url_batch"; count: number; maxBatch: number };
+
+/**
+ * One HTTP(S) URL per non-empty line, capped like paste-text batches.
+ * Mixed non-URL lines are `not_url_batch` so the caller can keep text mode.
+ * Over the cap returns no URL list.
+ */
+export function parseUrlBatch(value: string, maxBatch = SOURCE_INBOX_MAX_BATCH): UrlBatchParseResult {
+  const entries = value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+  if (entries.length === 0) return { ok: false, reason: "empty", count: 0, maxBatch };
+  if (entries.length > maxBatch) return { ok: false, reason: "over_cap", count: entries.length, maxBatch };
+  if (!entries.every((entry) => isValidHttpUrl(entry))) {
+    return { ok: false, reason: "not_url_batch", count: entries.length, maxBatch };
+  }
+  return { ok: true, urls: entries };
 }
 
 function sourceTypeFor(kind: SourceInputKind): SourceType {
