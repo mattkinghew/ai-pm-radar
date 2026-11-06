@@ -22,3 +22,6 @@
 ## 推薦
 AI 整理時同一次呼叫多出 `reco_score`（0–10）同 `reco_reason`（繁中）——唔會多用 AI 次數。
 「今日」頁頂顯示「推薦給你」（reco ≥7，最多 5 篇）同「只睇推薦」篩選。
+
+## 物流署公開招標（未接入排程）
+`cloud/src/gld-tenders.mjs` 可解析 DATA.GOV.HK 物流署 e-Tender Box XML（`TenderNoticeList` / `TenderNoticeRecord`）。只留狀態為已發出（`I`）、主題命中數碼／AI 關鍵字、而且連結是 http(s) 的招標。以招標編號去重，每天最多 10 則，並回報被留下的筆數。查詢電話同電郵不會寫進草稿。每日 cron 尚未呼叫呢個解析器，亦未下載線上 XML。接入排程要另一次 Owner GO。

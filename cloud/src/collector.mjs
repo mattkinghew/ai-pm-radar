@@ -45,6 +45,7 @@ export const AI_UPDATE = "UPDATE items SET summary=?, key_points=?, score=?, ai_
 export const aiBind = (ai, original, now, id) => [ai.summary, JSON.stringify(ai.key_points), ai.score, ai.provider, ai.title_zh, original ?? "", ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, ai.side_income_new ?? 0, ai.side_income_reason ?? null, now, id];
 
 // Collect built-in + user RSS, then analyze every un-analyzed item of the day (incl. X posts ingested by Jun) within caps.
+// GLD e-Tender Box parsing lives in gld-tenders.mjs and is intentionally not called here until a separate Owner GO.
 export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = {}) {
   const day = hktDay(nowMs); const now = new Date(nowMs).toISOString(); const runId = crypto.randomUUID();
   const items = await collect(fetchImpl, await userFeeds(env.DB));
