@@ -17,6 +17,7 @@ import {
   type SourceLibrary,
   type SourceRecord,
 } from "@/lib/source-inbox";
+import { buildIntelNoteDraft, INTEL_NOTE_SOURCES, type IntelNoteFailure } from "@/lib/intel-note";
 import type { FeedItem } from "@/lib/source-feed";
 import type { ResearchMaterial } from "@/lib/research-runtime";
 import { SourceSubscriptions } from "@/components/SourceSubscriptions";
@@ -590,6 +591,12 @@ export function SourceInboxWorkbench({
   const copy = messages.sourceInbox;
   const [stage, setStage] = useState<Stage>("import");
   const [inputMode, setInputMode] = useState<InputMode>("url");
+  const [intelSourceId, setIntelSourceId] = useState(INTEL_NOTE_SOURCES[0].id);
+  const [intelTitle, setIntelTitle] = useState("");
+  const [intelUrl, setIntelUrl] = useState("");
+  const [intelNote, setIntelNote] = useState("");
+  const [intelUseCase, setIntelUseCase] = useState(INTEL_NOTE_SOURCES[0].useCase);
+  const [intelError, setIntelError] = useState<IntelNoteFailure | "saved" | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [form, setForm] = useState<WorkbenchFormState>(EMPTY_FORM);
   const [candidateDate, setCandidateDate] = useState("");
@@ -979,6 +986,60 @@ export function SourceInboxWorkbench({
     setApprovalSeal(null);
     setRejectedFingerprint(null);
     showNotice("success", "makeDraft");
+  };
+
+  const createIntelNote = () => {
+    const result = buildIntelNoteDraft({
+      sourceId: intelSourceId,
+      title: intelTitle,
+      url: intelUrl,
+      note: intelNote,
+      useCase: intelUseCase,
+    });
+    if (!result.ok) {
+      setIntelError(result.reason);
+      return;
+    }
+    const now = new Date().toISOString();
+    const nextForm: WorkbenchFormState = {
+      ...EMPTY_FORM,
+      body: result.draft.body,
+      sourceTitle: result.draft.title,
+      sourceUrl: result.draft.url ?? "",
+      originalUrl: result.draft.url ?? "",
+      finalUrl: result.draft.url ?? "",
+      creator: result.draft.sourceLabel,
+      capturedAt: now,
+      evidenceSource: result.draft.sourceLabel,
+      evidenceReference: result.draft.evidenceReference,
+      sourceKind: "paste_text",
+    };
+    const material: MaterialCard = {
+      id: `material-${Date.now()}`,
+      input: result.draft.title,
+      status: "captured",
+      title: nextForm.sourceTitle,
+      sourceUrl: nextForm.sourceUrl,
+      error: "",
+      form: nextForm,
+      reviewedFingerprint: null,
+      approvedFingerprint: null,
+      approvalSeal: null,
+      rejectedFingerprint: null,
+    };
+    setMaterials((current) => [...current, material]);
+    setForm(nextForm);
+    setActiveMaterialId(material.id);
+    setDraftOrigin("manual");
+    setStage("draft");
+    setReviewedFingerprint(null);
+    setApprovedFingerprint(null);
+    setApprovalSeal(null);
+    setRejectedFingerprint(null);
+    setIntelTitle("");
+    setIntelUrl("");
+    setIntelNote("");
+    setIntelError("saved");
   };
 
   const createFileDraft = (value: string, fileName: string, appendAsNew = false) => {
@@ -1563,6 +1624,7 @@ export function SourceInboxWorkbench({
       </section>
 
       {notice && noticeKey ? <div className={`workbench-notice notice-${notice}`} role="status">{copy[noticeKey]}</div> : null}
+      {intelError === "saved" ? <div className="workbench-notice notice-success" role="status">{copy.intelNote.saved}</div> : null}
       {importFileError ? <div className="workbench-notice notice-error" role="alert">{importFileError}</div> : null}
 
       {pendingResearchImport ? <div className="workbench-notice notice-info" role="status"><p>{copy.researchImportConflict}</p><div className="action-row"><button type="button" className="secondary-button" onClick={keepLocalResearchDraft}>{copy.keepLocalDraft}</button><button type="button" className="primary-button" onClick={usePendingResearchImport}>{copy.useBackgroundResult}</button></div></div> : null}
@@ -1584,6 +1646,29 @@ export function SourceInboxWorkbench({
           onSubmit={inputMode === "url" ? () => void createUrlDraft() : () => createTextDraft()}
           onImportFile={createFileDraft}
           onImportError={setImportFileError}
+        />
+      ) : null}
+
+      {stage === "import" && !isolatedPreview ? (
+        <IntelNotePanel
+          copy={copy.intelNote}
+          sourceId={intelSourceId}
+          title={intelTitle}
+          url={intelUrl}
+          note={intelNote}
+          useCase={intelUseCase}
+          error={intelError}
+          disabled={!isHydrated}
+          onSourceChange={(sourceId) => {
+            setIntelSourceId(sourceId);
+            setIntelUseCase(INTEL_NOTE_SOURCES.find((source) => source.id === sourceId)?.useCase ?? "");
+            setIntelError(null);
+          }}
+          onTitleChange={setIntelTitle}
+          onUrlChange={setIntelUrl}
+          onNoteChange={setIntelNote}
+          onUseCaseChange={setIntelUseCase}
+          onSubmit={createIntelNote}
         />
       ) : null}
 
@@ -1781,6 +1866,54 @@ function MaterialCards({ copy, materials, activeMaterialId, candidateDate, activ
       })}
     </div>
   </section>;
+}
+
+function IntelNotePanel({ copy, sourceId, title, url, note, useCase, error, disabled, onSourceChange, onTitleChange, onUrlChange, onNoteChange, onUseCaseChange, onSubmit }: {
+  copy: Messages["sourceInbox"]["intelNote"];
+  sourceId: string;
+  title: string;
+  url: string;
+  note: string;
+  useCase: string;
+  error: IntelNoteFailure | "saved" | null;
+  disabled: boolean;
+  onSourceChange: (sourceId: string) => void;
+  onTitleChange: (value: string) => void;
+  onUrlChange: (value: string) => void;
+  onNoteChange: (value: string) => void;
+  onUseCaseChange: (value: string) => void;
+  onSubmit: () => void;
+}) {
+  const bookmarks = INTEL_NOTE_SOURCES.filter((source) => source.bookmarkUrl);
+  const errorText = error && error !== "saved" ? copy[error === "unknown_source" ? "unknownSource" : error === "empty_title" ? "emptyTitle" : error === "empty_note" ? "emptyNote" : error === "bad_url" ? "badUrl" : "noteTooLong"] : null;
+  return (
+    <section className="workbench-section import-panel">
+      <div className="workbench-section-heading"><h2>{copy.title}</h2><p>{copy.hint}</p></div>
+      <label className="form-field" htmlFor="intel-source">
+        <FieldLabel label={copy.source} required />
+        <select id="intel-source" value={sourceId} disabled={disabled} onChange={(event) => onSourceChange(event.target.value)}>
+          {INTEL_NOTE_SOURCES.map((source) => <option key={source.id} value={source.id}>{source.label}</option>)}
+        </select>
+      </label>
+      <TextField id="intel-title" label={copy.itemTitle} value={title} onChange={onTitleChange} required disabled={disabled} />
+      <TextField id="intel-url" label={copy.url} value={url} onChange={onUrlChange} optional type="url" disabled={disabled} />
+      <TextAreaField id="intel-note" label={copy.note} value={note} onChange={onNoteChange} hint={copy.noteHint} required rows={5} disabled={disabled} />
+      <TextField id="intel-use" label={copy.useCase} value={useCase} onChange={onUseCaseChange} disabled={disabled} />
+      {errorText ? <p className="workbench-notice notice-error" role="alert">{errorText}</p> : null}
+      <p className="field-hint">{copy.policy}</p>
+      <div className="field-hint">
+        <strong>{copy.bookmarks}</strong>
+        <ul>
+          {bookmarks.map((source) => (
+            <li key={source.id}><a href={source.bookmarkUrl ?? undefined} target="_blank" rel="noreferrer noopener">{source.label}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div className="stage-actions">
+        <button type="button" className="primary-button" disabled={disabled || !title.trim() || !note.trim()} onClick={onSubmit}>{copy.save}</button>
+      </div>
+    </section>
+  );
 }
 
 function ImportPanel({ copy, mode, value, sourceUrl, isFetching, isHydrated, onModeChange, onValueChange, onSourceUrlChange, onSubmit, onImportFile, onImportError }: {
