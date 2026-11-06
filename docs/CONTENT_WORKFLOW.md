@@ -103,10 +103,11 @@ GEMINI_MODEL=gemini-3.5-flash-lite
 操作順序：
 
 1. 在「匯入素材」選擇「貼連結」或「貼正文」。URL 模式一行一個連結，按「讀取連結並建立草稿」。正文模式按「整理成草稿」；多則貼文用空行，或單獨一行的 `---` 分開，每批最多 10 則。超過上限不會建立部分草稿。每一則仍要各自人工審核，不會自動批准。選填的單一 URL 只留在未分隔的一則草稿上；分開的多則不會共用該 URL。
-2. 草稿會保留原始 URL、最終 URL、擷取時間與正文。URL 擷取取得的標題／作者／日期仍須人工核對；取不到的 metadata 保持未知，不會用網域冒充出版者。
-3. 在正文段落清單直接選取原文摘錄作 evidence；這是規則預填，不是 AI 摘要。再展開人工分析與 daily candidate 欄位，補齊必要欄位。
-4. 按「下一步：進入批准與下載」進入第三階段；先「完成核對並標記已審核」，再按「批准並下載候選檔」。兩個動作分開；批准不代表事實 `verified`。
-5. candidate 通過既有 gate 後下載 daily candidate JSON；同時下載 SourceRecord 備份以保留全文、evidence、原始／最終 URL 與 provenance。
+2. 「情報筆記」只收 MKT1、Growth Unhinged、Lenny's Newsletter、HKPC、Lemlist 的標題、可選 URL，以及你自己的筆記（最多 2000 字）。它不讀郵箱、不抓網頁，草稿維持未批准。HKPC 與 Lemlist 的官方頁只是書籤。
+3. 草稿會保留原始 URL、最終 URL、擷取時間與正文。URL 擷取取得的標題／作者／日期仍須人工核對；取不到的 metadata 保持未知，不會用網域冒充出版者。
+4. 在正文段落清單直接選取原文摘錄作 evidence；這是規則預填，不是 AI 摘要。再展開人工分析與 daily candidate 欄位，補齊必要欄位。
+5. 按「下一步：進入批准與下載」進入第三階段；先「完成核對並標記已審核」，再按「批准並下載候選檔」。兩個動作分開；批准不代表事實 `verified`。
+6. candidate 通過既有 gate 後下載 daily candidate JSON；同時下載 SourceRecord 備份以保留全文、evidence、原始／最終 URL 與 provenance。
 
 工作台使用現有 `normaliseSourceInput`、`applyManualEnrichment`、`applyManualReview`、`buildDailyCandidate`；URL 擷取與 AI 分析都只由本機 companion helper 執行。AI 分析不會在素材取得時自動觸發；使用者明確按下後才送出正文，並受輸入字數、有限重試、timeout 與輸出上限約束。模型沒有工具權限，來源文字只視為不可信資料。Gemini 回應會映射到既有 AI draft schema，再核對每個 evidence `text_reference` 是否存在於原文；輸出格式、模型拒絕、provider HTTP、認證、逾時與 evidence 失敗會分開回報，且不放寬驗證。瀏覽器只建立下載檔，不會寫入 `data/daily/`。Candidate 檔名與 SourceRecord 檔名共用日期與 `SourceRecord.id`，daily JSON 則沿用既有欄位，不新增 provenance 欄位。
 
