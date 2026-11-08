@@ -12,7 +12,7 @@ const dupLi = (x) => `<li>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel
 const dupList = (it) => { const d = it.dup_sources || []; if (!d.length) return "";
   const head = `<p class="dups-h">同一件事亦見於 ${d.length} 個來源：</p>`;
   return d.length > 3 ? `<details class="dups"><summary>同一件事亦見於 ${d.length} 個來源</summary><ul>${d.map(dupLi).join("")}</ul></details>` : `<div class="dups">${head}<ul>${d.map(dupLi).join("")}</ul></div>`; };
-const PV = { gemini: "Gemini", "workers-ai": "Workers AI" };
+const PV = { gemini: "Gemini", "workers-ai": "Workers AI", extractive: "摘錄" };
 const ul = (a) => (a || []).length ? "<ul>" + a.map((k) => `<li>${esc(k)}</li>`).join("") + "</ul>" : "";
 function body(it) {
   const zhT = it.title_zh || it.title, orT = it.title_original || it.title, zhS = it.summary || "（未有 AI 摘要，可撳「轉中文」）";
@@ -56,7 +56,7 @@ ${picks.length ? `<section class="picks" aria-label="推薦給你"><h2>推薦給
 }
 async function bindSources() {
   const listEl = document.getElementById("src-list"); const msg = document.getElementById("src-msg");
-  const render = async () => { const { sources } = await api("/api/sources");
+  const render = async () => { const { sources } = await api("/api/sources?include_disabled=1");
     listEl.innerHTML = sources.length ? sources.map((s) => `<div class="src ${s.enabled ? "" : "off"}"><span class="tag">${s.type === "x" ? "X" : "RSS"}</span><div class="grow"><b>${esc(s.label || s.value)}</b><div class="meta">${esc(s.value)}</div></div>
 <button class="sec" data-src="toggle" data-id="${s.id}" data-on="${s.enabled}" aria-pressed="${!!s.enabled}">${s.enabled ? "停用" : "啟用"}</button><button class="rej" data-src="del" data-id="${s.id}">刪除</button></div>`).join("")
       : "<p class='meta'>未有自訂訊息源。內建：OpenAI、Anthropic、TechCrunch AI、Coursera、Hugging Face、Hacker News。</p>"; };
@@ -102,7 +102,7 @@ view.addEventListener("click", async (ev) => {
   refreshCap();
   show(document.querySelector("nav button.on").dataset.tab); });
 document.querySelector("nav").addEventListener("click", (ev) => { const t = ev.target.dataset.tab; if (t) show(t); });
-function refreshCap() { api("/api/cloud/capabilities").then((c) => { const u = c.ai.usage; document.getElementById("cap").textContent = `Gemini ${u.gemini.used}/${u.gemini.cap}` + (u.workersAi.cap ? ` · Workers AI ${u.workersAi.used}/${u.workersAi.cap}` : ""); }).catch(() => {}); }
+function refreshCap() { api("/api/cloud/capabilities").then((c) => { const u = c.ai.usage; const providers = [u.gemini, u.workersAi].filter((x) => x.cap > 0); const reserve = providers.map((x, i) => `${i ? "Workers AI" : "Gemini"} ${x.manualReserveRemaining}`).join(" / "); document.getElementById("cap").textContent = `自動分析 ${u.auto.used}/${u.auto.cap}（餘 ${u.auto.remaining}） · 手動整理保留 ${reserve}`; }).catch(() => {}); }
 document.getElementById("lang").addEventListener("click", (ev) => { const l = ev.target.dataset.lang; if (!l) return; lang = l; localStorage.setItem("radar-lang", l);
   document.querySelectorAll("#lang button").forEach((x) => x.classList.toggle("on", x.dataset.lang === l)); const t = document.querySelector("nav button.on").dataset.tab; if (t !== "capture") show(t); });
 document.querySelectorAll("#lang button").forEach((x) => x.classList.toggle("on", x.dataset.lang === lang));

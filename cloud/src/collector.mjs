@@ -1,5 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
-import { summarize, hktDay } from "./ai.mjs";
+import { summarize, hktDay, reserveAutoItem } from "./ai.mjs";
 import { normalizeUrl } from "./curation.mjs";
 
 export const FEEDS = [
@@ -51,7 +51,7 @@ export async function collect(fetchImpl = fetch, extra = []) {
 export const AI_UPDATE = "UPDATE items SET summary=?, key_points=?, score=?, ai_provider=?, title_zh=?, title_original=COALESCE(NULLIF(?,''), title_original, title), summary_en=?, key_points_en=?, reco_score=?, reco_reason=?, side_income_new=?, side_income_reason=?, score_reason=?, updated_at=? WHERE id=?";
 export const aiBind = (ai, original, now, id) => [ai.summary, JSON.stringify(ai.key_points), ai.score, ai.provider, ai.title_zh, original ?? "", ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, ai.side_income_new ?? 0, ai.side_income_reason ?? null, ai.score_reason ?? null, now, id];
 
-// Collect built-in + user RSS, then analyze every un-analyzed item of the day (incl. X posts ingested by Jun) within caps.
+// Collect built-in + user RSS, then analyze only a small, topic-matched subset.
 export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = {}) {
   const day = hktDay(nowMs); const now = new Date(nowMs).toISOString(); const runId = crypto.randomUUID();
   const items = await collect(fetchImpl, await userFeeds(env.DB));
@@ -70,18 +70,34 @@ export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = 
 }
 
 export async function analyzePending(env, { fetchImpl = fetch, nowMs = Date.now(), day = hktDay(nowMs), limit = 120 } = {}) {
-  const now = new Date(nowMs).toISOString(); let analyzed = 0, error = null;
+  const now = new Date(nowMs).toISOString(); let analyzed = 0, error = null; let llmItems = 0;
+  const autoLimit = Number(env.AI_AUTO_ANALYZE_LIMIT || 5);
   const rows = (await env.DB.prepare("SELECT id,title,url,raw_excerpt FROM items WHERE kind='daily' AND run_date=? AND ai_provider IS NULL ORDER BY created_at LIMIT ?").bind(day, limit).all()).results || [];
   for (const it of rows) {
+    const text = `${it.title || ""}\n${it.raw_excerpt || ""}`;
+    const han = (text.match(/\p{Script=Han}/gu) || []).length;
+    if (text.length < 400 && text.length > 0 && han / text.length >= 0.25) {
+      const summary = text.replace(/\s+/gu, " ").trim().slice(0, 150);
+      await env.DB.prepare("UPDATE items SET summary=?, key_points='[]', score=0, ai_provider='extractive', title_zh=title, title_original=COALESCE(NULLIF(title_original,''),title), summary_en=NULL, key_points_en='[]', reco_score=NULL, reco_reason=NULL, side_income_new=0, side_income_reason=NULL, score_reason=NULL, updated_at=? WHERE id=? AND ai_provider IS NULL")
+        .bind(summary, now, it.id).run();
+      analyzed++; continue;
+    }
+    if (/(羊毛|web3|短劇|政治|地緣政治|情報|intelligence|politics|political|\bintel\b|數據中心|data[ -]?cent(?:er|re))/iu.test(text) || !/(一人公司|solopreneur|indie\b|低成本|變現|副業|訊息差|frontend|react|css|學習|工具|定價|workflow|consultant)/iu.test(text)) continue;
+    if (llmItems >= autoLimit) { error ||= "auto_limit_reached"; break; }
+    let autoSlot = false;
     try {
-      const ai = await summarize(env, `${it.title}\n${it.url}\n${it.raw_excerpt || ""}`, { fetchImpl, nowMs });
+      const ai = await summarize(env, `${it.title}\n${it.url}\n${it.raw_excerpt || ""}`, { fetchImpl, nowMs, quota: "auto", beforeModel: async () => {
+        if (autoSlot) return;
+        if (!(await reserveAutoItem(env.DB, autoLimit, nowMs))) throw new Error("ai_daily_cap_reached");
+        autoSlot = true;
+      } });
+      if (autoSlot) llmItems++;
       await env.DB.prepare(AI_UPDATE).bind(...aiBind(ai, it.title, now, it.id)).run(); analyzed++;
     } catch (e) {
       if (e.message === "ai_daily_cap_reached") { error = "cap_reached"; break; }
+      if (autoSlot) llmItems++;
       if (e.message === "insufficient_content") {
-        await env.DB.prepare("UPDATE items SET summary=?, score=0, reco_score=0, reco_reason=?, ai_provider='skipped', updated_at=? WHERE id=? AND ai_provider IS NULL")
-          .bind("（內容過短，未能自動摘要；可撳「轉中文」或用「＋擷取」貼完整正文）", "內容過短未能評估", now, it.id).run();
-        analyzed++;
+        // Preserve the owner-facing retry path; this item consumed no successful summary.
       }
     }
   }

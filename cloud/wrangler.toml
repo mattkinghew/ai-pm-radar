@@ -35,4 +35,7 @@ AI_FALLBACK_PROVIDER = "workers-ai" # none | workers-ai
 WORKERS_AI_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8" # 4625 neurons/M in, 30475/M out (pricing page 2026-10-20)
 WORKERS_AI_DAILY_CAP = "100" # worst case ~55 neurons/call -> ~5.5k of 10k free neurons/day
 AI_DAILY_CAP = "10"
+AI_MANUAL_RESERVE_GEMINI = "5"
+AI_MANUAL_RESERVE_WORKERS = "20"
+AI_AUTO_ANALYZE_LIMIT = "5"
 # Secrets (wrangler secret put): GEMINI_API_KEY

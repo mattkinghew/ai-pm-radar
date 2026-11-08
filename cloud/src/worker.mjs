@@ -41,12 +41,14 @@ async function ingestX(request, env) {
   const body = await request.json().catch(() => null);
   const posts = Array.isArray(body) ? body : body?.posts;
   if (!Array.isArray(posts) || posts.length > 200) return json({ error: "bad_batch", hint: "posts: array (<=200)" }, 400);
-  const now = new Date().toISOString(); const day = hktDay(); let inserted = 0, duplicate = 0; const rejected = [];
+  const enabled = new Set((await env.DB.prepare("SELECT value FROM sources WHERE type='x' AND enabled=1").all()).results.map((r) => String(r.value).replace(/^@/u, "").toLowerCase()));
+  const now = new Date().toISOString(); const day = hktDay(); let inserted = 0, duplicate = 0, skipped_disabled = 0; const rejected = [], disabled_handles = [];
   for (const [i, p] of posts.entries()) {
     const hm = String(p?.handle ?? "").match(HANDLE); const pid = String(p?.post_id ?? "");
     const text = String(p?.text ?? "").trim();
     if (!hm || !/^\d{1,25}$/u.test(pid) || !text) { rejected.push(i); continue; }
     const handle = hm[1]; const url = /^https:\/\/(x|twitter)\.com\//u.test(p.url || "") ? p.url : `https://x.com/${handle}/status/${pid}`;
+    if (!enabled.has(handle.toLowerCase())) { skipped_disabled++; disabled_handles.push({ index: i, handle: `@${handle}` }); continue; }
     const title = text.replace(/\s+/gu, " ").slice(0, 140);
     const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,url,url_norm,source,category,raw_excerpt,run_date,external_id,metrics,created_at,updated_at)
       VALUES(?, 'daily', 'draft', ?, ?, ?, ?, 'X_POST', ?, ?, ?, ?, ?, ?)`)
@@ -54,7 +56,7 @@ async function ingestX(request, env) {
         /^\d{4}-\d{2}-\d{2}T/u.test(p.created_at || "") ? p.created_at : now, now).run();
     res.meta?.changes > 0 ? inserted++ : duplicate++;
   }
-  return json({ inserted, duplicate, rejected, note: "AI 分析會喺下次每日排程（或 /api/analyze）按額度處理" });
+  return json({ inserted, duplicate, skipped_disabled, disabled_handles, rejected, note: "AI 分析會喺下次每日排程（或 /api/analyze）按額度處理" });
 }
 const aiErr = (e) => { const code = /^[a-z0-9_]+$/u.test(e.message || "") ? e.message : "ai_error"; console.log(JSON.stringify({ ai_error: code, cause: e.cause?.message?.slice(0, 200) }));
   return json({ error: code, detail: code }, code === "ai_daily_cap_reached" ? 429 : code === "insufficient_content" ? 422 : 502); };
@@ -71,7 +73,7 @@ export async function handle(request, env, deps = {}) {
     // Machine path: only ingest + read sources; never falls through to owner routes.
     if (!BEARER_ROUTES(url, request.method) || !(await bearerOk(request, env))) return json({ error: "unauthorized" }, 401);
     if (url.pathname === "/api/ingest/x") return ingestX(request, env);
-    return listSources(env.DB, url);
+    return listSources(env.DB, url, false);
   }
   const owner = await verifyCloudflareAccessOwner(request, env, { fetchImpl: deps.authFetch ?? authFetch(env), nowMs: deps.nowMs });
   if (!owner) return url.pathname.startsWith("/api/") ? json({ error: "unauthorized" }, 401) : new Response("Unauthorized", { status: 401, headers: SEC });
@@ -80,10 +82,10 @@ export async function handle(request, env, deps = {}) {
   const p1 = await handleP1(request, env, deps, url, m, db, now); if (p1) return p1;
 
   if (url.pathname === "/api/cloud/capabilities" && m === "GET") {
-    return json({ backend: "cloudflare", d1: !!db, ai: { gemini: !!env.GEMINI_API_KEY, fallback: env.AI_FALLBACK_PROVIDER || "none", dailyCap: Number(env.AI_DAILY_CAP || 10), usage: await usage(env) }, cron: "0 0 * * * (08:00 HKT)", humanReviewRequired: true });
+    return json({ backend: "cloudflare", d1: !!db, ai: { gemini: !!env.GEMINI_API_KEY, fallback: env.AI_FALLBACK_PROVIDER || "none", dailyCap: Number(env.AI_DAILY_CAP || 10), autoAnalyzeLimit: Number(env.AI_AUTO_ANALYZE_LIMIT || 5), usage: await usage(env) }, cron: "0 0 * * * (08:00 HKT)", humanReviewRequired: true });
   }
-  if (url.pathname === "/api/sources" && m === "GET") return listSources(db, url);
-  if (url.pathname === "/api/analyze" && m === "POST") return json(await analyzePending(env, { fetchImpl: deps.fetchImpl ?? fetch, limit: 20 }));
+  if (url.pathname === "/api/sources" && m === "GET") return listSources(db, url, true);
+  if (url.pathname === "/api/analyze" && m === "POST") return json(await analyzePending(env, { fetchImpl: deps.fetchImpl ?? fetch, limit: 120 }));
   if (url.pathname === "/api/sources" && m === "POST") {
     const b = await request.json().catch(() => ({})); const type = b?.type; let value = String(b?.value ?? "").trim();
     if (type === "rss") { if (!/^https:\/\/[^\s]+$/u.test(value)) return json({ error: "bad_source", hint: "RSS 需為 https:// 網址" }, 400); }
@@ -217,9 +219,15 @@ export async function handle(request, env, deps = {}) {
   return json({ error: "api_route_not_found" }, 404);
 }
 
-async function listSources(db, url) {
+async function listSources(db, url, owner = false) {
   const t = url.searchParams.get("type"); if (t && !["rss", "x"].includes(t)) return json({ error: "bad_type" }, 400);
-  const q = t ? db.prepare(`SELECT ${SRC} FROM sources WHERE type=? ORDER BY created_at`).bind(t) : db.prepare(`SELECT ${SRC} FROM sources ORDER BY type, created_at`);
+  const includeDisabled = owner && url.searchParams.get("include_disabled") === "1";
+  const enabled = url.searchParams.get("enabled");
+  const where = [], args = [];
+  if (t) { where.push("type=?"); args.push(t); }
+  if (enabled === "0" && owner) { where.push("enabled=0"); }
+  else if (!includeDisabled || enabled === "1") where.push("enabled=1");
+  const q = db.prepare(`SELECT ${SRC} FROM sources ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY type, created_at`).bind(...args);
   return json({ sources: (await q.all()).results });
 }
 

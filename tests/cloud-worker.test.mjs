@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { handle } from "../cloud/src/worker.mjs";
-import { runDaily, parseFeed } from "../cloud/src/collector.mjs";
+import { runDaily, analyzePending, parseFeed } from "../cloud/src/collector.mjs";
+import { usage, generate } from "../cloud/src/ai.mjs";
 import { fakeD1, accessKit, TEAM, AUD, ownerHash } from "./helpers/cloud-fakes.mjs";
 
 const kit = accessKit();
@@ -12,6 +13,7 @@ function mkEnv(over = {}) {
 }
 const req = (path, { token = kit.token(), ...o } = {}) => new Request("https://radar.example" + path, { ...o, headers: { ...(token ? { "Cf-Access-Jwt-Assertion": token } : {}), ...(o.headers || {}) } });
 const AI = { title: "T", summary: "摘要", key_points: ["a", "b", "c"], score: 8 };
+const LONG_TEXT = "This English article describes a product workflow, market research, and practical implementation lessons for a small team. ".repeat(5);
 
 test("deny by default: no JWT, bad aud, wrong owner, unconfigured", async () => {
   const env = mkEnv();
@@ -24,7 +26,7 @@ test("deny by default: no JWT, bad aud, wrong owner, unconfigured", async () => 
 
 test("capture -> draft -> review -> approve; approve before review rejected", async () => {
   const env = mkEnv(); const d = { authFetch, fetchImpl: gemOk(AI) };
-  const r = await handle(req("/api/capture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "長文".repeat(60) }) }), env, d);
+  const r = await handle(req("/api/capture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: LONG_TEXT }) }), env, d);
   assert.equal(r.status, 201); const { id, status } = await r.json(); assert.equal(status, "draft");
   assert.equal((await handle(req(`/api/library?status=approved`), env, d).then((x) => x.json())).items.length, 0);
   assert.equal((await handle(req(`/api/items/${id}/approve`, { method: "POST" }), env, d)).status, 409);
@@ -43,7 +45,7 @@ test("capture rejects thin content without calling AI", async () => {
 test("fallback to Workers AI on Gemini 429 only when enabled; not on 403", async () => {
   const fail = (s) => async () => new Response("x", { status: s });
   const ai = { run: async () => ({ response: JSON.stringify(AI) }) };
-  const body = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "內容".repeat(60) }) };
+  const body = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: LONG_TEXT }) };
   const r1 = await handle(req("/api/capture", body), mkEnv({ AI: ai, AI_FALLBACK_PROVIDER: "workers-ai" }), { authFetch, fetchImpl: fail(429) });
   assert.equal(r1.status, 201); assert.equal((await r1.json()).provider, "workers-ai");
   const r2 = await handle(req("/api/capture", body), mkEnv({ AI: ai, AI_FALLBACK_PROVIDER: "workers-ai" }), { authFetch, fetchImpl: fail(403) });
@@ -52,10 +54,10 @@ test("fallback to Workers AI on Gemini 429 only when enabled; not on 403", async
 
 const RSS = `<?xml version="1.0"?><rss><channel>${Array.from({ length: 8 }, (_, i) => `<item><title>News ${i}</title><link>https://ex.test/${i}</link><description>d${i}</description></item>`).join("")}</channel></rss>`;
 test("cron runDaily collects feeds, dedupes, and respects daily AI cap", async () => {
-  const env = mkEnv({ AI_DAILY_CAP: "3" });
+  const env = mkEnv({ AI_DAILY_CAP: "3", AI_MANUAL_RESERVE_GEMINI: "0", AI_MANUAL_RESERVE_WORKERS: "0", AI_AUTO_ANALYZE_LIMIT: "5" });
   const f = async (u) => String(u).includes("generativelanguage") ? gemOk(AI)(u) : String(u).includes("algolia") ? new Response(JSON.stringify({ hits: [] })) : new Response(RSS);
   const r = await runDaily(env, { fetchImpl: f });
-  assert.equal(r.collected, 5); assert.equal(r.analyzed, 3); assert.equal(r.error, "cap_reached");
+  assert.equal(r.collected, 5); assert.equal(r.analyzed, 0); assert.equal(r.error, null);
   const again = await runDaily(env, { fetchImpl: f }); assert.equal(again.collected, 0);
   assert.equal(parseFeed(RSS, { id: "x", category: "C" }).length, 5);
 });
@@ -68,7 +70,7 @@ test("unknown api route 404, bad status 400", async () => {
 
 const BI = { title_original: "OpenAI ships X", title_zh: "OpenAI 推出 X", summary: "中文摘要", summary_en: "English summary", key_points_zh: ["甲", "乙", "丙"], key_points_en: ["a", "b", "c"], score: 7 };
 const wai = (calls = { n: 0 }) => ({ run: async (model, input) => { calls.n++; calls.model = model; return { response: JSON.stringify(BI) }; } });
-const capBody = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "內容".repeat(60) }) };
+const capBody = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: LONG_TEXT }) };
 
 test("bilingual output stored and returned", async () => {
   const env = mkEnv(); const d = { authFetch, fetchImpl: gemOk(BI) };
@@ -79,13 +81,13 @@ test("bilingual output stored and returned", async () => {
   assert.deepEqual(it.key_points, ["甲", "乙", "丙"]); assert.deepEqual(it.key_points_en, ["a", "b", "c"]); assert.equal(it.summary_en, "English summary");
 });
 
-test("Gemini cap reached -> Workers AI overflow under its own cap; usage per provider", async () => {
+test("Gemini cap reached is not a retryable failure, so it does not fall back", async () => {
   const calls = { n: 0 }; const env = mkEnv({ AI_DAILY_CAP: "1", WORKERS_AI_DAILY_CAP: "2", AI_FALLBACK_PROVIDER: "workers-ai", AI: wai(calls), WORKERS_AI_MODEL: "@cf/qwen/qwen3-30b-a3b-fp8" });
   const d = { authFetch, fetchImpl: gemOk(BI) }; const prov = [];
   for (let i = 0; i < 4; i++) { const r = await handle(req("/api/capture", capBody), env, d); prov.push(r.status === 201 ? (await r.json()).provider : r.status); }
-  assert.deepEqual(prov, ["gemini", "workers-ai", "workers-ai", 429]); assert.equal(calls.model, "@cf/qwen/qwen3-30b-a3b-fp8");
+  assert.deepEqual(prov, ["gemini", 429, 429, 429]); assert.equal(calls.n, 0);
   const c = await handle(req("/api/cloud/capabilities"), env, d).then((x) => x.json());
-  assert.deepEqual([c.ai.usage.gemini.used, c.ai.usage.gemini.cap, c.ai.usage.workersAi.used, c.ai.usage.workersAi.cap], [1, 1, 2, 2]);
+  assert.deepEqual([c.ai.usage.gemini.used, c.ai.usage.gemini.cap, c.ai.usage.workersAi.used, c.ai.usage.workersAi.cap], [1, 1, 0, 2]);
 });
 
 test("Gemini 5xx falls back; 403 does not; fallback disabled means no Workers AI", async () => {
@@ -111,19 +113,58 @@ test("parseAiJson strips ```json fences and Qwen <think> blocks", () => {
   assert.equal(parseAiJson("<think>hmm {x}</think>\n```json\n" + JSON.stringify(BI) + "\n```").title_zh, "OpenAI 推出 X");
   assert.throws(() => parseAiJson("<think>unterminated"), /ai_bad_output/);
 });
-test("轉中文: Gemini bad output / insufficient -> Workers AI once; friendly codes", async () => {
+test("Gemini insufficient content and bad output do not fall back; retries only on retryable errors", async () => {
   const gem = (t) => async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: t }] } }] }));
-  const on = { AI: wai(), AI_FALLBACK_PROVIDER: "workers-ai" };
+  const calls = { n: 0 }; const on = { AI: wai(calls), AI_FALLBACK_PROVIDER: "workers-ai" };
   for (const t of ["not json", '{"error":"insufficient_content"}']) {
     const r = await handle(req("/api/capture", capBody), mkEnv(on), { authFetch, fetchImpl: gem(t) });
-    assert.equal(r.status, 201); assert.equal((await r.json()).provider, "workers-ai");
+    assert.equal(r.status, t === "not json" ? 502 : 422); assert.equal(calls.n, 0);
   }
   const bad = { AI: { run: async () => ({ response: '{"error":"insufficient_content"}' }) }, AI_FALLBACK_PROVIDER: "workers-ai" };
   const r = await handle(req("/api/capture", capBody), mkEnv(bad), { authFetch, fetchImpl: gem('{"error":"insufficient_content"}') });
   assert.equal(r.status, 422); assert.equal((await r.json()).error, "insufficient_content");
   const boom = { AI: { run: async () => { throw new Error("3040: capacity"); } }, AI_FALLBACK_PROVIDER: "workers-ai" };
   const r2 = await handle(req("/api/capture", capBody), mkEnv(boom), { authFetch, fetchImpl: gem("nope") });
-  assert.equal(r2.status, 502); assert.equal((await r2.json()).error, "workers_ai_error");
+  assert.equal(r2.status, 502); assert.equal((await r2.json()).error, "ai_bad_output");
+  const gCalls = { n: 0 }; const gEnv = mkEnv({ AI_FALLBACK_PROVIDER: "workers-ai", AI: { run: async () => { gCalls.n++; return { response: "{}" }; } } });
+  await assert.rejects(generate(gEnv, "task", LONG_TEXT, (x) => x, { fetchImpl: gem('{"error":"insufficient_content"}') }), /insufficient_content/u);
+  assert.equal(gCalls.n, 0); assert.equal((await usage(gEnv)).gemini.used, 0);
+});
+
+test("failed reserved calls refund usage, including Gemini 403", async () => {
+  const env = mkEnv({ AI_FALLBACK_PROVIDER: "workers-ai", AI: { run: async () => ({ response: JSON.stringify(BI) }) } });
+  const bad = async () => new Response("bad", { status: 403 });
+  const r = await handle(req("/api/capture", capBody), env, { authFetch, fetchImpl: bad }); assert.equal(r.status, 502);
+  const u = await usage(env); assert.equal(u.gemini.used, 0); assert.equal(u.gemini.manualReserveRemaining, 5);
+});
+
+test("short Chinese capture is extractive and consumes no model quota", async () => {
+  let called = false; const env = mkEnv();
+  const r = await handle(req("/api/capture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "值得收藏：用 React 和 CSS 快速製作一人公司產品頁，先驗證需求再投入成本。".repeat(3) }) }), env,
+    { authFetch, fetchImpl: async () => { called = true; } });
+  assert.equal(r.status, 201); assert.equal(called, false); const { id, provider } = await r.json(); assert.equal(provider, "extractive");
+  const item = (await handle(req(`/api/items/${id}`), env, { authFetch }).then((x) => x.json())).item;
+  assert.equal(item.ai_provider, "extractive"); assert.ok(item.title_zh); assert.equal((await usage(env)).gemini.used, 0);
+});
+
+test("auto analysis preserves manual floor and respects daily item limit", async () => {
+  const env = mkEnv({ AI_DAILY_CAP: "3", AI_MANUAL_RESERVE_GEMINI: "1", AI_AUTO_ANALYZE_LIMIT: "2" });
+  const nowMs = Date.now(), day = new Date(nowMs + 8 * 3600_000).toISOString().slice(0, 10), now = new Date(nowMs).toISOString();
+  const shortId = crypto.randomUUID();
+  await env.DB.prepare("INSERT INTO items(id,kind,status,title,url,raw_excerpt,run_date,created_at,updated_at) VALUES(?, 'daily','draft',?,?,?, ?,?,?)")
+    .bind(shortId, "React 學習工作流", "https://example.test/short", "一人公司可以用低成本工具快速驗證產品想法並記錄實作步驟。", day, now, now).run();
+  for (let i = 0; i < 4; i++) await env.DB.prepare("INSERT INTO items(id,kind,status,title,url,raw_excerpt,run_date,created_at,updated_at) VALUES(?, 'daily','draft',?,?,?, ?,?,?)")
+    .bind(crypto.randomUUID(), `React workflow for solopreneur ${i}`, `https://example.test/${i}`, "A low cost workflow and pricing experiment for an indie consultant. This is a useful product learning note.", day, now, now).run();
+  let calls = 0;
+  const fetchImpl = async () => { calls++; return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(BI) }] } }] })); };
+  const run = await analyzePending(env, { fetchImpl, nowMs }); assert.equal(run.analyzed, 3); assert.equal(calls, 2);
+  const u = await usage(env); assert.equal(u.gemini.used, 2); assert.equal(u.gemini.autoUsed, 2); assert.equal(u.auto.used, 2);
+  assert.equal((await env.DB.prepare("SELECT ai_provider FROM items WHERE id=?").bind(shortId).first()).ai_provider, "extractive");
+  const pending = await env.DB.prepare("SELECT COUNT(*) n FROM items WHERE ai_provider IS NULL").first(); assert.equal(pending.n, 2);
+  const capBody2 = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: LONG_TEXT }) };
+  const manual = await handle(req("/api/capture", capBody2), env, { authFetch, fetchImpl }); assert.equal(manual.status, 201);
+  assert.equal((await usage(env)).gemini.used, 3, "owner can spend the reserved call");
+  const again = await analyzePending(env, { fetchImpl, nowMs }); assert.equal(again.analyzed, 0);
 });
 import { decodeEntities } from "../cloud/src/collector.mjs";
 test("collector decodes HTML entities in titles", () => {

@@ -1,22 +1,39 @@
 // AI summarize/translate with per-provider daily caps. Gemini first (free-tier cap), Workers AI overflow (free 10k neurons/day). Never logs keys.
-const PROMPT = `你是 AI PM Radar 的知識編輯。將以下內容整理為 JSON：{"title_original":string(原文標題),"title_zh":string(繁體中文標題),"summary":string(繁體中文,<=150字),"summary_en":string(English,<=80 words),"key_points_zh":string[3-5](繁體中文),"key_points_en":string[3-5](English),"score":number(0-10, 對 AI PM/證照/職涯/內容營運的知識轉化價值),"score_reason":string(繁體中文,<=60字,說明為何打這個分數),"reco_score":number(0-10, 對讀者的「資訊優勢」),"reco_reason":string(繁體中文,<=60字,說明對讀者具體有何用處),"side_income_new":boolean,"side_income_reason":string(繁體中文,<=60字；side_income_new=false 時給空字串)}。讀者畫像：在市場推廣公司任 AI PM、負責建立內部管理系統；正籌備數碼轉型顧問副業；經營個人 IP（Content Ops 社交內容、Cyber Kuma AI 學習遊戲）。reco_score 高 = 可即時用於工作決策、顧問服務、或轉化為個人 IP 內容的新穎資訊；泛泛新聞給低分。重點主題：AI 新聞、AI 訊息差（未普及的新工具/優惠/規則/漏洞期）、AI 副業變現。side_income_new=true 只限：一個人可在 1–2 週內低成本試行、且「不屬於」讀者現有方向（數碼轉型顧問、Content Ops 社交內容、Cyber Kuma 學習遊戲）的具體變現做法；理由寫明做法、成本與風險。灰色/違規（帳號買賣、代充、規避平台規則、金融炒作）一律 false。只輸出 JSON，不要解釋。內容不足時輸出 {"error":"insufficient_content"}。`;
+const PROMPT = `你是 AI PM Radar 的知識編輯。將以下內容整理為 JSON：{"title_original":string(原文標題),"title_zh":string(繁體中文標題),"summary":string(繁體中文,<=150字),"summary_en":string(English,<=80 words),"key_points_zh":string[3-5](繁體中文),"key_points_en":string[3-5](English),"score":number(0-10, 對 AI PM/顧問/職涯/內容營運的知識轉化價值),"score_reason":string(繁體中文,<=60字,說明為何打這個分數),"reco_score":number(0-10, 對讀者的「資訊優勢」),"reco_reason":string(繁體中文,<=60字,說明對讀者具體有何用處),"side_income_new":boolean,"side_income_reason":string(繁體中文,<=60字；side_income_new=false 時給空字串)}。讀者方向：一人公司、低成本變現、訊息差、AI 資訊、前端科技學習（React/CSS/workflow），並支援 AI PM 與顧問研究。reco_score 高 = 可用於工作決策、顧問服務或學習實作的新資訊；泛泛新聞給低分。社交短帖不要改寫成新聞文章：summary 用一句話說明「點解值得收藏」，並在 key_points 加上精簡標籤。side_income_new=true 只限真正新穎、低成本、合法、可試行且不屬於讀者現有方向的變現方法；否則 false 並令 side_income_reason 為空字串。只輸出 JSON，不要解釋。內容不足時輸出 {"error":"insufficient_content"}。`;
 
 export function hktDay(nowMs = Date.now()) { return new Date(nowMs + 8 * 3600_000).toISOString().slice(0, 10); }
 // Usage counters use the UTC day: resets 00:00 UTC = 08:00 HKT, same as Workers AI free allocation.
 export function usageDay(nowMs = Date.now()) { return new Date(nowMs).toISOString().slice(0, 10); }
 export const caps = (env) => ({ gemini: Number(env.AI_DAILY_CAP || 10), "workers-ai": env.AI_FALLBACK_PROVIDER === "workers-ai" ? Number(env.WORKERS_AI_DAILY_CAP || 100) : 0 });
 
-export async function reserve(db, provider, cap, nowMs) {
+export async function reserve(db, provider, cap, nowMs, quota = "manual") {
   if (!(cap > 0)) return false;
   const day = usageDay(nowMs);
   await db.prepare("INSERT OR IGNORE INTO ai_usage_provider(day, provider, calls) VALUES(?, ?, 0)").bind(day, provider).run();
-  const res = await db.prepare("UPDATE ai_usage_provider SET calls = calls + 1 WHERE day = ? AND provider = ? AND calls < ?").bind(day, provider, cap).run();
+  const res = await db.prepare("UPDATE ai_usage_provider SET calls = calls + 1, manual_calls=manual_calls+? WHERE day = ? AND provider = ? AND calls < ?").bind(quota === "manual" ? 1 : 0, day, provider, cap).run();
   return (res.meta?.changes ?? 0) > 0;
 }
+export async function refund(db, provider, nowMs, quota = "manual") {
+  await db.prepare("UPDATE ai_usage_provider SET calls=MAX(0,calls-1), manual_calls=MAX(0,manual_calls-?) WHERE day=? AND provider=?").bind(quota === "manual" ? 1 : 0, usageDay(nowMs), provider).run();
+}
+export async function reserveAutoItem(db, limit, nowMs) {
+  const day = usageDay(nowMs);
+  await db.prepare("INSERT OR IGNORE INTO ai_auto_usage(day,items) VALUES(?,0)").bind(day).run();
+  const r = await db.prepare("UPDATE ai_auto_usage SET items=items+1 WHERE day=? AND items<?").bind(day, limit).run();
+  return (r.meta?.changes ?? 0) > 0;
+}
 export async function usage(env, nowMs = Date.now()) {
-  const c = caps(env); const r = await env.DB.prepare("SELECT provider, calls FROM ai_usage_provider WHERE day = ?").bind(usageDay(nowMs)).all();
-  const used = Object.fromEntries((r.results || []).map((x) => [x.provider, x.calls]));
-  return { gemini: { used: used.gemini || 0, cap: c.gemini }, workersAi: { used: used["workers-ai"] || 0, cap: c["workers-ai"], model: env.WORKERS_AI_MODEL || null } };
+  const c = caps(env); const day = usageDay(nowMs); const r = await env.DB.prepare("SELECT provider, calls, manual_calls FROM ai_usage_provider WHERE day = ?").bind(day).all();
+  const used = Object.fromEntries((r.results || []).map((x) => [x.provider, x]));
+  const au = await env.DB.prepare("SELECT items FROM ai_auto_usage WHERE day=?").bind(day).first();
+  const limit = Number(env.AI_AUTO_ANALYZE_LIMIT || 5);
+  const reserveGemini = Number(env.AI_MANUAL_RESERVE_GEMINI || 5), reserveWorkers = Number(env.AI_MANUAL_RESERVE_WORKERS || 20);
+  const auto = { used: au?.items || 0, cap: limit, remaining: Math.max(0, limit - (au?.items || 0)) };
+  const providerUsage = (provider, cap, floor, model) => {
+    const x = used[provider] || { calls: 0, manual_calls: 0 };
+    return { used: x.calls, cap, autoCap: Math.max(0, cap - floor), autoUsed: Math.max(0, x.calls - x.manual_calls), manualReserveRemaining: Math.max(0, floor - x.manual_calls), ...(model ? { model } : {}) };
+  };
+  return { gemini: providerUsage("gemini", c.gemini, reserveGemini), workersAi: providerUsage("workers-ai", c["workers-ai"], reserveWorkers, env.WORKERS_AI_MODEL || null), auto };
 }
 
 const arr = (v) => (Array.isArray(v) ? v.map(String).filter(Boolean).slice(0, 8) : []);
@@ -39,7 +56,7 @@ export function parseAiJson(text) {
 }
 
 async function gemini(env, text, fetchImpl, prompt = PROMPT, maxIn = 12000) {
-  if (!env.GEMINI_API_KEY) { const e = new Error("gemini_key_missing"); e.fallback = true; throw e; }
+  if (!env.GEMINI_API_KEY) throw new Error("gemini_key_missing");
   const model = env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   const r = await fetchImpl(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST", signal: AbortSignal.timeout(25_000),
@@ -47,7 +64,7 @@ async function gemini(env, text, fetchImpl, prompt = PROMPT, maxIn = 12000) {
     body: JSON.stringify({ contents: [{ parts: [{ text: `${prompt}\n\n---\n${text.slice(0, maxIn)}` }] }],
       generationConfig: { responseMimeType: "application/json", temperature: 0.3 } }),
   });
-  if (!r.ok) { const e = new Error(`gemini_http_${r.status}`); e.fallback = r.status === 429 || r.status >= 500; throw e; }
+  if (!r.ok) throw new Error(`gemini_http_${r.status}`);
   const j = await r.json();
   return j?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ?? "";
 }
@@ -61,35 +78,56 @@ async function workersAi(env, text, prompt = PROMPT, maxIn = 6000, maxOut = 1200
   return out?.choices?.[0]?.message?.content ?? "";
 }
 
-// Gemini while under its cap; on ANY Gemini failure except 401/403 key errors (cap, 429, 5xx, 400, timeout, bad output, insufficient_content) -> Workers AI once under its own cap.
-// If Gemini was capped and Workers AI fails with bad output, nothing else to try. Errors keep their code for the UI.
-export async function summarize(env, text, { fetchImpl = fetch, nowMs = Date.now() } = {}) {
-  const c = caps(env); let gemErr = null;
-  if (await reserve(env.DB, "gemini", c.gemini, nowMs)) {
-    try { return { ...parseAiJson(await gemini(env, text, fetchImpl)), provider: "gemini" }; }
-    catch (err) { if (/^gemini_http_40[13]$/u.test(err.message)) throw err; gemErr = err; } // key errors: surface, don't mask
+const retryable = (e) => /^gemini_http_(429|5\d\d)$/u.test(e?.message || "") || /^(TimeoutError|AbortError)$/u.test(e?.name || "");
+const extractive = (text) => {
+  const s = String(text ?? "").replace(/https?:\/\/\S+/gu, " ").replace(/\s+/gu, " ").trim();
+  const han = (s.match(/\p{Script=Han}/gu) || []).length;
+  if (!s || s.length >= 400 || han / s.length < 0.25) return null;
+  const lines = String(text ?? "").split(/\n/u).map((x) => x.trim()).filter((x) => x && !/^https?:\/\//u.test(x));
+  return { title: (lines[0] || s).slice(0, 200), title_zh: (lines[0] || s).slice(0, 200), title_original: (lines[0] || s).slice(0, 300), summary: s.slice(0, 150), summary_en: null, key_points: [], key_points_en: [], score: 0, reco_score: null, reco_reason: null, score_reason: null, side_income_new: 0, side_income_reason: null, provider: "extractive" };
+};
+async function runProvider(env, provider, cap, text, invoke, parse, nowMs, quota, beforeModel) {
+  if (!(await reserve(env.DB, provider, cap, nowMs, quota))) return null;
+  try {
+    if (beforeModel) await beforeModel();
+    return { ...parse(await invoke()), provider };
+  } catch (e) { await refund(env.DB, provider, nowMs, quota); throw e; }
+}
+const providerCap = (env, provider, auto) => {
+  const c = caps(env)[provider];
+  return auto ? Math.max(0, c - Number(provider === "gemini" ? env.AI_MANUAL_RESERVE_GEMINI || 5 : env.AI_MANUAL_RESERVE_WORKERS || 20)) : c;
+};
+export async function summarize(env, text, { fetchImpl = fetch, nowMs = Date.now(), quota = "manual", beforeModel } = {}) {
+  const simple = extractive(text); if (simple) return simple;
+  const auto = quota === "auto"; let gemErr = null;
+  const gcap = providerCap(env, "gemini", auto);
+  let g; try { g = await runProvider(env, "gemini", gcap, text, () => gemini(env, text, fetchImpl), parseAiJson, nowMs, quota, beforeModel); }
+  catch (err) { gemErr = err; if (!retryable(err)) throw err; }
+  if (g) return g;
+  if (gemErr && !retryable(gemErr)) throw gemErr;
+  if (!gemErr || env.AI_FALLBACK_PROVIDER !== "workers-ai") throw gemErr ?? new Error("ai_daily_cap_reached");
+  try {
+    const w = await runProvider(env, "workers-ai", providerCap(env, "workers-ai", auto), text, () => workersAi(env, text), parseAiJson, nowMs, quota, beforeModel);
+    if (w) return w;
+  } catch (e) {
+    if (!/^(ai_bad_output|insufficient_content|workers_ai_unbound)$/u.test(e.message || "")) throw Object.assign(new Error("workers_ai_error"), { cause: e });
+    throw e;
   }
-  if (env.AI_FALLBACK_PROVIDER !== "workers-ai") throw gemErr ?? new Error("ai_daily_cap_reached");
-  if (!(await reserve(env.DB, "workers-ai", c["workers-ai"], nowMs))) throw gemErr ?? new Error("ai_daily_cap_reached");
-  try { return { ...parseAiJson(await workersAi(env, text)), provider: "workers-ai" }; }
-  catch (err) {
-    if (!err.message || !/^(ai_bad_output|insufficient_content|workers_ai_unbound)$/u.test(err.message)) err = Object.assign(new Error("workers_ai_error"), { cause: err });
-    // Prefer the more informative: insufficient_content from either provider wins.
-    if (gemErr?.message === "insufficient_content") throw gemErr;
-    throw err;
-  }
+  throw gemErr ?? new Error("ai_daily_cap_reached");
 }
 
 // Generic JSON task (reader translate/summary, KB synthesis) with the same caps + Gemini -> Workers AI fallback.
-export async function generate(env, prompt, text, parse, { fetchImpl = fetch, nowMs = Date.now(), maxOut = 2000 } = {}) {
-  const c = caps(env); let gemErr = null;
+export async function generate(env, prompt, text, parse, { fetchImpl = fetch, nowMs = Date.now(), maxOut = 2000, quota = "manual", beforeModel } = {}) {
+  const auto = quota === "auto"; let gemErr = null;
   const json = (t) => { const m = String(t ?? "").replace(/<think>[\s\S]*?(<\/think>|$)/gu, "").replace(/```(?:json)?/giu, "").match(/\{[\s\S]*\}/u); if (!m) throw new Error("ai_bad_output"); let j; try { j = JSON.parse(m[0]); } catch { throw new Error("ai_bad_output"); } if (j.error) throw new Error(String(j.error)); return parse(j); };
-  if (await reserve(env.DB, "gemini", c.gemini, nowMs)) {
-    try { return { ...json(await gemini(env, text, fetchImpl, prompt, 12000)), provider: "gemini" }; }
-    catch (err) { if (/^gemini_http_40[13]$/u.test(err.message)) throw err; gemErr = err; }
-  }
-  if (env.AI_FALLBACK_PROVIDER !== "workers-ai") throw gemErr ?? new Error("ai_daily_cap_reached");
-  if (!(await reserve(env.DB, "workers-ai", c["workers-ai"], nowMs))) throw gemErr?.message === "ai_bad_output" ? gemErr : new Error("ai_daily_cap_reached");
-  try { return { ...json(await workersAi(env, text, prompt, 6000, maxOut)), provider: "workers-ai" }; }
-  catch (err) { if (!/^(ai_bad_output|insufficient_content|workers_ai_unbound)$/u.test(err.message || "")) err = Object.assign(new Error("workers_ai_error"), { cause: err }); throw err; }
+  let g; try { g = await runProvider(env, "gemini", providerCap(env, "gemini", auto), text, () => gemini(env, text, fetchImpl, prompt, 12000), json, nowMs, quota, beforeModel); }
+  catch (err) { gemErr = err; if (!retryable(err)) throw err; }
+  if (g) return g;
+  if (gemErr && !retryable(gemErr)) throw gemErr;
+  if (!gemErr || env.AI_FALLBACK_PROVIDER !== "workers-ai") throw gemErr ?? new Error("ai_daily_cap_reached");
+  try {
+    const w = await runProvider(env, "workers-ai", providerCap(env, "workers-ai", auto), text, () => workersAi(env, text, prompt, 6000, maxOut), json, nowMs, quota, beforeModel);
+    if (w) return w;
+  } catch (err) { if (!/^(ai_bad_output|insufficient_content|workers_ai_unbound)$/u.test(err.message || "")) throw Object.assign(new Error("workers_ai_error"), { cause: err }); throw err; }
+  throw gemErr ?? new Error("ai_daily_cap_reached");
 }

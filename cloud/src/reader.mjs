@@ -67,13 +67,13 @@ export const parseTranslation = (expected) => (j) => {
   if (!p || !p.length) throw new Error("ai_bad_output");
   while (p.length < expected) p.push(""); return { paragraphs: p.slice(0, expected) };
 };
-export const READER_SUMMARY_PROMPT = `你是 AI PM Radar 的知識編輯。讀者：市場推廣公司 AI PM，籌備數碼轉型顧問副業，經營 Content Ops 社交內容同 Cyber Kuma AI 學習遊戲。閱讀全文後只輸出 JSON：{"title_zh":string,"tldr":string(繁體中文,<=80字),"key_points":string[4-7](繁體中文,具體),"why_ai_pm":string(繁體中文,<=100字,對 AI PM 工作有咩用),"why_side_income":string(繁體中文,<=100字,對副業/個人 IP 有咩用；冇就寫「暫無」),"actions":string[1-3](繁體中文,可即做嘅下一步)}。唔好加解釋。內容不足時輸出 {"error":"insufficient_content"}。`;
+export const READER_SUMMARY_PROMPT = `你是 AI PM Radar 的知識編輯。研究主題：一人公司、低成本變現、訊息差、AI 資訊、前端科技學習（React/CSS/workflow），並服務 AI PM 與顧問研究。閱讀全文後只輸出 JSON：{"title_zh":string,"tldr":string(繁體中文,<=80字),"key_points":string[4-7](繁體中文,具體),"why_ai_pm":string(繁體中文,<=100字,對 AI PM/顧問工作有咩用),"why_side_income":string(繁體中文,<=100字,對副業/個人 IP 有咩用；冇就寫「暫無」),"actions":string[1-3](繁體中文,可即做嘅下一步)}。社交短帖請用一句話說明「點解值得收藏」並加精簡標籤，不要改寫成新聞文章。唔好加解釋。內容不足時輸出 {"error":"insufficient_content"}。`;
 const sa = (v, n) => (Array.isArray(v) ? v.map((x) => String(x).slice(0, 400)).filter(Boolean).slice(0, n) : []);
 export const parseReaderSummary = (j) => {
   const key_points = sa(j.key_points, 8); if (!key_points.length || typeof j.tldr !== "string") throw new Error("ai_bad_output");
   return { title_zh: String(j.title_zh || "").slice(0, 200), tldr: j.tldr.slice(0, 500), key_points, why_ai_pm: String(j.why_ai_pm || "").slice(0, 500), why_side_income: String(j.why_side_income || "").slice(0, 500), actions: sa(j.actions, 3) };
 };
-export const SYNTH_PROMPT = `你是 AI PM Radar 的研究整理員。輸入係多篇知識庫筆記（JSON 陣列，每篇有 n 編號、title、url、內容）。將佢哋整合成一份結構化綜合筆記，只輸出 JSON：{"title":string(繁體中文),"summary":string(繁體中文,<=150字),"themes":[{"name":string,"points":string[]}](2-5 個主題),"insights":string[3-7](跨筆記嘅關鍵洞察；每點尾用 [n] 標明出處編號),"actions":string[2-5](可執行下一步),"open_questions":string[0-3]}。只用輸入內容，唔好虛構。`;
+export const SYNTH_PROMPT = `你是 AI PM Radar 的研究整理員。輸入係多篇知識庫筆記（JSON 陣列，每篇有 n 編號、title、url、內容）。將佢哋整合成一份結構化綜合筆記，只輸出 JSON：{"title":string(繁體中文),"summary":string(繁體中文,<=150字),"themes":[{"name":string,"points":string[]}](2-5 個主題；優先歸入一人公司、低成本變現、訊息差、AI 資訊、前端科技學習，亦保留 AI PM/顧問研究),"insights":string[3-7](跨筆記嘅關鍵洞察；每點尾用 [n] 標明出處編號),"actions":string[2-5](可執行下一步),"open_questions":string[0-3]}。只用輸入內容，唔好虛構。`;
 export const parseSynthesis = (j) => {
   const themes = Array.isArray(j.themes) ? j.themes.slice(0, 6).map((t) => ({ name: String(t?.name || "").slice(0, 80), points: sa(t?.points, 6) })).filter((t) => t.name) : [];
   const insights = sa(j.insights, 8); if (!j.title || !insights.length) throw new Error("ai_bad_output");
