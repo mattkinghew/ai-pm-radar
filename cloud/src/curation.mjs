@@ -1,6 +1,48 @@
 // P0 curation helpers: URL normalization, title SimHash dedup, mutes, per-category quotas, KB Markdown export.
 const TRACK = /^(utm_[a-z]+|fbclid|gclid|mc_[a-z]+|ref|ref_src|ref_url|s|t|si|igshid|cmpid|source|via)$/iu;
 
+// One editable vocabulary table drives lane assignment and deterministic preference scoring.
+export const LANE_RULES = [
+  { id: "paid_pilot", lane: "MONETIZATION_GAP", weight: 25, terms: ["paid pilot", "real customer pain", "willingness to pay", "pricing", "productized service", "b2b gtm", "client interview", "付費試點", "付費 pilot", "真實客戶痛點", "願意付費", "定價", "產品化服務", "香港 SME", "付費意願"] },
+  { id: "agent_governance", lane: "AGENT_GOVERNANCE", weight: 20, terms: ["agent evaluation", "agent eval", "evals", "harness", "permission boundary", "prompt injection", "release quality", "代理評測", "代理評估", "執行環境治理", "權限邊界", "提示注入", "發布品質", "安全審核"] },
+  { id: "content_workflow", lane: "CONTENT_WORKFLOW", weight: 15, terms: ["content workflow", "original content qa", "video production cost", "repeatable template", "shorts generator", "影片工作流", "影片製作成本", "原創內容質素", "文案質素", "可重用模板", "短片生成"] },
+  { id: "free_resource", lane: "FREE_RESOURCE", weight: 10, terms: ["official free credits", "verified model release", "low-cost compute", "官方免費額度", "官方 credits", "已核實模型發布", "低成本算力"] },
+  { id: "free_resource_lane", lane: "FREE_RESOURCE", weight: 0, terms: ["free gpu", "free course", "free certification", "免費 gpu", "免費課程", "免費證照", "免費 credits"] },
+  { id: "learning_path", lane: "AI_LEARNING_PATH", weight: 0, terms: ["learning path", "course", "certification", "學習路徑", "課程", "證照", "學習"] },
+  { id: "github_project", lane: "GITHUB_PROJECT", weight: 0, terms: ["github", "open source", "repository", "開源專案", "開源工具", "github 專案"] },
+  { id: "tech_news", lane: "TECH_NEWS", weight: 0, terms: ["model release", "launches", "announces", "推出新模型", "官方發布", "模型更新", "技術新聞"] },
+  { id: "apply_now", lane: "APPLY_NOW", weight: 0, terms: ["apply now", "workflow", "implementation", "practical", "即時應用", "實作", "落地", "工作流程"] },
+  { id: "hype_only", lane: null, weight: -20, terms: ["viral", "game changer", "爆紅", "顛覆一切", "史上最強", "未經證實", "無行動"] },
+  { id: "copyright_reupload", lane: null, weight: -30, terms: ["re-upload", "copyright reupload", "unauthorized scraping", "未經授權搬運", "未授權批量抓取", "無署名搬運"] },
+  { id: "unverified_incident", lane: null, weight: -30, terms: ["unattributed security incident", "unverified attack attribution", "未核實網安事件歸因", "未經證實攻擊歸因"] },
+];
+export const LANES = ["AI_LEARNING_PATH", "MONETIZATION_GAP", "TECH_NEWS", "GITHUB_PROJECT", "APPLY_NOW", "FREE_RESOURCE", "AGENT_GOVERNANCE", "CONTENT_WORKFLOW", "OTHER"];
+const foldText = (s) => String(s ?? "").normalize("NFKC").toLocaleLowerCase().replace(/\s+/gu, " ");
+export function injectionSuspect(text) {
+  const value = String(text ?? "");
+  if (/(ignore (?:all )?(?:previous|prior) instructions|disregard (?:the )?system prompt|忽略(?:之前|以上|所有).{0,8}(?:指令|提示)|請(?:立即)?(?:寄送|轉寄|執行)|send (?:this|the) email|(?:e-?mail|郵件|電郵).{0,80}(?:please|action|send|transfer|reply|click|open|download|請|立即|轉寄|點擊|下載)|https?:\/\/[^\s]*(?:\.zip|\.exe|\.ru\b))/iu.test(value)) return true;
+  for (const raw of value.match(/https?:\/\/[^\s<>"']+/giu) || []) {
+    try { const u = new URL(raw.replace(/[),.;!?]+$/u, "")); if (u.username || u.password || /^\d{1,3}(?:\.\d{1,3}){3}$/u.test(u.hostname) || /(^|\.)localhost$|\.xn--|\.(zip|click|top|ru)$/iu.test(u.hostname)) return true; } catch { return true; }
+  }
+  return false;
+}
+export function scoreLane(item, { sourceWeight = 0, nowMs = Date.now() } = {}) {
+  const text = foldText([item.title, item.title_zh, item.summary, item.raw_excerpt, item.description].filter(Boolean).join(" "));
+  const matched = LANE_RULES.filter((r) => r.terms.some((term) => text.includes(foldText(term))));
+  const laneCandidates = matched.filter((r) => r.lane);
+  const legacyLane = { AI_TECH_NEWS: "TECH_NEWS", FREEBIE_CERT_DEAL: "FREE_RESOURCE", AI_PRACTICE: "APPLY_NOW", CAPTURE: "OTHER" }[item.category];
+  const lane = laneCandidates.length ? laneCandidates.sort((a, b) => (b.terms.filter((t) => text.includes(foldText(t))).length - a.terms.filter((t) => text.includes(foldText(t))).length) || b.weight - a.weight || LANES.indexOf(a.lane) - LANES.indexOf(b.lane))[0].lane : item.lane || legacyLane || "OTHER";
+  let score = matched.reduce((sum, r) => sum + r.weight, 0) + Math.max(-2, Math.min(2, Number(sourceWeight) || 0)) * 5;
+  const reasons = matched.map((r) => r.id);
+  const published = item.published_at ? Date.parse(item.published_at) : NaN;
+  if (Number.isFinite(published)) {
+    const ageDays = Math.max(0, (nowMs - published) / 86400000);
+    const freshness = Math.round(Math.max(-10, 10 - ageDays)); score += freshness; reasons.push("freshness_published_at");
+  } else reasons.push("freshness_unknown");
+  if (Number(sourceWeight)) reasons.push("source_weight");
+  return { lane, pref_score: Math.max(-100, Math.min(100, score)), pref_reasons: reasons, injection_suspect: injectionSuspect(text) };
+}
+
 export function normalizeUrl(raw) {
   try {
     const u = new URL(String(raw).trim());

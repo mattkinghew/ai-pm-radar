@@ -49,6 +49,7 @@ test("API: actions, feedback weights, mutes, curated daily, KB export", async ()
   const feed = (u) => String(u).includes("algolia") ? new Response(JSON.stringify({ hits: [] })) : String(u).includes("openai.com") ? new Response(`<rss><channel><item><title>OpenAI ships a big new model today</title><link>https://openai.com/a?utm_source=rss</link></item><item><title>Second</title><link>https://openai.com/b</link></item></channel></rss>`)
     : String(u).includes("theverge") ? new Response(`<rss><channel><item><title>Same story</title><link>https://www.openai.com/a/</link></item></channel></rss>`) : new Response("x", { status: 404 });
   const run = await runDaily(env, { fetchImpl: feed }); assert.equal(run.collected, 2); // verge copy deduped by url_norm
+  await env.DB.prepare("INSERT INTO sources(id,type,value,enabled,created_at,updated_at) VALUES('test-spam','x','@spam',1,?,?)").bind(new Date().toISOString(), new Date().toISOString()).run();
   const posts = Array.from({ length: 6 }, (_, i) => ({ handle: "spam", post_id: String(1000 + i), text: `spam post ${i} unique ${i * 31}` }));
   await handle(new Request("https://r.x/api/ingest/x", { method: "POST", headers: { ...J, authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ posts }) }), env);
   let d = await (await call(env, "/api/daily")).json();

@@ -3,14 +3,14 @@ import { summarize, usage } from "./ai.mjs";
 import { runDaily, analyzePending, AI_UPDATE, aiBind } from "./collector.mjs";
 import { hktDay } from "./ai.mjs";
 import { handleP1, KB_COLS, kbShape as kbShapeP1 } from "./routes-p1.mjs";
-import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath } from "./curation.mjs";
+import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath, scoreLane, LANES, injectionSuspect } from "./curation.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
-const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason";
+const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,action_14d";
 const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
-const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), metrics: r.metrics ? pj(r.metrics) : null });
-const SRC = "id,type,value,label,enabled,created_at,updated_at";
+const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), pref_reasons: pj(r.pref_reasons), metrics: r.metrics ? pj(r.metrics) : null });
+const SRC = "id,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS type,value,label,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at";
 const HANDLE = /^@?([A-Za-z0-9_]{1,15})$/u;
 const RANK = "(COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)+COALESCE((SELECT weight FROM feedback_weights WHERE key='cat:'||items.category),0))";
 const REASONS = ["not_relevant", "duplicate", "low_quality", "already_known", "too_much_x", "other"];
@@ -36,12 +36,15 @@ async function bearerOk(request, env) {
   const [a, b] = [await d(m[1]), await d(env.INGEST_TOKEN)]; let x = 0; for (let i = 0; i < a.length; i++) x |= a[i] ^ b[i]; return x === 0;
 }
 const BEARER_ROUTES = (url, m) => (url.pathname === "/api/ingest/x" && m === "POST") || (url.pathname === "/api/sources" && m === "GET");
+const hashTitle = async (title) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(title || "").normalize("NFKC").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim())))).map((x) => x.toString(16).padStart(2, "0")).join("");
+const keywordArray = (value) => Array.isArray(value) ? value.map((x) => String(x).trim().slice(0, 80)).filter(Boolean).slice(0, 30) : [];
 
 async function ingestX(request, env) {
   const body = await request.json().catch(() => null);
   const posts = Array.isArray(body) ? body : body?.posts;
   if (!Array.isArray(posts) || posts.length > 200) return json({ error: "bad_batch", hint: "posts: array (<=200)" }, 400);
-  const enabled = new Set((await env.DB.prepare("SELECT value FROM sources WHERE type='x' AND enabled=1").all()).results.map((r) => String(r.value).replace(/^@/u, "").toLowerCase()));
+  const enabledRows = (await env.DB.prepare("SELECT value,ai_eligible FROM sources WHERE (type='x' OR adapter_type='x') AND enabled=1").all()).results;
+  const enabled = new Map(enabledRows.map((r) => [String(r.value).replace(/^@/u, "").toLowerCase(), Number(r.ai_eligible || 0)]));
   const now = new Date().toISOString(); const day = hktDay(); let inserted = 0, duplicate = 0, skipped_disabled = 0; const rejected = [], disabled_handles = [];
   for (const [i, p] of posts.entries()) {
     const hm = String(p?.handle ?? "").match(HANDLE); const pid = String(p?.post_id ?? "");
@@ -50,10 +53,10 @@ async function ingestX(request, env) {
     const handle = hm[1]; const url = /^https:\/\/(x|twitter)\.com\//u.test(p.url || "") ? p.url : `https://x.com/${handle}/status/${pid}`;
     if (!enabled.has(handle.toLowerCase())) { skipped_disabled++; disabled_handles.push({ index: i, handle: `@${handle}` }); continue; }
     const title = text.replace(/\s+/gu, " ").slice(0, 140);
-    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,url,url_norm,source,category,raw_excerpt,run_date,external_id,metrics,created_at,updated_at)
-      VALUES(?, 'daily', 'draft', ?, ?, ?, ?, 'X_POST', ?, ?, ?, ?, ?, ?)`)
+    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,url,url_norm,source,category,raw_excerpt,run_date,external_id,metrics,created_at,updated_at,ai_eligible)
+      VALUES(?, 'daily', 'draft', ?, ?, ?, ?, 'X_POST', ?, ?, ?, ?, ?, ?, ?)`)
       .bind(crypto.randomUUID(), title, url, normalizeUrl(url), `x:@${handle}`, text.slice(0, 4000), day, `x:${pid}`, p.metrics ? JSON.stringify(p.metrics).slice(0, 1000) : null,
-        /^\d{4}-\d{2}-\d{2}T/u.test(p.created_at || "") ? p.created_at : now, now).run();
+        /^\d{4}-\d{2}-\d{2}T/u.test(p.created_at || "") ? p.created_at : now, now, enabled.get(handle.toLowerCase())).run();
     res.meta?.changes > 0 ? inserted++ : duplicate++;
   }
   return json({ inserted, duplicate, skipped_disabled, disabled_handles, rejected, note: "AI 分析會喺下次每日排程（或 /api/analyze）按額度處理" });
@@ -85,21 +88,38 @@ export async function handle(request, env, deps = {}) {
     return json({ backend: "cloudflare", d1: !!db, ai: { gemini: !!env.GEMINI_API_KEY, fallback: env.AI_FALLBACK_PROVIDER || "none", dailyCap: Number(env.AI_DAILY_CAP || 10), autoAnalyzeLimit: Number(env.AI_AUTO_ANALYZE_LIMIT || 5), usage: await usage(env) }, cron: "0 0 * * * (08:00 HKT)", humanReviewRequired: true });
   }
   if (url.pathname === "/api/sources" && m === "GET") return listSources(db, url, true);
+  if (url.pathname === "/api/digest" && m === "GET") {
+    const days = Number(url.searchParams.get("days") || 7); if (!Number.isInteger(days) || days < 1 || days > 30) return json({ error: "bad_days" }, 400);
+    const since = new Date(Date.now() - days * 86400000).toISOString();
+    const rows = (await db.prepare(`SELECT ${ROW} FROM items WHERE created_at>=? ORDER BY pref_score DESC, created_at DESC`).bind(since).all()).results.map(shape);
+    return json({ days, ai_calls: 0, lanes: Object.fromEntries(LANES.map((lane) => [lane, rows.filter((it) => it.lane === lane).slice(0, 3)])) });
+  }
   if (url.pathname === "/api/analyze" && m === "POST") return json(await analyzePending(env, { fetchImpl: deps.fetchImpl ?? fetch, limit: 120 }));
   if (url.pathname === "/api/sources" && m === "POST") {
     const b = await request.json().catch(() => ({})); const type = b?.type; let value = String(b?.value ?? "").trim();
-    if (type === "rss") { if (!/^https:\/\/[^\s]+$/u.test(value)) return json({ error: "bad_source", hint: "RSS 需為 https:// 網址" }, 400); }
-    else if (type === "x") { const hm = value.match(HANDLE); if (!hm) return json({ error: "bad_source", hint: "X 帳號格式：@handle" }, 400); value = "@" + hm[1]; }
-    else return json({ error: "bad_source", hint: "type 需為 rss 或 x" }, 400);
+    const supported = ["rss", "x", "github_search", "github_releases", "youtube_channel"];
+    if (!supported.includes(type)) return json({ error: "bad_source", hint: `type 需為 ${supported.join(" | ")}` }, 400);
+    if (type === "rss" && !/^https:\/\/[^\s]+$/u.test(value)) return json({ error: "bad_source", hint: "RSS 需為 https:// 網址" }, 400);
+    if (type === "x") { const hm = value.match(HANDLE); if (!hm) return json({ error: "bad_source", hint: "X 帳號格式：@handle" }, 400); value = "@" + hm[1]; }
+    if (type === "github_releases" && !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(value.replace(/^https:\/\/github\.com\//u, "").replace(/\/$/u, ""))) return json({ error: "bad_source" }, 400);
+    if (type === "youtube_channel" && !/^UC[A-Za-z0-9_-]{20,}$/u.test(value)) return json({ error: "bad_source" }, 400);
+    if (type === "github_search" && value.length > 160) return json({ error: "bad_source" }, 400);
     const id = crypto.randomUUID(); const label = String(b?.label ?? "").trim().slice(0, 60) || null;
-    const r = await db.prepare(`INSERT OR IGNORE INTO sources(id,type,value,label,enabled,created_at,updated_at) VALUES(?,?,?,?,1,?,?)`).bind(id, type, value, label, now, now).run();
+    const lane = LANES.includes(b?.lane_default) ? b.lane_default : (type === "github_search" || type === "github_releases" ? "GITHUB_PROJECT" : type === "youtube_channel" ? "CONTENT_WORKFLOW" : "OTHER");
+    const weight = Number(b?.weight ?? 0), maxPerDay = Number(b?.max_per_day ?? 5);
+    if (!Number.isInteger(weight) || weight < -2 || weight > 2 || !Number.isInteger(maxPerDay) || maxPerDay < 1 || maxPerDay > 100) return json({ error: "bad_source_settings" }, 400);
+    const r = await db.prepare(`INSERT OR IGNORE INTO sources(id,type,adapter_type,value,label,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at) VALUES(?, 'rss', ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(id, type, value, label, lane, weight, JSON.stringify(keywordArray(b?.include_keywords)), JSON.stringify(keywordArray(b?.exclude_keywords)), maxPerDay, b?.ai_eligible === true ? 1 : 0, now, now).run();
     return r.meta.changes ? json({ source: await db.prepare(`SELECT ${SRC} FROM sources WHERE id=?`).bind(id).first() }, 201) : json({ error: "duplicate_source", hint: "已經有呢個訊息源" }, 409);
   }
   const sm = url.pathname.match(/^\/api\/sources\/([0-9a-f-]{36})$/u);
   if (sm && m === "PATCH") {
     const b = await request.json().catch(() => ({}));
-    const r = await db.prepare("UPDATE sources SET enabled=COALESCE(?,enabled), label=COALESCE(?,label), updated_at=? WHERE id=?")
-      .bind(typeof b?.enabled === "boolean" ? (b.enabled ? 1 : 0) : null, typeof b?.label === "string" ? b.label.slice(0, 60) : null, now, sm[1]).run();
+    if (b?.lane_default != null && !LANES.includes(b.lane_default)) return json({ error: "bad_lane" }, 400);
+    if (b?.weight != null && (!Number.isInteger(b.weight) || b.weight < -2 || b.weight > 2)) return json({ error: "bad_weight" }, 400);
+    if (b?.max_per_day != null && (!Number.isInteger(b.max_per_day) || b.max_per_day < 1 || b.max_per_day > 100)) return json({ error: "bad_max_per_day" }, 400);
+    const r = await db.prepare(`UPDATE sources SET enabled=COALESCE(?,enabled), label=COALESCE(?,label), lane_default=COALESCE(?,lane_default), weight=COALESCE(?,weight), include_keywords=COALESCE(?,include_keywords), exclude_keywords=COALESCE(?,exclude_keywords), max_per_day=COALESCE(?,max_per_day), ai_eligible=COALESCE(?,ai_eligible), updated_at=? WHERE id=?`)
+      .bind(typeof b?.enabled === "boolean" ? (b.enabled ? 1 : 0) : null, typeof b?.label === "string" ? b.label.slice(0, 60) : null, b?.lane_default ?? null, b?.weight ?? null,
+        b?.include_keywords != null ? JSON.stringify(keywordArray(b.include_keywords)) : null, b?.exclude_keywords != null ? JSON.stringify(keywordArray(b.exclude_keywords)) : null, b?.max_per_day ?? null, typeof b?.ai_eligible === "boolean" ? (b.ai_eligible ? 1 : 0) : null, now, sm[1]).run();
     return r.meta.changes ? json({ source: await db.prepare(`SELECT ${SRC} FROM sources WHERE id=?`).bind(sm[1]).first() }) : json({ error: "not_found" }, 404);
   }
   if (sm && m === "DELETE") { const r = await db.prepare("DELETE FROM sources WHERE id=?").bind(sm[1]).run(); return r.meta.changes ? json({ ok: true }) : json({ error: "not_found" }, 404); }
@@ -110,16 +130,20 @@ export async function handle(request, env, deps = {}) {
       : db.prepare(`SELECT ${ROW} FROM items WHERE status=? ORDER BY ${RANK} DESC, updated_at DESC LIMIT 200`).bind(status);
     return json({ items: (await q.all()).results.map(shape) });
   }
-  if (url.pathname === "/api/daily" && m === "GET") {
+  if ((url.pathname === "/api/daily" || url.pathname === "/api/lanes") && m === "GET") {
     const date = url.searchParams.get("date") || (await db.prepare("SELECT MAX(run_date) d FROM items WHERE kind='daily'").first())?.d;
     if (date && !/^\d{4}-\d{2}-\d{2}$/u.test(date)) return json({ error: "bad_date" }, 400);
-    const r = await db.prepare(`SELECT ${ROW},url_norm FROM items WHERE kind='daily' AND run_date=? ORDER BY ${RANK} DESC, reco_score DESC NULLS LAST, score DESC NULLS LAST`).bind(date ?? "").all();
+    const lane = url.searchParams.get("lane"); if (lane && !LANES.includes(lane)) return json({ error: "bad_lane" }, 400);
+    const r = await db.prepare(`SELECT ${ROW},url_norm FROM items WHERE kind='daily' AND run_date=?${lane ? " AND lane=?" : ""} ORDER BY pref_score DESC, ${RANK} DESC, reco_score DESC NULLS LAST, score DESC NULLS LAST`).bind(...(lane ? [date ?? "", lane] : [date ?? ""])).all();
     const mutes = (await db.prepare("SELECT kind,value FROM mutes").all()).results;
     const all = r.results.map(shape);
     if (url.searchParams.get("all") === "1") return json({ date: date ?? null, items: all, mode: "all" });
     const visible = all.filter((i) => !i.dismissed_reason && !isMuted(i, mutes));
     const deduped = dedup(visible); const q = applyQuotas(deduped);
-    return json({ date: date ?? null, items: q.items, mode: "curated", stats: { total: all.length, hidden: all.length - visible.length, duplicates: visible.length - deduped.length, quota_held: q.held, x_cap: q.xCap } });
+    const archived = visible.filter((i) => (i.pref_score ?? 0) < 0);
+    const active = visible.filter((i) => (i.pref_score ?? 0) >= 0);
+    const items = url.searchParams.get("archive") === "1" ? archived : q.items.filter((i) => (i.pref_score ?? 0) >= 0);
+    return json({ date: date ?? null, items, mode: "curated", archived_count: archived.length, stats: { total: all.length, hidden: all.length - visible.length, duplicates: visible.length - deduped.length, quota_held: q.held, x_cap: q.xCap } });
   }
   if (url.pathname === "/api/read-later" && m === "GET") {
     return json({ items: (await db.prepare(`SELECT ${ROW} FROM items WHERE read_later=1 ORDER BY updated_at DESC LIMIT 200`).all()).results.map(shape) });
@@ -169,10 +193,18 @@ export async function handle(request, env, deps = {}) {
     if (a === "unstar") await db.prepare("DELETE FROM kb_entries WHERE item_id=? AND origin='star'").bind(it.id).run();
     return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()) });
   }
-  const one = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})(?:\/(review|approve|reject|translate))?$/u);
+  const one = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})(?:\/(review|approve|reject|translate|deep-read))?$/u);
   if (one && m === "GET" && !one[2]) {
     const r = await db.prepare(`SELECT ${ROW},raw_excerpt FROM items WHERE id=?`).bind(one[1]).first();
     return r ? json({ item: shape(r) }) : json({ error: "not_found" }, 404);
+  }
+  if (one && m === "POST" && one[2] === "deep-read") {
+    const it = await db.prepare("SELECT id,title,url,summary,raw_excerpt,lane FROM items WHERE id=?").bind(one[1]).first();
+    if (!it) return json({ error: "not_found" }, 404);
+    let ai; try { ai = await summarize(env, [it.title, it.url, it.raw_excerpt || it.summary || ""].filter(Boolean).join("\n"), { fetchImpl: deps.fetchImpl ?? fetch, lane: it.lane, forceModel: true }); } catch (e) { return aiErr(e); }
+    await db.prepare(AI_UPDATE).bind(...aiBind(ai, it.title, now, it.id)).run();
+    await db.prepare("UPDATE items SET review_status='ai_enriched',updated_at=? WHERE id=?").bind(now, it.id).run();
+    return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()), provider: ai.provider });
   }
   if (one && m === "POST" && one[2] === "translate") {
     // 轉中文 / re-analyze one existing item (incl. imported/unanalyzed). Counts against caps; status unchanged (human review gate kept).
@@ -200,31 +232,52 @@ export async function handle(request, env, deps = {}) {
     const body = await request.json().catch(() => null);
     const text = String(body?.text ?? "").slice(0, 20000); let link = String(body?.url ?? "").trim();
     if (link && !/^https?:\/\//u.test(link)) return json({ error: "bad_url" }, 400);
-    let content = text;
-    if (!content && link) {
-      try { const r = await (deps.fetchImpl ?? fetch)(link, { headers: { "user-agent": "ai-pm-radar-cloud/1" }, signal: AbortSignal.timeout(10000) });
-        if (r.ok) content = (await r.text()).replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/giu, " ").replace(/<[^>]+>/gu, " ").replace(/\s+/gu, " ").trim().slice(0, 20000); } catch { /* fallthrough */ }
+    const content = text.trim().slice(0, 20000); if (!link && !content) return json({ error: "empty_capture" }, 400);
+    const title = String(body?.title ?? "").trim().slice(0, 240) || content.split(/\n/u).map((x) => x.trim()).find(Boolean)?.replace(/^#+\s*/u, "").slice(0, 160) || link || "URL 待整理來源";
+    const needsSource = content.length < 80; const lane = LANES.includes(body?.lane) ? body.lane : undefined;
+    const score = scoreLane({ title, url: link, raw_excerpt: content, lane, published_at: body?.published_at || null }, { nowMs: Date.now() });
+    const suspect = score.injection_suspect || injectionSuspect(content);
+    const id = crypto.randomUUID(); const urlNorm = normalizeUrl(link);
+    await db.prepare(`INSERT INTO items(id,kind,status,title,url,url_norm,source,category,summary,key_points,score,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,created_at,updated_at)
+      VALUES(?, 'capture', 'draft', ?, ?, ?, 'quick-capture', 'CAPTURE', ?, '[]', NULL, ?, 'extractive', ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?)`)
+      .bind(id, title, link || null, urlNorm, content.replace(/\s+/gu, " ").slice(0, 280) || "尚未取得可核對正文。", content.slice(0, 4000), score.lane, score.pref_score, JSON.stringify(score.pref_reasons), body?.published_at || null, needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now, now).run();
+    return json({ id, status: "draft", review_status: needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", lane: score.lane, pref_score: score.pref_score, pref_reasons: score.pref_reasons, injection_suspect: !!suspect, ai_calls: 0 }, 201);
+  }
+  if (url.pathname === "/api/inbox/import" && m === "POST") {
+    const body = await request.json().catch(() => null); const records = Array.isArray(body) ? body : body?.records;
+    if (!Array.isArray(records) || records.length > 100) return json({ error: "bad_batch", hint: "最多 100 筆 SourceInput" }, 400);
+    let inserted = 0, duplicate = 0, needsSource = 0; const ids = [];
+    for (const record of records) {
+      const content = String(record?.value ?? record?.text ?? "").trim().slice(0, 20000);
+      const link = String(record?.sourceUrl ?? record?.url ?? "").trim();
+      if (link && !/^https?:\/\//u.test(link)) continue;
+      if (!content && !link) continue;
+      const title = String(record?.title ?? "").trim().slice(0, 240) || link || content.slice(0, 120) || "未命名來源";
+      const urlNorm = normalizeUrl(link); const titleHash = await hashTitle(title);
+      const exists = await db.prepare("SELECT id FROM items WHERE (url_norm=? AND ? IS NOT NULL) OR title_hash=? LIMIT 1").bind(urlNorm, urlNorm, titleHash).first();
+      if (exists) { duplicate++; continue; }
+      const laneHint = LANES.includes(record?.lane) ? record.lane : undefined;
+      const published = /^\d{4}-\d\d-\d\d(?:T.*)?$/u.test(record?.publishedAt || "") ? record.publishedAt : null;
+      const scored = scoreLane({ title, raw_excerpt: content, lane: laneHint, published_at: published });
+      const suspect = scored.injection_suspect || injectionSuspect(content); const short = content.length < 80; if (short) needsSource++;
+      const id = crypto.randomUUID();
+      await db.prepare(`INSERT INTO items(id,kind,status,title,url,url_norm,title_hash,source,category,summary,key_points,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,created_at,updated_at)
+        VALUES(?, 'capture', 'draft', ?, ?, ?, ?, ?, 'CAPTURE', ?, '[]', ?, 'extractive', ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?)`)
+        .bind(id, title, link || null, urlNorm, titleHash, String(record?.platform || record?.kind || "manual").slice(0, 80), content.replace(/\s+/gu, " ").slice(0, 280) || "尚未取得可核對正文。", content.slice(0, 4000), scored.lane, scored.pref_score, JSON.stringify(scored.pref_reasons), published, short ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now, now).run();
+      inserted++; ids.push(id);
     }
-    if (content.length < 80) return json({ error: "insufficient_content", hint: "影片/社交連結請直接貼字幕或正文" }, 422);
-    let ai;
-    try { ai = await summarize(env, `${link}\n${content}`, { fetchImpl: deps.fetchImpl ?? fetch }); }
-    catch (e) { return aiErr(e); }
-    const id = crypto.randomUUID();
-    await db.prepare(`INSERT INTO items(id,kind,status,title,url,source,category,summary,key_points,score,raw_excerpt,ai_provider,title_zh,title_original,summary_en,key_points_en,reco_score,reco_reason,side_income_new,side_income_reason,score_reason,created_at,updated_at)
-      VALUES(?, 'capture', 'draft', ?, ?, 'quick-capture', 'CAPTURE', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-      .bind(id, ai.title_original || ai.title || link || "Quick Capture", link || null, ai.summary, JSON.stringify(ai.key_points), ai.score, content.slice(0, 4000), ai.provider,
-        ai.title_zh, ai.title_original || null, ai.summary_en, JSON.stringify(ai.key_points_en), ai.reco_score, ai.reco_reason, ai.side_income_new ?? 0, ai.side_income_reason ?? null, ai.score_reason ?? null, now, now).run();
-    return json({ id, status: "draft", ...ai }, 201);
+    return json({ inserted, duplicate, needs_source_review: needsSource, ai_calls: 0, ids }, 201);
   }
   return json({ error: "api_route_not_found" }, 404);
 }
 
 async function listSources(db, url, owner = false) {
-  const t = url.searchParams.get("type"); if (t && !["rss", "x"].includes(t)) return json({ error: "bad_type" }, 400);
+  const t = url.searchParams.get("type"); if (t && !["rss", "x", "github_search", "github_releases", "youtube_channel"].includes(t)) return json({ error: "bad_type" }, 400);
   const includeDisabled = owner && url.searchParams.get("include_disabled") === "1";
   const enabled = url.searchParams.get("enabled");
   const where = [], args = [];
-  if (t) { where.push("type=?"); args.push(t); }
+  if (t === "x") where.push("(type='x' OR adapter_type='x')");
+  else if (t) { where.push("adapter_type=? AND type!='x'"); args.push(t); }
   if (enabled === "0" && owner) { where.push("enabled=0"); }
   else if (!includeDisabled || enabled === "1") where.push("enabled=1");
   const q = db.prepare(`SELECT ${SRC} FROM sources ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY type, created_at`).bind(...args);

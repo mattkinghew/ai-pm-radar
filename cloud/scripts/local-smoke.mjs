@@ -31,7 +31,8 @@ try {
   const kbx = await fetch(`${base}/api/kb/export?format=json`, { headers: H }); const kbj = await kbx.json(); check("KB export (D1)", kbx.status === 200 && kbj.count > 0, `count=${kbj.count}`);
   const mu = await fetch(`${base}/api/mutes`, { method: "POST", headers: { ...H, "content-type": "application/json" }, body: JSON.stringify({ kind: "keyword", value: "smoke-test-keyword" }) }); check("mute create", mu.status === 201 || mu.status === 409);
   const c = await fetch(`${base}/api/capture`, { method: "POST", headers: { ...H, "content-type": "application/json" }, body: JSON.stringify({ text: "x".repeat(100) }) });
-  check("capture w/o GEMINI key -> 502 (no fake summary)", c.status === 502);
+  const cj = await c.json().catch(() => ({}));
+  check("capture stores draft first, no AI call (Research Lanes)", c.status === 201 && cj.status === "draft" && cj.ai_calls === 0, JSON.stringify({ status: c.status, review_status: cj.review_status, ai_calls: cj.ai_calls }));
 } finally {
   dev?.kill(); if (backup) writeFileSync(devVars, backup); else rmSync(devVars, { force: true });
 }

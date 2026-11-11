@@ -47,9 +47,9 @@ test("X ingest dedups by post_id, rejects bad rows, cron analyzes with reco", as
   const r = await (await handle(bot("/api/ingest/x", { method: "POST", headers: J, body: JSON.stringify({ posts }) }), env)).json();
   assert.deepEqual([r.inserted, r.duplicate, r.rejected], [1, 1, [2, 3]]);
   await handle(owner("/api/sources", { method: "POST", headers: J, body: JSON.stringify({ type: "rss", value: "https://my.feed/rss", label: "mine" }) }), env, { authFetch });
-  const run = await runDaily(env, { fetchImpl: gem }); assert.equal(run.collected, 1); assert.equal(run.analyzed, 2);
+  const run = await runDaily(env, { fetchImpl: gem }); assert.equal(run.collected, 1); assert.equal(run.analyzed, 0); // user sources default ai_eligible=0
   const d = await (await handle(owner("/api/daily"), env, { authFetch })).json();
-  const x = d.items.find((i) => i.source === "x:@sama"); assert.equal(x.reco_score, 9); assert.equal(x.reco_reason, "可用於顧問提案"); assert.deepEqual(x.metrics, { likes: 5 });
+  const x = d.items.find((i) => i.source === "x:@sama"); assert.equal(x.reco_score, null); assert.deepEqual(x.metrics, { likes: 5 });
   assert.ok(d.items.some((i) => i.source === "user:mine"));
 });
 
@@ -61,10 +61,10 @@ test("seeded X watchlist readable by bearer; side_income_new flag stored", async
   const ownerAll = await (await handle(owner("/api/sources?include_disabled=1"), env, { authFetch })).json(); assert.equal(ownerAll.sources.length, 11);
   const gemSI = async (u) => String(u).includes("generativelanguage") ? new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ ...RECO, side_income_new: true, side_income_reason: "AI 短劇二創接單，成本低" }) }] } }] })) : new Response("x", { status: 404 });
   const r = await handle(owner("/api/capture", { method: "POST", headers: J, body: JSON.stringify({ text: LONG_TEXT }) }), env, { authFetch, fetchImpl: gemSI });
-  const { id } = await r.json(); const it = (await (await handle(owner(`/api/items/${id}`), env, { authFetch })).json()).item;
+  const { id } = await r.json(); await handle(owner(`/api/items/${id}/deep-read`, { method: "POST" }), env, { authFetch, fetchImpl: gemSI }); const it = (await (await handle(owner(`/api/items/${id}`), env, { authFetch })).json()).item;
   assert.equal(it.side_income_new, 1); assert.equal(it.side_income_reason, "AI 短劇二創接單，成本低");
   const r2 = await handle(owner("/api/capture", { method: "POST", headers: J, body: JSON.stringify({ text: LONG_TEXT + " Additional implementation details." }) }), env, { authFetch, fetchImpl: gem });
-  const it2 = (await (await handle(owner(`/api/items/${(await r2.json()).id}`), env, { authFetch })).json()).item;
+  const id2=(await r2.json()).id; await handle(owner(`/api/items/${id2}/deep-read`, { method: "POST" }), env, { authFetch, fetchImpl: gem }); const it2 = (await (await handle(owner(`/api/items/${id2}`), env, { authFetch })).json()).item;
   assert.equal(it2.side_income_new, 0); assert.equal(it2.side_income_reason, null);
 });
 
@@ -86,7 +86,7 @@ test("review/approve bumps feedback weight; reject lowers; list orders by score+
     ? new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ ...RECO, score: 9, score_reason: "可轉化為顧問案例", summary: "摘要內容夠長", key_points_zh: ["a","b","c"] }) }] } }] }))
     : new Response("x", { status: 404 });
   const r = await handle(owner("/api/capture", { method: "POST", headers: J, body: JSON.stringify({ text: LONG_TEXT }) }), env, { authFetch, fetchImpl: gem });
-  const { id } = await r.json();
+  const { id } = await r.json(); await handle(owner(`/api/items/${id}/deep-read`, { method: "POST" }), env, { authFetch, fetchImpl: gem });
   const it0 = (await (await handle(owner(`/api/items/${id}`), env, { authFetch })).json()).item;
   assert.equal(it0.score, 9); assert.equal(it0.score_reason, "可轉化為顧問案例");
   assert.equal((await handle(owner(`/api/items/${id}/review`, { method: "POST" }), env, { authFetch })).status, 200);

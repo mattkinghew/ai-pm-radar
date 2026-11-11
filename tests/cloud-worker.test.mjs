@@ -14,6 +14,14 @@ function mkEnv(over = {}) {
 const req = (path, { token = kit.token(), ...o } = {}) => new Request("https://radar.example" + path, { ...o, headers: { ...(token ? { "Cf-Access-Jwt-Assertion": token } : {}), ...(o.headers || {}) } });
 const AI = { title: "T", summary: "摘要", key_points: ["a", "b", "c"], score: 8 };
 const LONG_TEXT = "This English article describes a product workflow, market research, and practical implementation lessons for a small team. ".repeat(5);
+async function captureThenRead(env, body, deps) {
+  const cap = await handle(req("/api/capture", body), env, deps); if (cap.status !== 201) return cap;
+  const { id } = await cap.json(); return handle(req(`/api/items/${id}/deep-read`, { method: "POST" }), env, deps);
+}
+async function captureThenTranslate(env, body, deps) {
+  const cap = await handle(req("/api/capture", body), env, deps); if (cap.status !== 201) return cap;
+  const { id } = await cap.json(); return handle(req(`/api/items/${id}/translate`, { method: "POST" }), env, deps);
+}
 
 test("deny by default: no JWT, bad aud, wrong owner, unconfigured", async () => {
   const env = mkEnv();
@@ -33,22 +41,22 @@ test("capture -> draft -> review -> approve; approve before review rejected", as
   assert.equal((await handle(req(`/api/items/${id}/review`, { method: "POST" }), env, d)).status, 200);
   assert.equal((await handle(req(`/api/items/${id}/approve`, { method: "POST" }), env, d)).status, 200);
   const lib = await handle(req(`/api/library`), env, d).then((x) => x.json());
-  assert.deepEqual(lib.items[0].key_points, ["a", "b", "c"]);
+  assert.deepEqual(lib.items[0].key_points, []); // store-first capture has no model output
 });
 
-test("capture rejects thin content without calling AI", async () => {
+test("capture stores URL-only or short content without calling AI", async () => {
   let called = false; const env = mkEnv();
   const r = await handle(req("/api/capture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "short" }) }), env, { authFetch, fetchImpl: async () => { called = true; } });
-  assert.equal(r.status, 422); assert.equal(called, false);
+  assert.equal(r.status, 201); assert.equal((await r.json()).review_status, "NEEDS_SOURCE_REVIEW"); assert.equal(called, false);
 });
 
-test("fallback to Workers AI on Gemini 429 only when enabled; not on 403", async () => {
+test("deep-read makes one provider attempt and does not fall back after Gemini 429/403", async () => {
   const fail = (s) => async () => new Response("x", { status: s });
   const ai = { run: async () => ({ response: JSON.stringify(AI) }) };
   const body = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: LONG_TEXT }) };
-  const r1 = await handle(req("/api/capture", body), mkEnv({ AI: ai, AI_FALLBACK_PROVIDER: "workers-ai" }), { authFetch, fetchImpl: fail(429) });
-  assert.equal(r1.status, 201); assert.equal((await r1.json()).provider, "workers-ai");
-  const r2 = await handle(req("/api/capture", body), mkEnv({ AI: ai, AI_FALLBACK_PROVIDER: "workers-ai" }), { authFetch, fetchImpl: fail(403) });
+  const r1 = await captureThenRead(mkEnv({ AI: ai, AI_FALLBACK_PROVIDER: "workers-ai" }), body, { authFetch, fetchImpl: fail(429) });
+  assert.equal(r1.status, 502);
+  const r2 = await captureThenRead(mkEnv({ AI: ai, AI_FALLBACK_PROVIDER: "workers-ai" }), body, { authFetch, fetchImpl: fail(403) });
   assert.equal(r2.status, 502);
 });
 
@@ -74,17 +82,17 @@ const capBody = { method: "POST", headers: { "content-type": "application/json" 
 
 test("bilingual output stored and returned", async () => {
   const env = mkEnv(); const d = { authFetch, fetchImpl: gemOk(BI) };
-  const r = await handle(req("/api/capture", capBody), env, d); assert.equal(r.status, 201);
-  const { id } = await r.json();
+  const cap = await handle(req("/api/capture", capBody), env, d); const { id } = await cap.json();
+  const r = await handle(req(`/api/items/${id}/deep-read`, { method: "POST" }), env, d); assert.equal(r.status, 200);
   const it = (await handle(req(`/api/items/${id}`), env, d).then((x) => x.json())).item;
-  assert.equal(it.title_zh, "OpenAI 推出 X"); assert.equal(it.title_original, "OpenAI ships X");
+  assert.equal(it.title_zh, "OpenAI 推出 X"); assert.equal(it.title_original, LONG_TEXT.slice(0, 160));
   assert.deepEqual(it.key_points, ["甲", "乙", "丙"]); assert.deepEqual(it.key_points_en, ["a", "b", "c"]); assert.equal(it.summary_en, "English summary");
 });
 
 test("Gemini cap reached is not a retryable failure, so it does not fall back", async () => {
   const calls = { n: 0 }; const env = mkEnv({ AI_DAILY_CAP: "1", WORKERS_AI_DAILY_CAP: "2", AI_FALLBACK_PROVIDER: "workers-ai", AI: wai(calls), WORKERS_AI_MODEL: "@cf/qwen/qwen3-30b-a3b-fp8" });
   const d = { authFetch, fetchImpl: gemOk(BI) }; const prov = [];
-  for (let i = 0; i < 4; i++) { const r = await handle(req("/api/capture", capBody), env, d); prov.push(r.status === 201 ? (await r.json()).provider : r.status); }
+  for (let i = 0; i < 4; i++) { const r = await captureThenRead(env, capBody, d); prov.push(r.status === 200 ? (await r.json()).provider : r.status); }
   assert.deepEqual(prov, ["gemini", 429, 429, 429]); assert.equal(calls.n, 0);
   const c = await handle(req("/api/cloud/capabilities"), env, d).then((x) => x.json());
   assert.deepEqual([c.ai.usage.gemini.used, c.ai.usage.gemini.cap, c.ai.usage.workersAi.used, c.ai.usage.workersAi.cap], [1, 1, 0, 2]);
@@ -93,10 +101,10 @@ test("Gemini cap reached is not a retryable failure, so it does not fall back", 
 test("Gemini 5xx falls back; 403 does not; fallback disabled means no Workers AI", async () => {
   const fail = (s) => async () => new Response("x", { status: s });
   const on = { AI: wai(), AI_FALLBACK_PROVIDER: "workers-ai" };
-  assert.equal((await (await handle(req("/api/capture", capBody), mkEnv(on), { authFetch, fetchImpl: fail(503) })).json()).provider, "workers-ai");
-  assert.equal((await handle(req("/api/capture", capBody), mkEnv(on), { authFetch, fetchImpl: fail(403) })).status, 502);
+  assert.equal((await (await captureThenTranslate(mkEnv(on), capBody, { authFetch, fetchImpl: fail(503) })).json()).item.ai_provider, "workers-ai");
+  assert.equal((await captureThenTranslate(mkEnv(on), capBody, { authFetch, fetchImpl: fail(403) })).status, 502);
   const off = { calls: 0 }; const env = mkEnv({ AI_DAILY_CAP: "0", AI: { run: async () => { off.calls++; } } });
-  assert.equal((await handle(req("/api/capture", capBody), env, { authFetch, fetchImpl: gemOk(BI) })).status, 429); assert.equal(off.calls, 0);
+  assert.equal((await captureThenRead(env, capBody, { authFetch, fetchImpl: gemOk(BI) })).status, 429); assert.equal(off.calls, 0);
 });
 
 test("轉中文 translate endpoint on imported item keeps status, counts cap", async () => {
@@ -117,14 +125,14 @@ test("Gemini insufficient content and bad output do not fall back; retries only 
   const gem = (t) => async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: t }] } }] }));
   const calls = { n: 0 }; const on = { AI: wai(calls), AI_FALLBACK_PROVIDER: "workers-ai" };
   for (const t of ["not json", '{"error":"insufficient_content"}']) {
-    const r = await handle(req("/api/capture", capBody), mkEnv(on), { authFetch, fetchImpl: gem(t) });
+    const r = await captureThenRead(mkEnv(on), capBody, { authFetch, fetchImpl: gem(t) });
     assert.equal(r.status, t === "not json" ? 502 : 422); assert.equal(calls.n, 0);
   }
   const bad = { AI: { run: async () => ({ response: '{"error":"insufficient_content"}' }) }, AI_FALLBACK_PROVIDER: "workers-ai" };
-  const r = await handle(req("/api/capture", capBody), mkEnv(bad), { authFetch, fetchImpl: gem('{"error":"insufficient_content"}') });
+  const r = await captureThenRead(mkEnv(bad), capBody, { authFetch, fetchImpl: gem('{"error":"insufficient_content"}') });
   assert.equal(r.status, 422); assert.equal((await r.json()).error, "insufficient_content");
   const boom = { AI: { run: async () => { throw new Error("3040: capacity"); } }, AI_FALLBACK_PROVIDER: "workers-ai" };
-  const r2 = await handle(req("/api/capture", capBody), mkEnv(boom), { authFetch, fetchImpl: gem("nope") });
+  const r2 = await captureThenRead(mkEnv(boom), capBody, { authFetch, fetchImpl: gem("nope") });
   assert.equal(r2.status, 502); assert.equal((await r2.json()).error, "ai_bad_output");
   const gCalls = { n: 0 }; const gEnv = mkEnv({ AI_FALLBACK_PROVIDER: "workers-ai", AI: { run: async () => { gCalls.n++; return { response: "{}" }; } } });
   await assert.rejects(generate(gEnv, "task", LONG_TEXT, (x) => x, { fetchImpl: gem('{"error":"insufficient_content"}') }), /insufficient_content/u);
@@ -134,7 +142,7 @@ test("Gemini insufficient content and bad output do not fall back; retries only 
 test("failed reserved calls refund usage, including Gemini 403", async () => {
   const env = mkEnv({ AI_FALLBACK_PROVIDER: "workers-ai", AI: { run: async () => ({ response: JSON.stringify(BI) }) } });
   const bad = async () => new Response("bad", { status: 403 });
-  const r = await handle(req("/api/capture", capBody), env, { authFetch, fetchImpl: bad }); assert.equal(r.status, 502);
+  const r = await captureThenRead(env, capBody, { authFetch, fetchImpl: bad }); assert.equal(r.status, 502);
   const u = await usage(env); assert.equal(u.gemini.used, 0); assert.equal(u.gemini.manualReserveRemaining, 5);
 });
 
@@ -142,9 +150,9 @@ test("short Chinese capture is extractive and consumes no model quota", async ()
   let called = false; const env = mkEnv();
   const r = await handle(req("/api/capture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: "值得收藏：用 React 和 CSS 快速製作一人公司產品頁，先驗證需求再投入成本。".repeat(3) }) }), env,
     { authFetch, fetchImpl: async () => { called = true; } });
-  assert.equal(r.status, 201); assert.equal(called, false); const { id, provider } = await r.json(); assert.equal(provider, "extractive");
+  assert.equal(r.status, 201); assert.equal(called, false); const { id, ai_calls, review_status } = await r.json(); assert.equal(ai_calls, 0); assert.equal(review_status, "needs_review");
   const item = (await handle(req(`/api/items/${id}`), env, { authFetch }).then((x) => x.json())).item;
-  assert.equal(item.ai_provider, "extractive"); assert.ok(item.title_zh); assert.equal((await usage(env)).gemini.used, 0);
+  assert.equal(item.ai_provider, "extractive"); assert.ok(item.title_zh == null); assert.equal((await usage(env)).gemini.used, 0);
 });
 
 test("auto analysis preserves manual floor and respects daily item limit", async () => {
@@ -162,7 +170,7 @@ test("auto analysis preserves manual floor and respects daily item limit", async
   assert.equal((await env.DB.prepare("SELECT ai_provider FROM items WHERE id=?").bind(shortId).first()).ai_provider, "extractive");
   const pending = await env.DB.prepare("SELECT COUNT(*) n FROM items WHERE ai_provider IS NULL").first(); assert.equal(pending.n, 2);
   const capBody2 = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: LONG_TEXT }) };
-  const manual = await handle(req("/api/capture", capBody2), env, { authFetch, fetchImpl }); assert.equal(manual.status, 201);
+  const manual = await captureThenRead(env, capBody2, { authFetch, fetchImpl }); assert.equal(manual.status, 200);
   assert.equal((await usage(env)).gemini.used, 3, "owner can spend the reserved call");
   const again = await analyzePending(env, { fetchImpl, nowMs }); assert.equal(again.analyzed, 0);
 });
