@@ -55,3 +55,9 @@ Confirm repo/commit and bindings using authorized read-only inspection; establis
 No Access bypass, unauthenticated public endpoint, Internet-reachable internal service, D1 write, live ingestion, or Scoring vNext/Jev expansion before runtime recovery.
 
 <!-- END cursor-grok-kit 2026-10-31 -->
+
+## Delivery contract (2026-11-11)
+- Follow the status vocabulary, budget/stop rules and handoff packet in `~/.codex/AGENTS.md` §0A (Completed / Partial / Blocked / Unknown / Planned; unrun check = Unknown).
+- One task = one executor. Reviewer (Cursor `independent-reviewer`, Codex review, or Tom) reads only task packet + diff + evidence and never edits the branch.
+- Max 2 implementation rounds; same failure twice = Blocked; 0 unrelated files; max 3 visual iterations; no new dependency without approval.
+- No commit / push / deploy without Matt's explicit OK.

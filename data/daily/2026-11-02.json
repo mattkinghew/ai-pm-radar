@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-02",
+  "articles": [
+    {
+      "question_title": "Fixture check: can a local daily JSON pass the existing validators?",
+      "short_title": "Local resilience fixture (synthetic)",
+      "summary": "Synthetic fixture only. It contains no news claim and must not be published as a real Radar update.",
+      "why_it_matters": "It verifies the local file path and daily JSON schema without depending on Grok Bot or external feeds.",
+      "business_angle": "No business event is represented; this entry exists only to exercise the file and validation workflow.",
+      "ai_pm_angle": "Treat local collection and editorial approval as separate steps; this fixture is not source evidence.",
+      "risk_note": "Synthetic QA data only. Remove it from data/daily before any release or public build.",
+      "category": "LOCAL_QA_FIXTURE",
+      "tags": [
+        "synthetic",
+        "local-qa"
+      ],
+      "source_name": "Local fixture (not a publication source)",
+      "source_url": "https://example.com/local-radar-fixture",
+      "published_at": "2026-11-02T00:00:00.000Z",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Synthetic validator fixture. Not approved for publication."
+      },
+      "local_fixture": true
+    }
+  ]
+}

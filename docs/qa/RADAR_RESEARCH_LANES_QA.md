@@ -64,3 +64,7 @@ Migration also adds indexes for lane ranking and title-hash lookup. It does not 
 - The synthetic fixture preserves input shape and source identifiers but replaces saved body text with synthetic text; it is not a research result or Owner ranking acceptance.
 
 未 commit、push、merge 或 deploy。
+
+## R1 補記（2026-11-12）
+
+後續 R1 在 `docs/qa/RADAR_R1_QA.md` 記錄合成 preference gold order、共用 `scoreLane` 的本地 collector、fixture validators 及沙盒 smoke 限制。本段只追加後續證據；上文是 2026-11-10 的歷史快照，當時的 286/286 不代表 R1 的測試數或 Owner 驗收。

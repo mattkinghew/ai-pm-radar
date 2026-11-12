@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.lamlab.radar.daily-local</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>--experimental-strip-types</string>
+    <string>/Users/mattgor/Documents/Daily/ai-pm-radar/scripts/daily_radar_collector.mjs</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/mattgor/Documents/Daily/ai-pm-radar</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>RADAR_INBOX_PATH</key>
+    <string>/Users/mattgor/Documents/Daily/ai-pm-radar/.runtime/daily-radar-inbox.json</string>
+  </dict>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>8</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>RunAtLoad</key>
+  <false/>
+  <key>StandardOutPath</key>
+  <string>/Users/mattgor/Library/Logs/ai-pm-radar-daily-local.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/mattgor/Library/Logs/ai-pm-radar-daily-local-error.log</string>
+</dict>
+</plist>

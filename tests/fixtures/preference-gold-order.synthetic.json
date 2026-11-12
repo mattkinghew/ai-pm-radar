@@ -1,0 +1,27 @@
+{
+  "description": "Synthetic calibration vectors mapped by one-based saved-item number to threads-source-inputs-2026-11-10.json. Signal text is a controlled test input, not a claim about the saved post. Published dates and source weights are deliberately absent.",
+  "topN": 10,
+  "expected_order": [23, 18, 2, 9, 33, 16, 17, 21, 7, 11],
+  "items": [
+    { "number": 23, "signal_text": "agent eval harness permission boundary paid pilot", "expected_lane": "AGENT_GOVERNANCE" },
+    { "number": 18, "signal_text": "paid pilot pricing content workflow", "expected_lane": "MONETIZATION_GAP" },
+    { "number": 2, "signal_text": "agent eval permission boundary original content QA", "expected_lane": "AGENT_GOVERNANCE" },
+    { "number": 9, "signal_text": "prompt injection official free credits", "expected_lane": "AGENT_GOVERNANCE" },
+    { "number": 33, "signal_text": "shorts generator official free credits", "expected_lane": "CONTENT_WORKFLOW" },
+    { "number": 16, "signal_text": "agent harness", "expected_lane": "AGENT_GOVERNANCE" },
+    { "number": 17, "signal_text": "release quality", "expected_lane": "AGENT_GOVERNANCE" },
+    { "number": 21, "signal_text": "original content QA", "expected_lane": "CONTENT_WORKFLOW" },
+    { "number": 7, "signal_text": "repeatable template", "expected_lane": "CONTENT_WORKFLOW" },
+    { "number": 11, "signal_text": "content workflow", "expected_lane": "CONTENT_WORKFLOW" },
+    { "number": 6, "signal_text": "free gpu", "expected_lane": "FREE_RESOURCE" },
+    { "number": 22, "signal_text": "learning path", "expected_lane": "AI_LEARNING_PATH" },
+    { "number": 25, "signal_text": "github repository", "expected_lane": "GITHUB_PROJECT" },
+    { "number": 8, "signal_text": "model release", "expected_lane": "TECH_NEWS" },
+    { "number": 1, "signal_text": "startup positioning", "expected_lane": "OTHER" },
+    { "number": 30, "signal_text": "free gpu", "expected_lane": "FREE_RESOURCE" },
+    { "number": 4, "signal_text": "viral", "expected_lane": "OTHER" },
+    { "number": 31, "signal_text": "copyright reupload", "expected_lane": "GITHUB_PROJECT" },
+    { "number": 10, "signal_text": "unverified attack attribution", "expected_lane": "OTHER" },
+    { "number": 35, "signal_text": "general model notes", "expected_lane": "OTHER" }
+  ]
+}
