@@ -18,6 +18,19 @@ export const LANE_RULES = [
 ];
 export const LANES = ["AI_LEARNING_PATH", "MONETIZATION_GAP", "TECH_NEWS", "GITHUB_PROJECT", "APPLY_NOW", "FREE_RESOURCE", "AGENT_GOVERNANCE", "CONTENT_WORKFLOW", "OTHER"];
 const foldText = (s) => String(s ?? "").normalize("NFKC").toLocaleLowerCase().replace(/\s+/gu, " ");
+export const normalizeTrainTerm = (s) => foldText(s).trim();
+export function feedbackOverlay(item, weights) {
+  const text = foldText([item.title, item.title_zh, item.summary, ...(Array.isArray(item.tags) ? item.tags : [])].filter(Boolean).join(" "));
+  const keys = new Set([item.source, item.category ? `cat:${item.category}` : null].filter(Boolean));
+  const matched = weights.filter(({ key, weight }) => {
+    if (!Number(weight)) return false;
+    if (keys.has(key)) return true;
+    const term = key.startsWith("kw:") ? key.slice(3) : key.startsWith("tag:") ? key.slice(4) : null;
+    return !!term && text.includes(term);
+  }).sort((a, b) => a.key.localeCompare(b.key));
+  const sum = matched.reduce((n, row) => n + Number(row.weight), 0);
+  return { feedback_adj: Math.max(-2, Math.min(3, sum)), train_reasons: matched.map(({ key, weight }) => ({ key, weight: Number(weight) })) };
+}
 export function injectionSuspect(text) {
   const value = String(text ?? "");
   if (/(ignore (?:all )?(?:previous|prior) instructions|disregard (?:the )?system prompt|忽略(?:之前|以上|所有).{0,8}(?:指令|提示)|請(?:立即)?(?:寄送|轉寄|執行)|send (?:this|the) email|(?:e-?mail|郵件|電郵).{0,80}(?:please|action|send|transfer|reply|click|open|download|請|立即|轉寄|點擊|下載)|https?:\/\/[^\s]*(?:\.zip|\.exe|\.ru\b))/iu.test(value)) return true;

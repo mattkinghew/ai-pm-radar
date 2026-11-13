@@ -99,9 +99,117 @@ test("GitHub repositories/releases and YouTube Atom parse official source metada
   assert.ok(rows.every((x) => x.ai_eligible === 0));
 });
 
+test("RSS, YouTube Atom, and GitHub adapters persist validators and honor 304", async () => {
+  const db = fakeD1(); const calls = []; let round = 0;
+  const sources = [
+    { id: "feed", type: "rss", value: "https://example.test/feed.xml", label: "Synthetic RSS" },
+    { id: "search", type: "github_search", value: "agent", label: "Synthetic search" },
+    { id: "release", type: "github_releases", value: "owner/repo", label: "Synthetic release" },
+    { id: "video", type: "youtube_channel", value: "UC1234567890123456789012", label: "Synthetic video" },
+  ];
+  const target = (url) => url === "https://example.test/feed.xml" ? "feed" : url.includes("search/repositories") ? "search" : url.includes("/releases?") ? "release" : url.includes("youtube.com/feeds/videos.xml") ? "video" : null;
+  const fetchImpl = async (url, init) => {
+    const kind = target(String(url)); if (!kind) return new Response("", { status: 404 });
+    calls.push({ kind, url: String(url), headers: init.headers, signal: init.signal });
+    const headers = { etag: `"${kind}-v1"`, "last-modified": "Wed, 11 Nov 2026 00:00:00 GMT" };
+    if (round) return new Response(null, { status: 304, headers });
+    const body = kind === "feed" ? "<rss><channel><item><title>Feed item</title><link>https://example.test/item</link></item></channel></rss>"
+      : kind === "video" ? "<feed><entry><title>Video item</title><link href=\"https://youtube.com/watch?v=abc\"/></entry></feed>"
+      : kind === "search" ? JSON.stringify({ items: [{ full_name: "owner/repo", html_url: "https://github.com/owner/repo" }] })
+      : JSON.stringify([{ name: "Release item", html_url: "https://github.com/owner/repo/releases/tag/v1" }]);
+    return new Response(body, { status: 200, headers });
+  };
+  const first = await collect(fetchImpl, sources, { db });
+  assert.ok(first.some((x) => x.title === "Feed item"));
+  assert.ok(first.some((x) => x.title === "Video item"));
+  assert.equal(calls.length, 4);
+  assert.ok(calls.every((x) => !x.headers["if-none-match"] && !x.headers["if-modified-since"] && x.signal));
+  assert.equal(db.raw.prepare("SELECT COUNT(*) n FROM source_http_cache WHERE etag IS NOT NULL AND last_modified IS NOT NULL").get().n, 4);
+  round = 1; calls.length = 0;
+  const errors = [];
+  const second = await collect(fetchImpl, sources, { db, onError: (error) => errors.push(error) });
+  assert.deepEqual(second, []); assert.deepEqual(errors, []);
+  assert.equal(calls.length, 4);
+  assert.ok(calls.every((x) => x.headers["if-none-match"] === `"${x.kind}-v1"` && x.headers["if-modified-since"] === "Wed, 11 Nov 2026 00:00:00 GMT"));
+  assert.equal(db.raw.prepare("SELECT url FROM source_http_cache WHERE source_key='source:video'").get().url, "https://www.youtube.com/feeds/videos.xml?channel_id=UC1234567890123456789012");
+  sources[2].value = "other/repo";
+  const changed = [];
+  const withoutValidators = async (url, init) => {
+    if (!String(url).includes("/releases?")) return new Response("", { status: 404 });
+    changed.push(init.headers);
+    return Response.json([{ name: "Other release", html_url: "https://github.com/other/repo/releases/tag/v1" }]);
+  };
+  await collect(withoutValidators, [sources[2]], { db });
+  await collect(withoutValidators, [sources[2]], { db });
+  assert.equal(changed.length, 2);
+  assert.ok(changed.every((headers) => !headers["if-none-match"] && !headers["if-modified-since"]));
+  assert.equal(db.raw.prepare("SELECT etag,last_modified FROM source_http_cache WHERE source_key='source:release'").get().etag, null);
+});
+
 test("action digest is deterministic and reports zero AI calls", async () => {
   const e = env();
   await handle(req("/api/inbox/import", [{ title: "Pricing interview", value: "Paid pilot; willingness to pay; pricing discussion. Synthetic body." }]), e, { authFetch });
   const r = await handle(req("/api/digest?days=7"), e, { authFetch }); const d = await r.json();
   assert.equal(d.ai_calls, 0); assert.equal(d.lanes.MONETIZATION_GAP.length, 1);
+});
+
+test("digest and daily use trained weights without changing stored lane scores", async () => {
+  const e = env(); const now = new Date().toISOString(), day = now.slice(0, 10);
+  const ids = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()];
+  const rows = [
+    [ids[0], "Orbit pricing", "source-a", "A", 0, new Date(Date.now() - 3000).toISOString()],
+    [ids[1], "Comet pricing", "source-b", "B", 0, new Date(Date.now() - 2000).toISOString()],
+    [ids[2], "Nebula pricing", "source-c", "C", 0, new Date(Date.now() - 1000).toISOString()],
+    [ids[3], "Quasar pricing", "source-d", "D", 0, now],
+  ];
+  for (const [id, title, source, category, pref, created] of rows) e.DB.raw.prepare("INSERT INTO items(id,kind,status,title,source,category,run_date,created_at,updated_at,lane,pref_score) VALUES(?,'daily','draft',?,?,?,?,?,?,'MONETIZATION_GAP',?)").run(id, title, source, category, day, created, now, pref);
+  const call = async (path, body) => handle(req(path, body), e, { authFetch, fetchImpl: async () => { throw new Error("AI called"); } });
+  const digest = async () => (await (await call("/api/digest?days=7")).json());
+  const lane = async () => (await digest()).lanes.MONETIZATION_GAP;
+  assert.deepEqual((await lane()).map((x) => x.id), [ids[3], ids[2], ids[1]]);
+  assert.equal((await call(`/api/items/${ids[0]}/action`, { action: "star" })).status, 200);
+  assert.equal((await call(`/api/items/${ids[3]}/action`, { action: "not_interested", reason: "low_quality" })).status, 200);
+  const after = await lane(); assert.equal(after[0].id, ids[0]); assert.ok(!after.some((x) => x.id === ids[3]));
+  assert.ok(after[0].train_reasons.some((x) => x.key === "source-a" && x.weight === 0.6));
+  assert.equal(e.DB.raw.prepare("SELECT pref_score FROM items WHERE id=?").get(ids[0]).pref_score, 0);
+  assert.equal(e.DB.raw.prepare("SELECT pref_score FROM items WHERE id=?").get(ids[3]).pref_score, 0);
+  const d = await digest(); assert.equal(d.ai_calls, 0); assert.ok(Object.values(d.lanes).every((x) => x.length <= 3));
+  assert.equal((await (await call("/api/daily")).json()).items[0].id, ids[0]);
+  assert.equal((await call("/api/digest?days=31")).status, 400);
+});
+
+test("keyword thumb demotes the matching item on the next digest and home load", async () => {
+  const e = env(); const now = new Date().toISOString(), day = now.slice(0, 10);
+  const first = crypto.randomUUID(), second = crypto.randomUUID();
+  for (const [id, title, age] of [[first, "Orbit pilot", 0], [second, "Comet pilot", 1000]]) e.DB.raw.prepare("INSERT INTO items(id,kind,status,title,source,run_date,created_at,updated_at,lane,pref_score) VALUES(?,'daily','draft',?,?,?,?,?,'MONETIZATION_GAP',0)").run(id, title, id, day, new Date(Date.now() - age).toISOString(), now);
+  const call = async (path, body, token = kit.token()) => handle(new Request(`https://radar.example${path}`, { method: body ? "POST" : "GET", headers: { ...(token ? { "Cf-Access-Jwt-Assertion": token } : {}), ...(body ? { "content-type": "application/json" } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) }), e, { authFetch, fetchImpl: async () => { throw new Error("AI called"); } });
+  const ranked = async () => (await (await call("/api/digest?days=7")).json()).lanes.MONETIZATION_GAP;
+  assert.equal((await ranked())[0].id, first);
+  assert.equal((await call("/api/trainer", { item_id: first, scope: "keyword", term: " ORBIT ", vote: "down" }, null)).status, 401);
+  assert.equal((await call("/api/trainer", { item_id: first, scope: "keyword", term: "<script>", vote: "down" })).status, 400);
+  assert.equal((await call("/api/trainer", { item_id: first, scope: "keyword", term: "Comet", vote: "down" })).status, 400);
+  assert.equal((await call("/api/trainer", { item_id: first, scope: "keyword", term: " ORBIT ", vote: "down" })).status, 200);
+  assert.equal((await ranked())[0].id, second);
+  const daily = await (await call("/api/daily")).json(); assert.equal(daily.items[0].id, second);
+  assert.equal((await (await call("/api/library?status=all")).json()).items[0].id, second);
+  const weights = await (await call("/api/trainer")).json(); assert.equal(weights.weights.find((x) => x.key === "kw:orbit").weight, -0.4);
+  assert.equal(e.DB.raw.prepare("SELECT action,reason FROM item_actions WHERE item_id=?").get(first).reason, "keyword:orbit");
+  assert.equal(e.DB.raw.prepare("SELECT pref_score FROM items WHERE id=?").get(first).pref_score, 0);
+});
+
+test("title and tag thumbs normalize terms and keep an auditable action log", async () => {
+  const e = env(); const id = crypto.randomUUID(), now = new Date().toISOString();
+  e.DB.raw.prepare("INSERT INTO items(id,kind,status,title,source,created_at,updated_at) VALUES(?,'library','draft','Agent Orbit','synthetic',?,?)").run(id, now, now);
+  e.DB.raw.prepare("INSERT INTO kb_entries(id,item_id,title,tags,origin,created_at,updated_at) VALUES(?,?,?,'[\"Governance\"]','manual',?,?)").run(crypto.randomUUID(), id, "Agent Orbit", now, now);
+  const act = (scope, term, vote) => handle(req("/api/trainer", { item_id: id, scope, term, vote }), e, { authFetch });
+  assert.equal((await act("title", "  ＯＲＢＩＴ  ", "up")).status, 200);
+  assert.equal((await act("tag", "GOVERNANCE", "down")).status, 200);
+  const item = (await (await handle(req("/api/library?status=all"), e, { authFetch })).json()).items[0];
+  assert.deepEqual(item.train_reasons.map((x) => x.key), ["kw:orbit", "tag:governance"]);
+  assert.equal(e.DB.raw.prepare("SELECT COUNT(*) n FROM item_actions WHERE item_id=? AND action IN ('train_up','train_down')").get(id).n, 2);
+  assert.equal(e.DB.raw.prepare("SELECT pref_score FROM items WHERE id=?").get(id).pref_score, 0);
+});
+
+test("locked lane rule weights stay unchanged", () => {
+  assert.deepEqual(LANE_RULES.map(({ id, weight }) => [id, weight]), [["paid_pilot", 25], ["agent_governance", 20], ["content_workflow", 15], ["free_resource", 10], ["free_resource_lane", 0], ["learning_path", 0], ["github_project", 0], ["tech_news", 0], ["apply_now", 0], ["hype_only", -20], ["copyright_reupload", -30], ["unverified_incident", -30]]);
 });

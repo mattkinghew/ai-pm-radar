@@ -16,19 +16,27 @@ const HN_URL = "https://hn.algolia.com/api/v1/search_by_date?query=AI%20OR%20LLM
 
 function asSummary(value) { return (value ?? "").replace(/\s+/g, " ").trim().slice(0, 1200) || null; }
 function key(item) { return item.url || `${item.sourceId}:${item.externalId}`; }
+function validator(value) { return typeof value === "string" && value.length <= 512 ? value : null; }
 
-export async function collectDailyRadar({ fetchImpl = fetch, now = new Date().toISOString(), onSourceResult } = {}) {
+export async function collectDailyRadar({ fetchImpl = fetch, now = new Date().toISOString(), onSourceResult, validators = {} } = {}) {
   const candidates = [];
   let forbiddenByNetwork = false;
   for (const feed of RADAR_FEEDS) {
     try {
-      const response = await fetchImpl(feed.url, { headers: { accept: "application/rss+xml, application/atom+xml, application/xml" } });
+      const previous = validators[feed.id]?.url === feed.url ? validators[feed.id] : {};
+      const response = await fetchImpl(feed.url, { headers: { accept: "application/rss+xml, application/atom+xml, application/xml", ...(validator(previous.etag) ? { "if-none-match": previous.etag } : {}), ...(validator(previous.last_modified) ? { "if-modified-since": previous.last_modified } : {}) } });
+      if (response.status === 304) {
+        validators[feed.id] = { url: feed.url, etag: validator(response.headers?.get?.("etag")) || previous.etag || null, last_modified: validator(response.headers?.get?.("last-modified")) || previous.last_modified || null };
+        onSourceResult?.(feed.id, "not_modified");
+        continue;
+      }
       if (!response.ok) {
         onSourceResult?.(feed.id, `http_${response.status}`);
         if (response.status === 403) { forbiddenByNetwork = true; break; }
         continue;
       }
       const parsed = parseFeedXml(await response.text(), feed.url, feed.id, now);
+      validators[feed.id] = { url: feed.url, etag: validator(response.headers?.get?.("etag")), last_modified: validator(response.headers?.get?.("last-modified")) };
       onSourceResult?.(feed.id, "ok");
       for (const item of parsed.items) {
         const text = `${item.title} ${item.summary ?? ""} ${item.content ?? ""}`;
@@ -72,18 +80,20 @@ export async function collectDailyRadar({ fetchImpl = fetch, now = new Date().to
   }));
 }
 
-export async function writeInbox(items, filePath) {
+export async function writeInbox(items, filePath, validators) {
   const target = resolve(filePath);
   let existing = [];
+  let existingValidators = {};
   try {
     const value = JSON.parse(await readFile(target, "utf8"));
     if (!value || !Array.isArray(value.items)) throw new Error("Invalid inbox schema.");
     existing = value.items;
+    existingValidators = value.validators && typeof value.validators === "object" && !Array.isArray(value.validators) ? value.validators : {};
   } catch (error) {
     if (error?.code !== "ENOENT") throw new Error("Existing local inbox is unreadable; refusing to overwrite it.");
   }
   const byKey = new Map([...existing, ...items].map((item) => [key(item), item]));
-  const next = { version: 1, updatedAt: new Date().toISOString(), items: [...byKey.values()] };
+  const next = { version: 1, updatedAt: new Date().toISOString(), items: [...byKey.values()], validators: validators ?? existingValidators };
   await mkdir(dirname(target), { recursive: true });
   await writeFile(target, `${JSON.stringify(next, null, 2)}\n`, { mode: 0o600 });
   return next;
@@ -101,11 +111,19 @@ async function main() {
     return;
   }
   const output = process.env.RADAR_INBOX_PATH || ".runtime/daily-radar-inbox.json";
+  let validators = {};
+  try {
+    const existing = JSON.parse(await readFile(output, "utf8"));
+    if (!Array.isArray(existing.items)) throw new Error("Invalid inbox schema.");
+    validators = existing.validators && typeof existing.validators === "object" && !Array.isArray(existing.validators) ? existing.validators : {};
+  } catch (error) {
+    if (error?.code !== "ENOENT") throw new Error("Existing local inbox is unreadable; refusing to overwrite it.");
+  }
   const results = [];
-  const items = await collectDailyRadar({ onSourceResult: (source, result) => results.push({ source, result }) });
-  const succeeded = results.filter(({ result }) => result === "ok").length;
-  console.log(`Source checks: ${succeeded}/${results.length} succeeded; ${results.filter(({ result }) => result !== "ok").length} failed.`);
-  for (const { source, result } of results) if (result !== "ok") console.error(`Source failure: ${source} (${result}).`);
+  const items = await collectDailyRadar({ validators, onSourceResult: (source, result) => results.push({ source, result }) });
+  const succeeded = results.filter(({ result }) => result === "ok" || result === "not_modified").length;
+  console.log(`Source checks: ${succeeded}/${results.length} succeeded; ${results.length - succeeded} failed.`);
+  for (const { source, result } of results) if (result !== "ok" && result !== "not_modified") console.error(`Source failure: ${source} (${result}).`);
   if (results.some(({ result }) => result === "http_403")) {
     console.error("Daily collection stopped after HTTP 403; check VPN/network access before retrying. Existing inbox was left unchanged.");
     process.exitCode = 3;
@@ -116,7 +134,7 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  const inbox = await writeInbox(items, output);
+  const inbox = await writeInbox(items, output, validators);
   console.log(`Collected ${items.length} candidates; inbox has ${inbox.items.length} deduplicated items awaiting human review.`);
 }
 

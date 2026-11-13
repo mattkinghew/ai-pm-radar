@@ -35,6 +35,24 @@ export async function userFeeds(db) {
   try { return (await db.prepare("SELECT id,adapter_type AS type,value,label,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible FROM sources WHERE enabled=1 ORDER BY created_at LIMIT 30").all()).results || []; } catch { return []; }
 }
 const timedFetch = (fetchImpl, url, init = {}) => fetchImpl(url, { ...init, signal: AbortSignal.timeout(10000) });
+const validator = (value) => typeof value === "string" && value.length <= 512 ? value : null;
+async function conditionalFetch(fetchImpl, url, key, db, init = {}) {
+  const cached = db ? await db.prepare("SELECT url,etag,last_modified FROM source_http_cache WHERE source_key=?").bind(key).first() : null;
+  const previous = cached?.url === url ? cached : null;
+  const headers = { ...init.headers };
+  if (previous) {
+    if (validator(previous.etag)) headers["if-none-match"] = previous.etag;
+    if (validator(previous.last_modified)) headers["if-modified-since"] = previous.last_modified;
+  }
+  const response = await timedFetch(fetchImpl, url, { ...init, headers });
+  if (db && (response.ok || response.status === 304)) {
+    const etag = validator(response.headers?.get?.("etag")) || (response.status === 304 ? validator(previous?.etag) : null);
+    const lastModified = validator(response.headers?.get?.("last-modified")) || (response.status === 304 ? validator(previous?.last_modified) : null);
+    await db.prepare("INSERT INTO source_http_cache(source_key,url,etag,last_modified,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(source_key) DO UPDATE SET url=excluded.url,etag=excluded.etag,last_modified=excluded.last_modified,updated_at=excluded.updated_at")
+      .bind(key, url, etag, lastModified, new Date().toISOString()).run();
+  }
+  return response;
+}
 async function mapLimit(values, limit, task) {
   const out = new Array(values.length); let next = 0;
   await Promise.all(Array.from({ length: Math.min(limit, values.length) }, async () => { while (next < values.length) { const i = next++; try { out[i] = await task(values[i], i); } catch (error) { out[i] = { error: String(error?.message || "source_error").slice(0, 120) }; } } }));
@@ -46,30 +64,31 @@ function sourceMatches(text, source) {
   const folded = String(text).toLocaleLowerCase();
   return (!includes.length || includes.some((k) => folded.includes(String(k).toLocaleLowerCase()))) && !excludes.some((k) => folded.includes(String(k).toLocaleLowerCase()));
 }
-export async function collect(fetchImpl = fetch, extra = [], { githubToken = "", onError = () => {} } = {}) {
+export async function collect(fetchImpl = fetch, extra = [], { githubToken = "", onError = () => {}, db = null } = {}) {
   // Built-in and custom sources share the six-request concurrency bound. New adapter calls are capped at 30/run.
-  const standard = [...FEEDS.map((f) => ({ ...f, type: "rss", ai_eligible: 1, weight: 0 })), ...extra.filter((s) => s.type === "rss").map((s) => ({ ...s, id: `user:${s.label || s.id}`, url: s.value, category: s.lane_default || "OTHER" }))];
+  const standard = [...FEEDS.map((f) => ({ ...f, type: "rss", ai_eligible: 1, weight: 0, cacheKey: `builtin:${f.id}` })), ...extra.filter((s) => s.type === "rss").map((s) => ({ ...s, id: `user:${s.label || s.id}`, url: s.value, category: s.lane_default || "OTHER", cacheKey: `source:${s.id}` }))];
   const adapters = extra.filter((s) => s.type !== "rss" && s.type !== "x").slice(0, 30);
   const jobs = [
-    ...standard.map((feed) => async () => { const r = await timedFetch(fetchImpl, feed.url, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }); return r.ok ? parseFeed(await r.text(), feed) : []; }),
+    ...standard.map((feed) => async () => { const r = await conditionalFetch(fetchImpl, feed.url, feed.cacheKey, db, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }); return r.status === 304 ? [] : r.ok ? parseFeed(await r.text(), feed) : []; }),
     ...adapters.map((s) => async () => {
       const headers = { "user-agent": "ai-pm-radar-cloud/1", accept: "application/vnd.github+json" };
       if (githubToken && s.type.startsWith("github_")) headers.authorization = `Bearer ${githubToken}`;
       if (s.type === "github_search") {
         const query = new URLSearchParams({ q: `${s.value} created:>=${new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10)}`, sort: "stars", order: "desc", per_page: "10" });
-        const r = await timedFetch(fetchImpl, `https://api.github.com/search/repositories?${query}`, { headers });
+        const r = await conditionalFetch(fetchImpl, `https://api.github.com/search/repositories?${query}`, `source:${s.id}`, db, { headers });
+        if (r.status === 304) return [];
         if (!r.ok) throw new Error(`github_${r.status}`);
         return (await r.json()).items.slice(0, Math.min(10, s.max_per_day || 5)).map((x) => ({ title: x.full_name, excerpt: `${x.description || ""} Stars: ${x.stargazers_count}; language: ${x.language || "unknown"}; pushed_at: ${x.pushed_at || "unknown"}`, url: x.html_url, source: s.label || s.value, category: "GITHUB_PROJECT", lane: "GITHUB_PROJECT", published_at: x.pushed_at || null }));
       }
       if (s.type === "github_releases") {
         const repo = String(s.value).replace(/^https:\/\/github\.com\//u, "").replace(/\/$/u, "");
         if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repo)) throw new Error("bad_github_repo");
-        const r = await timedFetch(fetchImpl, `https://api.github.com/repos/${repo}/releases?per_page=3`, { headers }); if (!r.ok) throw new Error(`github_${r.status}`);
+        const r = await conditionalFetch(fetchImpl, `https://api.github.com/repos/${repo}/releases?per_page=3`, `source:${s.id}`, db, { headers }); if (r.status === 304) return []; if (!r.ok) throw new Error(`github_${r.status}`);
         return (await r.json()).slice(0, 3).map((x) => ({ title: x.name || x.tag_name, excerpt: String(x.body || "").slice(0, 3000), url: x.html_url, source: s.label || repo, category: "GITHUB_PROJECT", lane: "GITHUB_PROJECT", published_at: x.published_at || null }));
       }
       if (s.type === "youtube_channel") {
         const channel = String(s.value).trim(); if (!/^UC[A-Za-z0-9_-]{20,}$/u.test(channel)) throw new Error("bad_youtube_channel");
-        const r = await timedFetch(fetchImpl, `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channel)}`, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }); if (!r.ok) throw new Error(`youtube_${r.status}`);
+        const r = await conditionalFetch(fetchImpl, `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(channel)}`, `source:${s.id}`, db, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }); if (r.status === 304) return []; if (!r.ok) throw new Error(`youtube_${r.status}`);
         return parseFeed(await r.text(), { id: s.label || channel, category: s.lane_default || "CONTENT_WORKFLOW" }, Math.min(10, s.max_per_day || 5));
       }
       throw new Error("unsupported_source_type");
@@ -91,7 +110,7 @@ export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = 
   const sourceErrors = [];
   const sources = await userFeeds(env.DB);
   const counts = new Map(((await env.DB.prepare("SELECT source,COUNT(*) count FROM items WHERE run_date=? GROUP BY source").bind(day).all()).results || []).map((r) => [r.source, Number(r.count)]));
-  const items = await collect(fetchImpl, sources, { githubToken: env.GITHUB_TOKEN || "", onError: (e) => sourceErrors.push(e) });
+  const items = await collect(fetchImpl, sources, { githubToken: env.GITHUB_TOKEN || "", onError: (e) => sourceErrors.push(e), db: env.DB });
   let collected = 0, analyzed = 0, error = null;
   for (const it of items) {
     const sourceSetting = sources.find((s) => it.source === s.label || it.source === s.value || it.source === `user:${s.label || s.id}`);

@@ -3,16 +3,18 @@ import { summarize, usage } from "./ai.mjs";
 import { runDaily, analyzePending, AI_UPDATE, aiBind } from "./collector.mjs";
 import { hktDay } from "./ai.mjs";
 import { handleP1, KB_COLS, kbShape as kbShapeP1 } from "./routes-p1.mjs";
-import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath, scoreLane, LANES, injectionSuspect } from "./curation.mjs";
+import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath, scoreLane, LANES, injectionSuspect, feedbackOverlay, normalizeTrainTerm } from "./curation.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
-const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,action_14d";
+const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,action_14d,(SELECT tags FROM kb_entries WHERE item_id=items.id) AS tags";
 const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
-const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), pref_reasons: pj(r.pref_reasons), metrics: r.metrics ? pj(r.metrics) : null });
+const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), pref_reasons: pj(r.pref_reasons), tags: pj(r.tags), metrics: r.metrics ? pj(r.metrics) : null });
 const SRC = "id,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS type,value,label,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at";
 const HANDLE = /^@?([A-Za-z0-9_]{1,15})$/u;
-const RANK = "(COALESCE(score,0)+COALESCE((SELECT weight FROM feedback_weights WHERE key=items.source),0)+COALESCE((SELECT weight FROM feedback_weights WHERE key='cat:'||items.category),0))";
+const trained = async (db, rows) => { const weights = (await db.prepare("SELECT key,weight FROM feedback_weights ORDER BY key").all()).results;
+  return rows.map((row) => { const item = shape(row); return { ...item, ...feedbackOverlay(item, weights) }; }); };
+const byPreference = (a, b) => ((Number(b.pref_score) || 0) + b.feedback_adj - (Number(a.pref_score) || 0) - a.feedback_adj) || String(b.created_at).localeCompare(String(a.created_at));
 const REASONS = ["not_relevant", "duplicate", "low_quality", "already_known", "too_much_x", "other"];
 const KB = KB_COLS;
 const kbShape = kbShapeP1;
@@ -91,8 +93,25 @@ export async function handle(request, env, deps = {}) {
   if (url.pathname === "/api/digest" && m === "GET") {
     const days = Number(url.searchParams.get("days") || 7); if (!Number.isInteger(days) || days < 1 || days > 30) return json({ error: "bad_days" }, 400);
     const since = new Date(Date.now() - days * 86400000).toISOString();
-    const rows = (await db.prepare(`SELECT ${ROW} FROM items WHERE created_at>=? ORDER BY pref_score DESC, created_at DESC`).bind(since).all()).results.map(shape);
-    return json({ days, ai_calls: 0, lanes: Object.fromEntries(LANES.map((lane) => [lane, rows.filter((it) => it.lane === lane).slice(0, 3)])) });
+    const rows = await trained(db, (await db.prepare(`SELECT ${ROW} FROM items WHERE created_at>=?`).bind(since).all()).results);
+    const mutes = (await db.prepare("SELECT kind,value FROM mutes").all()).results;
+    const visible = rows.filter((it) => !it.dismissed_reason && !isMuted(it, mutes)).sort(byPreference);
+    return json({ days, ai_calls: 0, lanes: Object.fromEntries(LANES.map((lane) => [lane, visible.filter((it) => it.lane === lane).slice(0, 3)])) });
+  }
+  if (url.pathname === "/api/trainer" && m === "GET") return json({ weights: (await db.prepare("SELECT key,weight,pos,neg,updated_at FROM feedback_weights ORDER BY key").all()).results });
+  if (url.pathname === "/api/trainer" && m === "POST") {
+    const b = await request.json().catch(() => null);
+    const term = typeof b?.term === "string" ? normalizeTrainTerm(b.term) : "";
+    if (!["up", "down"].includes(b?.vote) || !["keyword", "title", "tag"].includes(b?.scope) || !/^[0-9a-f-]{36}$/u.test(b?.item_id || "") ||
+      [...term].length < 2 || [...term].length > 80 || /[\p{C}<>\[\]{}\\]/u.test(term) || injectionSuspect(term)) return json({ error: "bad_training" }, 400);
+    const it = await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(b.item_id).first(); if (!it) return json({ error: "not_found" }, 404);
+    const shaped = shape(it);
+    const haystack = b.scope === "title" ? [it.title, it.title_zh] : b.scope === "tag" ? shaped.tags : [it.title, it.title_zh, it.summary, ...shaped.tags];
+    if (!haystack.some((x) => normalizeTrainTerm(x).includes(term))) return json({ error: "term_not_in_item" }, 400);
+    const key = `${b.scope === "tag" ? "tag" : "kw"}:${term}`;
+    await bump(db, key, b.vote === "up" ? 0.4 : -0.4, now);
+    await db.prepare("INSERT INTO item_actions(id,item_id,action,reason,created_at) VALUES(?,?,?,?,?)").bind(crypto.randomUUID(), it.id, b.vote === "up" ? "train_up" : "train_down", `${b.scope}:${term}`, now).run();
+    return json({ key, overlay: feedbackOverlay(shaped, (await db.prepare("SELECT key,weight FROM feedback_weights").all()).results) });
   }
   if (url.pathname === "/api/analyze" && m === "POST") return json(await analyzePending(env, { fetchImpl: deps.fetchImpl ?? fetch, limit: 120 }));
   if (url.pathname === "/api/sources" && m === "POST") {
@@ -126,17 +145,17 @@ export async function handle(request, env, deps = {}) {
   if (url.pathname === "/api/library" && m === "GET") {
     const status = url.searchParams.get("status") || "approved";
     if (!["draft", "reviewed", "approved", "rejected", "all"].includes(status)) return json({ error: "bad_status" }, 400);
-    const q = status === "all" ? db.prepare(`SELECT ${ROW} FROM items ORDER BY ${RANK} DESC, updated_at DESC LIMIT 200`)
-      : db.prepare(`SELECT ${ROW} FROM items WHERE status=? ORDER BY ${RANK} DESC, updated_at DESC LIMIT 200`).bind(status);
-    return json({ items: (await q.all()).results.map(shape) });
+    const q = status === "all" ? db.prepare(`SELECT ${ROW} FROM items ORDER BY updated_at DESC LIMIT 200`)
+      : db.prepare(`SELECT ${ROW} FROM items WHERE status=? ORDER BY updated_at DESC LIMIT 200`).bind(status);
+    return json({ items: (await trained(db, (await q.all()).results)).sort(byPreference) });
   }
   if ((url.pathname === "/api/daily" || url.pathname === "/api/lanes") && m === "GET") {
     const date = url.searchParams.get("date") || (await db.prepare("SELECT MAX(run_date) d FROM items WHERE kind='daily'").first())?.d;
     if (date && !/^\d{4}-\d{2}-\d{2}$/u.test(date)) return json({ error: "bad_date" }, 400);
     const lane = url.searchParams.get("lane"); if (lane && !LANES.includes(lane)) return json({ error: "bad_lane" }, 400);
-    const r = await db.prepare(`SELECT ${ROW},url_norm FROM items WHERE kind='daily' AND run_date=?${lane ? " AND lane=?" : ""} ORDER BY pref_score DESC, ${RANK} DESC, reco_score DESC NULLS LAST, score DESC NULLS LAST`).bind(...(lane ? [date ?? "", lane] : [date ?? ""])).all();
+    const r = await db.prepare(`SELECT ${ROW},url_norm FROM items WHERE kind='daily' AND run_date=?${lane ? " AND lane=?" : ""}`).bind(...(lane ? [date ?? "", lane] : [date ?? ""])).all();
     const mutes = (await db.prepare("SELECT kind,value FROM mutes").all()).results;
-    const all = r.results.map(shape);
+    const all = (await trained(db, r.results)).sort(byPreference);
     if (url.searchParams.get("all") === "1") return json({ date: date ?? null, items: all, mode: "all" });
     const visible = all.filter((i) => !i.dismissed_reason && !isMuted(i, mutes));
     const deduped = dedup(visible); const q = applyQuotas(deduped);

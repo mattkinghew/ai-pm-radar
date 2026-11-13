@@ -3,6 +3,7 @@ import test from "node:test";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 import { collectDailyRadar, writeInbox } from "../scripts/daily_radar_collector.mjs";
 import { scoreLane } from "../cloud/src/curation.mjs";
 import { writeLocalDailyFixture } from "../scripts/daily-radar-local-fixture.mjs";
@@ -51,6 +52,10 @@ test("synthetic daily fixture writes the cloud lane fields and stays a review-ga
 });
 
 test("collector stops at HTTP 403 and reports the failing source without continuing network requests", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "radar-forbidden-"));
+  const path = join(dir, "inbox.json");
+  await writeInbox([{ id: "existing", title: "Existing draft", sourceId: "openai", url: "https://example.test/existing", discoveredAt: "2026-11-11T00:00:00Z", reviewStatus: "needs_review" }], path);
+  const before = await readFile(path, "utf8");
   const calls = [];
   const results = [];
   const items = await collectDailyRadar({
@@ -63,4 +68,35 @@ test("collector stops at HTTP 403 and reports the failing source without continu
   assert.equal(calls.length, 1);
   assert.deepEqual(results, [{ source: "openai", result: "http_403" }]);
   assert.deepEqual(items, []);
+  const script = new URL("../scripts/daily_radar_collector.mjs", import.meta.url).pathname;
+  const preload = "data:text/javascript,globalThis.fetch%3Dasync()%3D%3Enew%20Response(null%2C%7Bstatus%3A403%7D)%3B";
+  const run = spawnSync(process.execPath, ["--experimental-strip-types", "--import", preload, script], { env: { ...process.env, RADAR_INBOX_PATH: path }, encoding: "utf8" });
+  assert.equal(run.status, 3);
+  assert.match(run.stderr, /openai \(http_403\)/u);
+  assert.equal(await readFile(path, "utf8"), before);
+  await rm(dir, { recursive: true, force: true });
+});
+
+test("local RSS remembers validators and treats 304 as a successful empty result", async () => {
+  const validators = {}; const seen = []; let round = 0;
+  const fetchImpl = async (url, init) => {
+    if (url.includes("algolia")) return Response.json({ hits: [] });
+    seen.push(init.headers);
+    if (round) return new Response(null, { status: 304 });
+    return new Response("<rss><channel><item><title>AI update</title><link>https://example.test/update</link></item></channel></rss>", { headers: { etag: '"v1"', "last-modified": "Wed, 11 Nov 2026 00:00:00 GMT" } });
+  };
+  const first = await collectDailyRadar({ fetchImpl, validators });
+  assert.ok(first.length > 0);
+  assert.equal(validators.openai.etag, '"v1"');
+  round = 1; seen.length = 0; const results = [];
+  const second = await collectDailyRadar({ fetchImpl, validators, onSourceResult: (source, result) => results.push({ source, result }) });
+  assert.deepEqual(second, []);
+  assert.ok(results.some((x) => x.source === "openai" && x.result === "not_modified"));
+  assert.ok(seen.every((headers) => headers["if-none-match"] === '"v1"' && headers["if-modified-since"] === "Wed, 11 Nov 2026 00:00:00 GMT"));
+  const dir = await mkdtemp(join(tmpdir(), "radar-validators-"));
+  try {
+    const path = join(dir, "inbox.json");
+    await writeInbox(first, path, validators);
+    assert.equal(JSON.parse(await readFile(path, "utf8")).validators.openai.etag, '"v1"');
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });
