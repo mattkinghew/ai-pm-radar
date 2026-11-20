@@ -15,6 +15,7 @@ import { checkContentOpsImportStatus, dispatchApprovedContentOpsCandidate, getCo
 const sourceUrl = "https://example.org/synthetic-research";
 const signingKey = "SYNTHETIC_ONLY_SHARED_RECEIVER_SECRET_WITH_MORE_THAN_48_CHARACTERS";
 const brandId = "demo-brand-ai-pm";
+const bypassToken = "SYNTHETIC_ONLY_BYPASS_TOKEN";
 
 async function fixture({ factCount = 3, approvedAgoMs = 30_000 } = {}) {
   const now = Date.now();
@@ -112,7 +113,7 @@ test("dispatch stays disabled until an exact Brand allowlist and private secret 
 
 test("signed server dispatch follows the Receiver HMAC contract and stores a receipt distinct from import confirmation", async (t) => {
   const { input, now } = await fixture();
-  const env = await withSecret(t);
+  const env = { ...await withSecret(t), CONTENT_OPS_VERCEL_BYPASS_TOKEN: bypassToken };
   let requestPayload;
   const receipt = await dispatchApprovedContentOpsCandidate(input, {
     env,
@@ -122,6 +123,7 @@ test("signed server dispatch follows the Receiver HMAC contract and stores a rec
       assert.equal(options.method, "POST");
       assert.equal(options.redirect, "error");
       assert.equal(options.headers.authorization, `Bearer ${signingKey}`);
+      assert.equal(Object.hasOwn(options.headers, "x-vercel-protection-bypass"), false);
       requestPayload = JSON.parse(options.body);
       assert.equal(requestPayload.approvalSignature, verifySignature(requestPayload));
       assert.deepEqual(requestPayload.summary, [
@@ -155,6 +157,90 @@ test("signed server dispatch follows the Receiver HMAC contract and stores a rec
   assert.equal(storedReceipt.state, "packaged");
   assert.equal(storedReceipt.import_confirmed_at, null);
   assert.equal(validateDeliveryPackageRecord({ ...storedReceipt, receiver_receipt: { ...receipt, source_sha256: "0".repeat(64) } }), false);
+  assert.equal(JSON.stringify(receipt).includes(bypassToken), false);
+});
+
+test("configured HTTPS Receiver and bypass header are used for dispatch and import readback", async (t) => {
+  const { input, now } = await fixture();
+  const receiverUrl = "https://receiver.example.test/api/intake/radar";
+  const env = {
+    ...await withSecret(t),
+    CONTENT_OPS_RECEIVER_URL: `  ${receiverUrl}  `,
+    CONTENT_OPS_VERCEL_BYPASS_TOKEN: bypassToken,
+  };
+  assert.equal((await getContentOpsDispatchStatus(env)).receiver, "https_configured");
+  const fetchImpl = async (url, options) => {
+    assert.equal(url, receiverUrl);
+    assert.equal(options.headers["x-vercel-protection-bypass"], bypassToken);
+    assert.equal(options.redirect, "error");
+    if (options.method === "POST") {
+      return Response.json({
+        success: true,
+        draftId: "radar-draft-0123456789abcdef01234567",
+        receivedAt: new Date(now).toISOString(),
+        replayed: false,
+      });
+    }
+    assert.equal(options.method, "GET");
+    return Response.json({ drafts: [] });
+  };
+  const receipt = await dispatchApprovedContentOpsCandidate(input, { env, now, fetchImpl });
+  assert.equal(JSON.stringify(receipt).includes(bypassToken), false);
+  const withReceipt = structuredClone(input);
+  withReceipt.delivery_package_record.receiver_receipt = receipt;
+  assert.deepEqual(await checkContentOpsImportStatus(withReceipt, { env, now, fetchImpl }), {
+    status: "not_found",
+    draft_id: receipt.draft_id,
+  });
+});
+
+test("invalid Receiver URLs fail closed without exposing URL credentials or bypass token", async (t) => {
+  const { input, now } = await fixture();
+  const env = await withSecret(t);
+  let calls = 0;
+  const fetchImpl = async () => { calls += 1; return Response.json({}); };
+  for (const receiverUrl of [
+    "not a URL",
+    "http://receiver.example.test/api/intake/radar",
+    "ftp://receiver.example.test/api/intake/radar",
+    "https://private-credential@receiver.example.test/api/intake/radar",
+  ]) {
+    const configured = { ...env, CONTENT_OPS_RECEIVER_URL: receiverUrl, CONTENT_OPS_VERCEL_BYPASS_TOKEN: bypassToken };
+    const status = await getContentOpsDispatchStatus(configured);
+    assert.equal(status.configured, false);
+    assert.equal(status.code, "content_ops_receiver_url_invalid");
+    assert.equal(status.receiver, "invalid");
+    assert.equal(JSON.stringify(status).includes(bypassToken), false);
+    await assert.rejects(dispatchApprovedContentOpsCandidate(input, { env: configured, now, fetchImpl }), (error) => {
+      assert.equal(error.code, "content_ops_receiver_url_invalid");
+      assert.equal(error.message.includes("private-credential"), false);
+      assert.equal(error.message.includes(bypassToken), false);
+      return true;
+    });
+  }
+  assert.equal(calls, 0);
+});
+
+test("custom HTTP loopback hosts keep bypass header absent", async (t) => {
+  const { input, now } = await fixture();
+  const env = await withSecret(t);
+  for (const receiverUrl of ["http://localhost:4496/api/intake/radar", "http://[::1]:4496/api/intake/radar"]) {
+    const configured = { ...env, CONTENT_OPS_RECEIVER_URL: receiverUrl, CONTENT_OPS_VERCEL_BYPASS_TOKEN: bypassToken };
+    assert.equal((await getContentOpsDispatchStatus(configured)).receiver, "loopback_only");
+    await dispatchApprovedContentOpsCandidate(input, {
+      env: configured, now,
+      fetchImpl: async (url, options) => {
+        assert.equal(url, receiverUrl);
+        assert.equal(Object.hasOwn(options.headers, "x-vercel-protection-bypass"), false);
+        return Response.json({
+          success: true,
+          draftId: "radar-draft-0123456789abcdef01234567",
+          receivedAt: new Date(now).toISOString(),
+          replayed: false,
+        });
+      },
+    });
+  }
 });
 
 test("unapproved, changed, stale, wrong-Brand and incomplete candidates never call the Receiver", async (t) => {
@@ -194,7 +280,7 @@ test("receiver failures, malformed receipts and timeout are mapped without expos
 
 test("Receiver import readback is source/Brand bound and alone permits import confirmation", async (t) => {
   const { input, now } = await fixture();
-  const env = await withSecret(t);
+  const env = { ...await withSecret(t), CONTENT_OPS_VERCEL_BYPASS_TOKEN: bypassToken };
   const receipt = await dispatchApprovedContentOpsCandidate(input, {
     env, now,
     fetchImpl: async () => Response.json({ success: true, draftId: "radar-draft-0123456789abcdef01234567", receivedAt: new Date(now).toISOString(), replayed: false }),
@@ -215,9 +301,11 @@ test("Receiver import readback is source/Brand bound and alone permits import co
   const imported = await checkContentOpsImportStatus(withReceipt, {
     env,
     now: now + 26 * 60 * 60_000,
-    fetchImpl: async (_url, options) => {
+    fetchImpl: async (url, options) => {
+      assert.equal(url, "http://127.0.0.1:4496/api/intake/radar");
       assert.equal(options.method, "GET");
       assert.equal(options.headers.authorization, `Bearer ${signingKey}`);
+      assert.equal(Object.hasOwn(options.headers, "x-vercel-protection-bypass"), false);
       return Response.json({ drafts: [receiverDraft] });
     },
   });

@@ -1,0 +1,331 @@
+{
+  "date": "2026-11-19",
+  "generated_by": "scripts/daily-from-inbox.mjs",
+  "review": {
+    "status": "draft"
+  },
+  "needs_review": true,
+  "held": [],
+  "articles": [
+    {
+      "question_title": "The Silent Consensus",
+      "short_title": "The Silent Consensus",
+      "summary": "Dean Ball, Head of Strategic Futures at OpenAI, examines how more capable AI could reshape society and how people can retain control of their institutions.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/the-silent-consensus",
+      "published_at": "2026-11-18T10:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "How Sumitomo Life’s leaders helped teams adopt ChatGPT Enterprise",
+      "short_title": "How Sumitomo Life’s leaders helped teams adopt ChatGPT Enterprise",
+      "summary": "Sumitomo Life uses ChatGPT Enterprise to research insurers, prepare proposals, and draft code for investment analysis. Early use by executives helped drive adoption.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/business/customer-stories/sumitomo-life",
+      "published_at": "2026-11-18T08:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Inside the Codex sandbox",
+      "short_title": "Inside the Codex sandbox",
+      "summary": "See how Codex runs commands on your machine while enforcing the filesystem and network limits you control across macOS, Linux, and Windows.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/inside-the-codex-sandbox",
+      "published_at": "2026-11-18T08:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Research acceleration: The jagged frontier",
+      "short_title": "Research acceleration: The jagged frontier",
+      "summary": "OpenAI measures how coding agents are accelerating AI research, where their performance remains uneven, and what this signals about recursive self-improvement.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/research-acceleration-jagged-frontier",
+      "published_at": "2026-11-18T08:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Managing frontier AI risk: From training to deployment",
+      "short_title": "Managing frontier AI risk: From training to deployment",
+      "summary": "OpenAI explains how it manages frontier AI risk from training through deployment with model alignment, sandboxing, blocking safeguards, and monitoring.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/managing-frontier-ai-risk",
+      "published_at": "2026-11-18T06:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Advancing chip design with OpenAI models",
+      "short_title": "Advancing chip design with OpenAI models",
+      "summary": "OpenAI models optimized circuits used in Jalapeño silicon and improved RISC‑V core designs, showing progress in AI-assisted chip design with GPT‑6 Astra.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/advancing-chip-design-with-our-models",
+      "published_at": "2026-11-18T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Le Groupe Figaro and OpenAI partner to bring Le Figaro journalism to ChatGPT",
+      "short_title": "Le Groupe Figaro and OpenAI partner to bring Le Figaro journalism to ChatGPT",
+      "summary": "Le Groupe Figaro and OpenAI partner to bring Le Figaro’s journalism to ChatGPT through summaries and excerpts, with links to original stories.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/le-groupe-figaro-and-openai-announce-partnership",
+      "published_at": "2026-11-18T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Introducing GPT-6.2 Astra and Sol",
+      "short_title": "Introducing GPT-6.2 Astra and Sol",
+      "summary": "Introducing GPT‑6.2 Astra and Sol, with better professional outputs, coding, computer use, and efficiency at lower cost across ChatGPT Work, Codex, and the API.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/introducing-gpt-6-2-astra-sol",
+      "published_at": "2026-11-17T17:45:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Introducing ChatGPT for Sales",
+      "short_title": "Introducing ChatGPT for Sales",
+      "summary": "Explore the new Sales plugin and 30+ new and expanded partner plugins in ChatGPT to research prospects, prepare pitches, update your CRM, and move deals forward.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/introducing-chatgpt-for-sales",
+      "published_at": "2026-11-17T08:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 8,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Astra for Law leads in legal intelligence",
+      "short_title": "Astra for Law leads in legal intelligence",
+      "summary": "Astra for Law ranked first in a launch evaluation spanning 24 areas of law. Every ChatGPT Enterprise customer can now request access.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/astra-law-6-2",
+      "published_at": "2026-11-17T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 8,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    }
+  ]
+}

@@ -4,14 +4,24 @@ import { createHash, generateKeyPairSync, createSign } from "node:crypto";
 
 export function fakeD1() {
   const db = new DatabaseSync(":memory:");
-  for (const f of ["0001_init.sql", "0002_bilingual_provider_usage.sql", "0003_sources_x_reco.sql", "0004_x_watchlist_side_income.sql", "0005_x_watchlist_more.sql", "0006_score_feedback.sql", "0007_p0_actions_quota_kb.sql", "0008_reader_notes_synthesis.sql", "0009_quota_governor_source_correction.sql", "0010_research_lanes.sql", "0011_trainer_actions.sql", "0012_source_http_cache.sql"]) db.exec(readFileSync(new URL(`../../cloud/migrations/${f}`, import.meta.url), "utf8"));
+  for (const f of ["0001_init.sql", "0002_bilingual_provider_usage.sql", "0003_sources_x_reco.sql", "0004_x_watchlist_side_income.sql", "0005_x_watchlist_more.sql", "0006_score_feedback.sql", "0007_p0_actions_quota_kb.sql", "0008_reader_notes_synthesis.sql", "0009_quota_governor_source_correction.sql", "0010_research_lanes.sql", "0011_trainer_actions.sql", "0012_source_http_cache.sql", "0013_source_registry_type_contract.sql", "0014_item_title_source.sql"]) db.exec(readFileSync(new URL(`../../cloud/migrations/${f}`, import.meta.url), "utf8"));
   const stmt = (sql, params = []) => ({
+    sql, params,
     bind: (...p) => stmt(sql, p),
     run: async () => { const r = db.prepare(sql).run(...params); return { meta: { changes: Number(r.changes) } }; },
     first: async () => db.prepare(sql).get(...params) ?? null,
     all: async () => ({ results: db.prepare(sql).all(...params) }),
   });
-  return { prepare: (sql) => stmt(sql), raw: db };
+  return { prepare: (sql) => stmt(sql), batch: async (statements) => {
+    db.exec("BEGIN");
+    try {
+      const results = statements.map(({ sql, params }) => {
+        const r = db.prepare(sql).run(...params);
+        return { meta: { changes: Number(r.changes) } };
+      });
+      db.exec("COMMIT"); return results;
+    } catch (error) { db.exec("ROLLBACK"); throw error; }
+  }, raw: db };
 }
 
 export const TEAM = "https://matt-test.cloudflareaccess.com";

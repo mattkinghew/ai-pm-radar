@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { collectDailyRadar, writeInbox } from "../scripts/daily_radar_collector.mjs";
+import { collectDailyRadar, loadSkipList, validateSkipList, writeInbox } from "../scripts/daily_radar_collector.mjs";
+import { buildDailyFromInbox } from "../scripts/daily-from-inbox.mjs";
 import { scoreLane } from "../cloud/src/curation.mjs";
 import { writeLocalDailyFixture } from "../scripts/daily-radar-local-fixture.mjs";
 
@@ -51,30 +52,55 @@ test("synthetic daily fixture writes the cloud lane fields and stays a review-ga
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test("collector stops at HTTP 403 and reports the failing source without continuing network requests", async () => {
+test("one HTTP 403 is logged while other sources provide a daily draft", async () => {
   const dir = await mkdtemp(join(tmpdir(), "radar-forbidden-"));
   const path = join(dir, "inbox.json");
-  await writeInbox([{ id: "existing", title: "Existing draft", sourceId: "openai", url: "https://example.test/existing", discoveredAt: "2026-11-11T00:00:00Z", reviewStatus: "needs_review" }], path);
-  const before = await readFile(path, "utf8");
-  const calls = [];
-  const results = [];
-  const items = await collectDailyRadar({
-    fetchImpl: async (url) => {
-      calls.push(url);
-      return { ok: false, status: 403 };
-    },
-    onSourceResult: (source, result) => results.push({ source, result }),
-  });
-  assert.equal(calls.length, 1);
-  assert.deepEqual(results, [{ source: "openai", result: "http_403" }]);
-  assert.deepEqual(items, []);
   const script = new URL("../scripts/daily_radar_collector.mjs", import.meta.url).pathname;
-  const preload = "data:text/javascript,globalThis.fetch%3Dasync()%3D%3Enew%20Response(null%2C%7Bstatus%3A403%7D)%3B";
-  const run = spawnSync(process.execPath, ["--experimental-strip-types", "--import", preload, script], { env: { ...process.env, RADAR_INBOX_PATH: path }, encoding: "utf8" });
-  assert.equal(run.status, 3);
-  assert.match(run.stderr, /openai \(http_403\)/u);
-  assert.equal(await readFile(path, "utf8"), before);
-  await rm(dir, { recursive: true, force: true });
+  const feed = '<rss><channel><item><title>AI one</title><link>https://example.test/1</link></item><item><title>AI two</title><link>https://example.test/2</link></item><item><title>AI three</title><link>https://example.test/3</link></item></channel></rss>';
+  const preload = `data:text/javascript,globalThis.fetch=async(url)=>url.includes('openai.com')?new Response(${JSON.stringify(feed)}):new Response(null,{status:403})`;
+  try {
+    const run = spawnSync(process.execPath, ["--experimental-strip-types", "--import", preload, script], { cwd: dir, env: { ...process.env, RADAR_INBOX_PATH: path }, encoding: "utf8" });
+    assert.equal(run.status, 0, run.stderr);
+    const logs = await readdir(join(dir, ".runtime/collector-runs"));
+    assert.equal(logs.length, 1);
+    const log = JSON.parse(await readFile(join(dir, ".runtime/collector-runs", logs[0]), "utf8"));
+    assert.equal(log.exit_code, 0);
+    assert.equal(log.counts.eligible, 3);
+    assert.ok(log.sources.some((source) => source.id === "techcrunch-ai" && source.status === "http_error" && source.http_status === 403));
+    assert.ok(log.sources.some((source) => source.id === "anthropic" && source.status === "disabled"));
+    const daily = await buildDailyFromInbox({ inboxPath: path, outputDir: join(dir, "daily") });
+    assert.equal(daily.selected, 3);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("two candidates fail closed, leave inbox and daily untouched, and write a run log", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "radar-shortage-"));
+  const path = join(dir, "inbox.json");
+  const script = new URL("../scripts/daily_radar_collector.mjs", import.meta.url).pathname;
+  const feed = '<rss><channel><item><title>AI one</title><link>https://example.test/1</link></item><item><title>AI two</title><link>https://example.test/2</link></item></channel></rss>';
+  const preload = `data:text/javascript,globalThis.fetch=async(url)=>url.includes('openai.com')?new Response(${JSON.stringify(feed)}):new Response(null,{status:403})`;
+  try {
+    const run = spawnSync(process.execPath, ["--experimental-strip-types", "--import", preload, script], { cwd: dir, env: { ...process.env, RADAR_INBOX_PATH: path }, encoding: "utf8" });
+    assert.equal(run.status, 3, run.stderr);
+    await assert.rejects(readFile(path), { code: "ENOENT" });
+    await assert.rejects(readdir(join(dir, "daily")), { code: "ENOENT" });
+    const logs = await readdir(join(dir, ".runtime/collector-runs"));
+    const log = JSON.parse(await readFile(join(dir, ".runtime/collector-runs", logs[0]), "utf8"));
+    assert.equal(log.decision, "daily_blocked");
+    assert.equal(log.counts.eligible, 2);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("disabled source is never fetched and skip-list schema is validated", async () => {
+  const list = await loadSkipList();
+  assert.ok(list.some((entry) => entry.id === "anthropic" && entry.since === "2026-11-15"));
+  assert.throws(() => validateSkipList([{ id: "openai", reason: "", since: "2026-11-15", review_by: "2026-12-15" }]));
+  assert.throws(() => validateSkipList([{ id: "unknown", reason: "bad", since: "2026-11-15", review_by: "2026-12-15" }]));
+  assert.throws(() => validateSkipList([{ id: "openai", reason: "bad", since: "2026-02-30", review_by: "2026-12-15" }]));
+  const calls = []; const results = [];
+  await collectDailyRadar({ fetchImpl: async (url) => { calls.push(url); return { ok: false, status: 404 }; }, sourceResults: results });
+  assert.ok(!calls.some((url) => url.includes("anthropic.com")));
+  assert.ok(results.some((source) => source.id === "anthropic" && source.status === "disabled" && source.reason));
 });
 
 test("local RSS remembers validators and treats 304 as a successful empty result", async () => {

@@ -924,3 +924,12 @@ ai-pm-radar/
 - Current release state: external UI reachability **PARTIAL / currently reachable**; cross-device persistence and Content Ops delivery **HOLD**. Brand ID unconfirmed, no Receiver receipt, and `import_confirmed` unset.
 - Fresh read-only check of the existing `radar-phase13-one-article-dark` Worker: `/api/cloud/capabilities` returns `not_found`; `/api/source-sync/v1/capabilities` advertises `synthetic_only=true` and `real_sources_allowed=false` (Access required, owner-scoped). The deployed Worker is not the local Phase 2.0 cloud SourceRecord gateway. Do not route real drafts to it; deploying the new Worker route/binding requires separate authorization.
 - Dashboard deployment details show only `ASSETS`, `DB`, `SYNC_DB` bindings; `CLOUD_SOURCE_DB` is absent and the Worker has no custom domain/route. Phase 2.0 intentionally refuses to use `DB` or `SYNC_DB`, so the missing dedicated binding and production route require an explicit infrastructure deployment before cross-device saves can work.
+
+## T216 — G02 ingestion contract (2026-11-20 HKT)
+
+- Local G02 implemented title provenance for feed, Open Graph/page metadata, X text truncation, user-entered, synthesized, and inferred titles. Unknown historical provenance stays unknown; legacy X titles are backfilled only where existing source markers prove the origin.
+- Missing-title RSS items retain their URL and use a clearly marked inferred or synthesized title. Consecutive identical paragraphs collapse at RSS/X/manual/Inbox ingestion and in the returned card excerpt. Canonical URL dedupe remains enabled.
+- Cards now show editorial status separately from content-review status; the review action says「標記為已審核」. Star and read-later state remain separate.
+- Regression evidence: `npm test` 333/333; TypeScript check, changed JS syntax, and scoped diff checks passed. Independent read-only review: ACCEPT for local G02 increment.
+- Migration `cloud/migrations/0014_item_title_source.sql` is required before any future Worker deployment. It has not been applied to production. No browser visual UAT, production D1 inspection/write, deployment, or daily JSON change occurred. G03 and later goals remain unstarted.
+- Detailed evidence: `docs/qa/T216_G02_INGESTION_CONTRACT_AUDIT_2026-11-20.md`.

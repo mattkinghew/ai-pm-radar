@@ -32,6 +32,32 @@ test("deny by default: no JWT, bad aud, wrong owner, unconfigured", async () => 
   assert.equal((await handle(req("/api/cloud/capabilities"), env, { authFetch })).status, 200);
 });
 
+test("source health reports catalog types without claiming current availability", async () => {
+  const env = mkEnv();
+  const response = await handle(req("/api/source-health"), env, { authFetch });
+  assert.equal(response.status, 200);
+  const health = await response.json();
+  assert.equal(health.catalog_counts.rss, 10);
+  assert.equal(health.catalog_counts.api, 1);
+  assert.equal(health.catalog_counts.official_html, 0);
+  assert.equal(health.catalog_counts.manual, 1);
+  assert.equal(health.sources.find((s) => s.id === "hn").status, "unknown");
+  assert.equal(health.sources.find((s) => s.id === "anthropic").last_check_at, null);
+});
+
+test("source health records actual fixture HTTP failure reason and check time", async () => {
+  const env = mkEnv({ AI_ANALYSIS_ENABLED: "false" });
+  const fetchImpl = async (url) => String(url).includes("techcrunch.com") ? new Response("denied", { status: 403 })
+    : String(url).includes("algolia.com") ? new Response(JSON.stringify({ hits: [] })) : new Response(RSS);
+  const run = await runDaily(env, { fetchImpl });
+  assert.ok(run.sourceErrors.some((x) => x.source === "techcrunch-ai" && x.error === "http_403"));
+  const health = await handle(req("/api/source-health"), env, { authFetch }).then((r) => r.json());
+  const source = health.sources.find((x) => x.id === "techcrunch-ai");
+  assert.equal(source.status, "error");
+  assert.equal(source.reason, "http_403");
+  assert.ok(source.last_check_at);
+});
+
 test("capture -> draft -> review -> approve; approve before review rejected", async () => {
   const env = mkEnv(); const d = { authFetch, fetchImpl: gemOk(AI) };
   const r = await handle(req("/api/capture", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: LONG_TEXT }) }), env, d);

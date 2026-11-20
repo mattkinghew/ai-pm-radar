@@ -9,7 +9,7 @@ import {
   deliveryPackageStatus, sourceRecordDeliveryFingerprint, validateDeliveryPackageRecord,
 } from "../lib/delivery-package.ts";
 
-const RECEIVER_URL = "http://127.0.0.1:4496/api/intake/radar";
+const DEFAULT_RECEIVER_URL = "http://127.0.0.1:4496/api/intake/radar";
 const RECEIVER_TIMEOUT_MS = 8_000;
 const RECEIVER_MAX_RESPONSE_BYTES = 8_192;
 const RECEIVER_STATUS_MAX_RESPONSE_BYTES = 1_000_000;
@@ -23,6 +23,30 @@ export class ContentOpsDispatchError extends Error {
     this.code = code;
     this.status = status;
   }
+}
+
+function configuredReceiver(env) {
+  const raw = typeof env.CONTENT_OPS_RECEIVER_URL === "string"
+    ? env.CONTENT_OPS_RECEIVER_URL.trim() : "";
+  const value = raw || DEFAULT_RECEIVER_URL;
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new ContentOpsDispatchError("content_ops_receiver_url_invalid");
+  }
+  const loopback = ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname.toLowerCase());
+  if (!/^https?:\/\//u.test(value) || (url.protocol !== "https:" && !(loopback && url.protocol === "http:"))
+    || url.username || url.password) {
+    throw new ContentOpsDispatchError("content_ops_receiver_url_invalid");
+  }
+  return { url: url.href, secure: url.protocol === "https:", label: loopback ? "loopback_only" : "https_configured" };
+}
+
+function receiverBypassHeader(env, receiver) {
+  const token = typeof env.CONTENT_OPS_VERCEL_BYPASS_TOKEN === "string"
+    ? env.CONTENT_OPS_VERCEL_BYPASS_TOKEN.trim() : "";
+  return receiver.secure && token ? { "x-vercel-protection-bypass": token } : {};
 }
 
 function configuredBrandIds(env) {
@@ -47,19 +71,26 @@ async function secretFileIsReady(pathname) {
 }
 
 export async function getContentOpsDispatchStatus(env = process.env) {
+  let receiver;
+  try {
+    receiver = configuredReceiver(env);
+  } catch (error) {
+    if (!(error instanceof ContentOpsDispatchError)) throw error;
+  }
   const brandIds = configuredBrandIds(env);
   const secretPath = typeof env.AI_PM_RADAR_CONTENT_OPS_SECRET_FILE === "string"
     ? env.AI_PM_RADAR_CONTENT_OPS_SECRET_FILE.trim()
     : "";
   const secretReady = await secretFileIsReady(secretPath);
-  const code = !brandIds.length ? "content_ops_brand_allowlist_missing"
-    : !secretReady ? "content_ops_secret_file_unavailable"
-      : null;
+  const code = !receiver ? "content_ops_receiver_url_invalid"
+    : !brandIds.length ? "content_ops_brand_allowlist_missing"
+      : !secretReady ? "content_ops_secret_file_unavailable"
+        : null;
   return {
     configured: code === null,
     brand_ids: code === null ? brandIds : [],
     code,
-    receiver: "loopback_only",
+    receiver: receiver?.label ?? "invalid",
   };
 }
 
@@ -162,6 +193,7 @@ export async function dispatchApprovedContentOpsCandidate(input, {
 } = {}) {
   const status = await getContentOpsDispatchStatus(env);
   if (!status.configured) throw new ContentOpsDispatchError(status.code, 503);
+  const receiver = configuredReceiver(env);
   const candidate = validateCandidate(input, status.brand_ids, now);
   await assertSealedDeliveryPackage(candidate.record, candidate.entry);
 
@@ -199,12 +231,13 @@ export async function dispatchApprovedContentOpsCandidate(input, {
   timeout.unref?.();
   let response;
   try {
-    response = await fetchImpl(RECEIVER_URL, {
+    response = await fetchImpl(receiver.url, {
       method: "POST",
       headers: {
         accept: "application/json",
         "content-type": "application/json",
         authorization: `Bearer ${secret}`,
+        ...receiverBypassHeader(env, receiver),
       },
       body: JSON.stringify(payload),
       redirect: "error",
@@ -256,6 +289,7 @@ export async function checkContentOpsImportStatus(input, {
 } = {}) {
   const status = await getContentOpsDispatchStatus(env);
   if (!status.configured) throw new ContentOpsDispatchError(status.code, 503);
+  const receiver = configuredReceiver(env);
   const candidate = validateCandidate(input, status.brand_ids, now, false);
   const receipt = candidate.record.receiver_receipt;
   if (!receipt || receipt.receiver !== "content_ops" || receipt.target_brand_id !== candidate.brandId
@@ -271,9 +305,9 @@ export async function checkContentOpsImportStatus(input, {
   timeout.unref?.();
   let response;
   try {
-    response = await fetchImpl(RECEIVER_URL, {
+    response = await fetchImpl(receiver.url, {
       method: "GET",
-      headers: { accept: "application/json", authorization: `Bearer ${secret}` },
+      headers: { accept: "application/json", authorization: `Bearer ${secret}`, ...receiverBypassHeader(env, receiver) },
       redirect: "error",
       signal: controller.signal,
     });

@@ -9,9 +9,10 @@
 <template id="capture-tpl"><form id="cap-form">
 <label>網址<input name="url" type="url" placeholder="https://…"></label>
 <label>標題（可選）<input name="title" maxlength="240"></label>
+<label>原文語言（由你確認）<select name="source_language"><option value="unknown">未知</option><option value="en">English</option><option value="zh-Hant">繁體中文</option><option value="zh-Hans">簡體中文</option></select></label>
 <label>正文 / 字幕 / 貼文<textarea name="text" rows="8" placeholder="短內容或 URL 會先存為待核對，不會呼叫 AI"></textarea></label>
 <button type="submit">存入待審核</button><p id="cap-msg" role="status"></p></form><details class="panel"><summary>批量匯入 SourceInput JSON（最多 100 筆）</summary><textarea id="inbox-json" rows="8" placeholder='貼上 SourceInput 陣列 JSON'></textarea><button id="inbox-import">匯入到私人 Inbox</button><p id="inbox-import-msg" role="status"></p></details></template>
-<template id="sources-tpl"><form id="src-form" class="panel"><div class="row"><label>類型<select name="type"><option value="rss">RSS</option><option value="x">X 帳號</option><option value="github_search">GitHub 搜尋</option><option value="github_releases">GitHub Releases</option><option value="youtube_channel">YouTube 官方 Atom</option></select></label>
+<template id="sources-tpl"><section class="panel" aria-label="來源健康"><h2>來源清單與上次檢查</h2><div id="source-health">載入中…</div></section><form id="src-form" class="panel"><div class="row"><label>類型<select name="type"><option value="rss">RSS</option><option value="x">X 帳號</option><option value="github_search">GitHub 搜尋</option><option value="github_releases">GitHub Releases</option><option value="youtube_channel">YouTube 官方 Atom</option></select></label>
 <label class="grow">網址 / @handle<input name="value" required placeholder="https://… 或 @handle"></label></div>
 <label>Lane<select name="lane_default"><option>OTHER</option><option>AI_LEARNING_PATH</option><option>MONETIZATION_GAP</option><option>TECH_NEWS</option><option>GITHUB_PROJECT</option><option>APPLY_NOW</option><option>FREE_RESOURCE</option><option>AGENT_GOVERNANCE</option><option>CONTENT_WORKFLOW</option></select></label>
 <div class="row"><label>來源權重 (-2 至 2)<input name="weight" type="number" min="-2" max="2" value="0"></label><label>每日上限<input name="max_per_day" type="number" min="1" max="100" value="5"></label></div>

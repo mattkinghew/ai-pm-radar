@@ -13,6 +13,24 @@
 
 ## 本機非 X 收集
 
+### 真實來源 daily 草稿（仍需人工編輯）
+
+在主機上執行 `npm run daily:real`：先讀取公開 RSS/HN，再從當日（HKT）新收集且來源可識別的候選建立 `data/daily/YYYY-MM-DD.json`。預設依既存 `pref_score`、來源時間排序取最多 10 筆；少於 3 筆會非零退出，不會建立 daily。`injection_suspect` 項目只列在輸出 JSON 的 `held`，不進入文章。既有 daily 絕不覆寫。收集器會合併舊 inbox；builder 只選同日 `discoveredAt`，避免以舊候選補數。HTTP 403 仍依現有收集器處理。
+
+產出只是一份 `review.status: draft`、`needs_review: true` 的待審候選清單。標題及摘要來自來源，其他分析欄位是明示待編輯佔位文字，三個 1–10 分數也是佔位值；`pref_score` 只表示規則信號。來源未提供發布時間時，`published_at` 暫用發現時間並標 `published_at_basis: discovered_at_fallback`。Owner 須核實來源、日期及內容，補寫分析並明確審核後才可公開建置或發布。
+
+```bash
+npm run daily:real
+npm run validate:data
+npm run validate:daily
+```
+
+本機研究 LaunchAgent `com.ai-pm-radar.research` 是另一條研究流程，並非上述命令；目前是否可恢復排程，見 `docs/tasks/RADAR-DAILY-REVIVE.md`。此任務不安裝或載入任何 LaunchAgent。
+
+### 來源故障與執行日誌（2026-11-15）
+
+本機收集採「fail-closed at day level, fail-soft at source level」：單一來源 HTTP 403／404、逾時或解析失敗會記錄原因並繼續其他來源；當次新收集且符合日報條件的唯一候選少於 3 筆時，collector 以 exit 3 結束，不更新 inbox，也不建立 daily。達 3 筆後才更新 inbox，再由 builder 建立待審日報。每次收集的來源狀態、候選數與決策寫入已被 Git 忽略的 `.runtime/collector-runs/`，不記錄回應正文或請求憑證。`config/source-skip-list.json` 列出停用來源與複查日期；停用來源不會發出請求。Anthropic 於 2026-11-15 依官方網站探測紀錄停用，官方現行 feed 是否另有網址仍待確認。Cloud Worker 來源清單尚未同步，屬 Planned。
+
 launchd 範本排程的入口：
 
 ```bash

@@ -3,7 +3,7 @@ const TRACK = /^(utm_[a-z]+|fbclid|gclid|mc_[a-z]+|ref|ref_src|ref_url|s|t|si|ig
 
 // One editable vocabulary table drives lane assignment and deterministic preference scoring.
 export const LANE_RULES = [
-  { id: "paid_pilot", lane: "MONETIZATION_GAP", weight: 25, terms: ["paid pilot", "real customer pain", "willingness to pay", "pricing", "productized service", "b2b gtm", "client interview", "付費試點", "付費 pilot", "真實客戶痛點", "願意付費", "定價", "產品化服務", "香港 SME", "付費意願"] },
+  { id: "paid_pilot", lane: "MONETIZATION_GAP", weight: 25, terms: ["paid pilot", "real customer pain", "willingness to pay", "pricing", "productized service", "side hustle", "side income", "b2b gtm", "client interview", "付費試點", "付費 pilot", "副業變現", "副業收入", "真實客戶痛點", "願意付費", "定價", "產品化服務", "香港 SME", "付費意願"] },
   { id: "agent_governance", lane: "AGENT_GOVERNANCE", weight: 20, terms: ["agent evaluation", "agent eval", "evals", "harness", "permission boundary", "prompt injection", "release quality", "代理評測", "代理評估", "執行環境治理", "權限邊界", "提示注入", "發布品質", "安全審核"] },
   { id: "content_workflow", lane: "CONTENT_WORKFLOW", weight: 15, terms: ["content workflow", "original content qa", "video production cost", "repeatable template", "shorts generator", "影片工作流", "影片製作成本", "原創內容質素", "文案質素", "可重用模板", "短片生成"] },
   { id: "free_resource", lane: "FREE_RESOURCE", weight: 10, terms: ["official free credits", "verified model release", "low-cost compute", "官方免費額度", "官方 credits", "已核實模型發布", "低成本算力"] },
@@ -11,7 +11,7 @@ export const LANE_RULES = [
   { id: "learning_path", lane: "AI_LEARNING_PATH", weight: 0, terms: ["learning path", "course", "certification", "學習路徑", "課程", "證照", "學習"] },
   { id: "github_project", lane: "GITHUB_PROJECT", weight: 0, terms: ["github", "open source", "repository", "開源專案", "開源工具", "github 專案"] },
   { id: "tech_news", lane: "TECH_NEWS", weight: 0, terms: ["model release", "launches", "announces", "推出新模型", "官方發布", "模型更新", "技術新聞"] },
-  { id: "apply_now", lane: "APPLY_NOW", weight: 0, terms: ["apply now", "workflow", "implementation", "practical", "即時應用", "實作", "落地", "工作流程"] },
+  { id: "apply_now", lane: "APPLY_NOW", weight: 0, terms: ["apply now", "workflow", "implementation", "practical", "solopreneur", "one-person business", "一人公司", "一人企業", "即時應用", "實作", "落地", "工作流程"] },
   { id: "hype_only", lane: null, weight: -20, terms: ["viral", "game changer", "爆紅", "顛覆一切", "史上最強", "未經證實", "無行動"] },
   { id: "copyright_reupload", lane: null, weight: -30, terms: ["re-upload", "copyright reupload", "unauthorized scraping", "未經授權搬運", "未授權批量抓取", "無署名搬運"] },
   { id: "unverified_incident", lane: null, weight: -30, terms: ["unattributed security incident", "unverified attack attribution", "未核實網安事件歸因", "未經證實攻擊歸因"] },
@@ -19,6 +19,17 @@ export const LANE_RULES = [
 export const LANES = ["AI_LEARNING_PATH", "MONETIZATION_GAP", "TECH_NEWS", "GITHUB_PROJECT", "APPLY_NOW", "FREE_RESOURCE", "AGENT_GOVERNANCE", "CONTENT_WORKFLOW", "OTHER"];
 const foldText = (s) => String(s ?? "").normalize("NFKC").toLocaleLowerCase().replace(/\s+/gu, " ");
 export const normalizeTrainTerm = (s) => foldText(s).trim();
+// Preserve the first copy of each run of identical paragraphs; this is presentation cleanup, not semantic dedupe.
+export function collapseRepeatedParagraphs(value) {
+  const paragraphs = String(value ?? "").split(/\n(?:[ \t]*\n)+/u).map((part) => part.trim()).filter(Boolean);
+  const out = []; let previous = null;
+  for (const paragraph of paragraphs) {
+    const key = paragraph.replace(/[\t ]+/gu, " ").replace(/\s*\n\s*/gu, "\n").trim();
+    if (key !== previous) out.push(paragraph);
+    previous = key;
+  }
+  return out.join("\n\n");
+}
 export function feedbackOverlay(item, weights) {
   const text = foldText([item.title, item.title_zh, item.summary, ...(Array.isArray(item.tags) ? item.tags : [])].filter(Boolean).join(" "));
   const keys = new Set([item.source, item.category ? `cat:${item.category}` : null].filter(Boolean));

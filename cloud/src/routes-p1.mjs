@@ -10,37 +10,107 @@ const AIERR = { ai_daily_cap_reached: [429, "今日 AI 額度已用完（08:00 H
   ai_bad_output: [502, "AI 回覆格式有誤，請稍後再試"], workers_ai_error: [502, "後備 AI 暫時出錯"], gemini_key_missing: [502, "Gemini key 未設定"] };
 const aiFail = (e) => { const [st, hint] = AIERR[e.message] || [502, "AI 處理失敗，請稍後再試"]; return json({ error: AIERR[e.message] ? e.message : "ai_error", hint }, st); };
 const CHUNK = 2500, PER_CALL = 2;
+const MAX_ARTICLE_BYTES = 1_000_000;
+const MAX_ARTICLE_REDIRECTS = 3;
+const staleArticle = () => json({ error: "stale_source", hint: "來源正文已更新，請重新載入後再試" }, 409);
+
+async function fetchArticleHtml(initialUrl, fetchImpl) {
+  let target = initialUrl;
+  for (let redirects = 0; redirects <= MAX_ARTICLE_REDIRECTS; redirects++) {
+    const response = await fetchImpl(target, { headers: { "user-agent": "Mozilla/5.0 (compatible; ai-pm-radar-reader/1)", accept: "text/html,application/xhtml+xml" }, redirect: "manual", signal: AbortSignal.timeout(12000) });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("location");
+      const next = location && safeFetchUrl(new URL(location, target).toString());
+      if (!next || redirects === MAX_ARTICLE_REDIRECTS) return { error: "unsafe_redirect" };
+      target = next;
+      continue;
+    }
+    if (!response.ok) return { error: `http_${response.status}`, status: response.status === 402 || response.status === 403 ? "paywall" : "failed" };
+    if (!/^text\/html(?:;|$)|^application\/xhtml\+xml(?:;|$)/iu.test(response.headers.get("content-type") || "")) return { error: "not_html" };
+    if (Number(response.headers.get("content-length")) > MAX_ARTICLE_BYTES) return { error: "response_too_large" };
+    const reader = response.body?.getReader();
+    if (!reader) return { error: "empty_body" };
+    const chunks = []; let bytes = 0;
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        bytes += value.byteLength;
+        if (bytes > MAX_ARTICLE_BYTES) { await reader.cancel(); return { error: "response_too_large" }; }
+        chunks.push(value);
+      }
+    } finally { reader.releaseLock(); }
+    const body = new Uint8Array(bytes); let offset = 0;
+    for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
+    return { html: new TextDecoder().decode(body), url: target };
+  }
+  return { error: "unsafe_redirect" };
+}
 const KB = "id,item_id,title,url,source,category,summary,key_points,tags,note,score,origin,kb_type,source_ids,created_at,updated_at";
 const kbShape = (r) => r && ({ ...r, key_points: pj(r.key_points, []), tags: pj(r.tags, []), source_ids: pj(r.source_ids, []) });
 export { KB as KB_COLS, kbShape };
 
 function articleView(a, item) {
   const paragraphs = pj(a.paragraphs, []); const translation = pj(a.translation, []);
-  return { item_id: a.item_id, url: a.url, status: a.status, title: a.title || item?.title, byline: a.byline, site: a.site, chars: a.chars, error: a.error,
+  const language = pj(item?.metrics, {});
+  return { item_id: a.item_id, url: a.url, original_url: item?.url || null, source_excerpt: item?.raw_excerpt || null, title_source: a.title_source || null,
+    source_type: a.site === "manual_text" ? "manual_text" : item?.kind === "capture" ? "selected_url" : item?.source || "unknown", captured_at: a.fetched_at,
+    source_language: language.source_language || "unknown", language_provenance: language.language_provenance || "unknown",
+    capture_history: Array.isArray(language.capture_history) ? language.capture_history : [],
+    translation_target: "body", translation_language: "zh-Hant", translation_provider: language.translation_provider || null,
+    status: a.status, title: a.title || item?.title, byline: a.byline, site: a.site, chars: a.chars, error: a.error,
     paragraphs, translation, translated_chunks: a.translated_chunks, total_chunks: a.total_chunks, summary: pj(a.summary), ai_provider: a.ai_provider,
-    fallback: a.status !== "ok" ? { excerpt: item?.raw_excerpt || item?.summary || "", note: a.status === "paywall" ? "呢篇似乎有付費牆，只顯示 RSS 摘錄；請撳原文閱讀。" : "未能擷取全文，只顯示 RSS 摘錄；請撳原文閱讀。" } : null };
+    fallback: a.status !== "ok" ? { excerpt: item?.raw_excerpt || "", note: a.status === "paywall" ? "呢篇似乎有付費牆，只顯示 RSS 摘錄；請撳原文閱讀。" : "未能擷取全文，只顯示 RSS 摘錄；請撳原文閱讀。" } : null };
 }
 
 async function loadArticle(db, item, fetchImpl, now, refresh = false) {
   let a = await db.prepare("SELECT * FROM articles WHERE item_id=?").bind(item.id).first();
-  if (a && !refresh) return a;
+  if (a && (!refresh || a.site === "manual_text")) return a;
+  const originalMetrics = item.metrics;
   const target = safeFetchUrl(item.url); let ex, error = null;
-  if (!target || /^https?:\/\/(x|twitter)\.com\//u.test(item.url || "")) { ex = { title: item.title, paragraphs: [], chars: 0, status: "failed" }; error = target ? "x_post" : "unsafe_url"; }
+  if (!target || /^https?:\/\/(x|twitter)\.com\//u.test(item.url || "")) { ex = { title: item.title, title_source: item.title_source || null, paragraphs: [], chars: 0, status: "failed" }; error = target ? "x_post" : "unsafe_url"; }
   else {
     try {
-      const r = await fetchImpl(target, { headers: { "user-agent": "Mozilla/5.0 (compatible; ai-pm-radar-reader/1)", accept: "text/html,application/xhtml+xml" }, redirect: "follow", signal: AbortSignal.timeout(12000) });
-      const ct = r.headers.get("content-type") || "";
-      if (!r.ok) { ex = { paragraphs: [], chars: 0, status: r.status === 402 || r.status === 403 ? "paywall" : "failed" }; error = `http_${r.status}`; }
-      else if (!/html|xml/iu.test(ct)) { ex = { paragraphs: [], chars: 0, status: "failed" }; error = "not_html"; }
-      else ex = extractArticle(await r.text(), target);
+      const result = await fetchArticleHtml(target, fetchImpl);
+      if (result.error) { ex = { title: item.title, title_source: item.title_source || null, paragraphs: [], chars: 0, status: result.status || "failed" }; error = result.error; }
+      else {
+        ex = { ...extractArticle(result.html, result.url), finalUrl: result.url };
+        const declared = pj(item.metrics, {});
+        if (!declared.source_language || declared.source_language === "unknown" || declared.language_provenance === "html_lang") {
+          const htmlLang = result.html.match(/<html\b[^>]*\blang=["']([^"']+)["']/iu)?.[1]?.trim();
+          if (htmlLang && /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/iu.test(htmlLang)) {
+            item.metrics = JSON.stringify({ ...declared, source_language: htmlLang, language_provenance: "html_lang" });
+          } else if (a && refresh && declared.language_provenance === "html_lang") {
+            item.metrics = JSON.stringify({ ...declared, source_language: "unknown", language_provenance: "unknown" });
+          }
+        }
+      }
     } catch (e) { ex = { paragraphs: [], chars: 0, status: "failed" }; error = e.name === "TimeoutError" ? "timeout" : "fetch_error"; }
+  }
+  if (a && refresh) {
+    const metadata = pj(item.metrics, {});
+    delete metadata.translation_provider;
+    if (ex.status !== "ok" && metadata.language_provenance === "html_lang") {
+      metadata.source_language = "unknown";
+      metadata.language_provenance = "unknown";
+    }
+    item.metrics = JSON.stringify(metadata);
   }
   // Fallback: use RSS excerpt as the "full text" when extraction failed but excerpt is decent.
   const total = ex.status === "ok" ? chunkParagraphs(ex.paragraphs, CHUNK).length : 0;
-  await db.prepare(`INSERT INTO articles(item_id,url,status,title,byline,site,paragraphs,chars,error,translation,translated_chunks,total_chunks,summary,ai_provider,fetched_at,updated_at)
-    VALUES(?,?,?,?,?,?,?,?,?,'[]',0,?,NULL,NULL,?,?) ON CONFLICT(item_id) DO UPDATE SET status=excluded.status,title=excluded.title,byline=excluded.byline,site=excluded.site,paragraphs=excluded.paragraphs,
-    chars=excluded.chars,error=excluded.error,translation='[]',translated_chunks=0,total_chunks=excluded.total_chunks,summary=NULL,updated_at=excluded.updated_at`)
-    .bind(item.id, item.url, ex.status, ex.title || null, ex.byline || null, ex.site || null, JSON.stringify(ex.paragraphs), ex.chars, error, total, now, now).run();
+  const [articleWrite] = await db.batch([
+    db.prepare(`INSERT INTO articles(item_id,url,status,title,byline,site,paragraphs,chars,error,translation,translated_chunks,total_chunks,summary,ai_provider,fetched_at,updated_at,title_source)
+      SELECT id,?,?,?,?,?,?,?,?,'[]',0,?,NULL,NULL,?,?,? FROM items WHERE id=? AND metrics IS ?
+      ON CONFLICT(item_id) DO UPDATE SET url=excluded.url,status=excluded.status,title=excluded.title,byline=excluded.byline,site=excluded.site,paragraphs=excluded.paragraphs,
+      title_source=excluded.title_source,
+      chars=excluded.chars,error=excluded.error,translation='[]',translated_chunks=0,total_chunks=excluded.total_chunks,summary=NULL,ai_provider=NULL,fetched_at=excluded.fetched_at,updated_at=excluded.updated_at
+      WHERE articles.updated_at IS ? AND articles.paragraphs IS ? AND EXISTS(SELECT 1 FROM items WHERE id=? AND metrics IS ?)`)
+      .bind(ex.finalUrl || item.url, ex.status, ex.title || null, ex.byline || null, ex.site || null, JSON.stringify(ex.paragraphs), ex.chars, error, total, now, now, ex.title_source || null,
+        item.id, originalMetrics, a?.updated_at || null, a?.paragraphs || null, item.id, originalMetrics),
+    db.prepare("UPDATE items SET metrics=? WHERE id=? AND metrics IS ? AND EXISTS(SELECT 1 FROM articles WHERE item_id=? AND paragraphs IS ? AND updated_at IS ?)")
+      .bind(item.metrics, item.id, originalMetrics, item.id, JSON.stringify(ex.paragraphs), now),
+  ]);
+  if (!articleWrite.meta.changes) throw new Error("stale_source");
   return db.prepare("SELECT * FROM articles WHERE item_id=?").bind(item.id).first();
 }
 
@@ -48,33 +118,48 @@ export async function handleP1(request, env, deps, url, m, db, now) {
   const fetchImpl = deps.fetchImpl ?? fetch; const p = url.pathname;
   const rd = p.match(/^\/api\/items\/([0-9a-f-]{36})\/reader(?:\/(translate|summary|highlights))?$/u);
   if (rd) {
-    const item = await db.prepare("SELECT id,title,url,raw_excerpt,summary,source FROM items WHERE id=?").bind(rd[1]).first(); if (!item) return json({ error: "not_found" }, 404);
+    const item = await db.prepare("SELECT id,kind,title,url,raw_excerpt,summary,source,metrics FROM items WHERE id=?").bind(rd[1]).first(); if (!item) return json({ error: "not_found" }, 404);
     if (!rd[2] && m === "GET") {
-      const a = await loadArticle(db, item, fetchImpl, now, url.searchParams.get("refresh") === "1");
+      const a = await loadArticle(db, item, fetchImpl, now, url.searchParams.get("refresh") === "1").catch((e) => { if (e.message === "stale_source") return null; throw e; });
+      if (!a) return staleArticle();
       const hl = (await db.prepare("SELECT id,text,note,created_at FROM highlights WHERE item_id=? ORDER BY created_at").bind(item.id).all()).results;
       return json({ article: articleView(a, item), highlights: hl });
     }
     if (rd[2] === "translate" && m === "POST") {
-      const a = await loadArticle(db, item, fetchImpl, now); if (a.status !== "ok") return json({ error: "no_full_text", hint: "冇全文可翻譯（付費牆或擷取失敗）" }, 422);
-      const paras = pj(a.paragraphs, []); const chunks = chunkParagraphs(paras, CHUNK); const tr = pj(a.translation, []);
+      const a = await loadArticle(db, item, fetchImpl, now).catch((e) => { if (e.message === "stale_source") return null; throw e; }); if (!a) return staleArticle();
+      if (a.status !== "ok") return json({ error: "no_full_text", hint: "冇全文可翻譯（付費牆或擷取失敗）" }, 422);
+      const paras = pj(a.paragraphs, []); if (paras.map((x) => x.text).join("\n").length < 200) return json({ error: "insufficient_content", hint: "正文太短，請補充可核對內容" }, 422);
+      const chunks = chunkParagraphs(paras, CHUNK); const tr = pj(a.translation, []);
       let done = a.translated_chunks, provider = a.ai_provider, err = null;
       for (let k = 0; k < PER_CALL && done < chunks.length; k++) {
         const ch = chunks[done];
         try { const r = await generate(env, TRANSLATE_PROMPT, JSON.stringify({ paragraphs: ch.map((x) => x.text) }), parseTranslation(ch.length), { fetchImpl, maxOut: 3000 }); tr.push(...r.paragraphs); provider = r.provider; done++; }
         catch (e) { err = e; break; }
-        await db.prepare("UPDATE articles SET translation=?, translated_chunks=?, ai_provider=?, updated_at=? WHERE item_id=?").bind(JSON.stringify(tr), done, provider, now, item.id).run();
+        const metadata = JSON.stringify({ ...pj(item.metrics, {}), translation_provider: provider });
+        const [itemWrite, articleWrite] = await db.batch([
+          db.prepare("UPDATE items SET metrics=? WHERE id=? AND metrics IS ? AND EXISTS(SELECT 1 FROM articles WHERE item_id=? AND updated_at IS ? AND paragraphs IS ? AND translation IS ?)")
+            .bind(metadata, item.id, item.metrics, item.id, a.updated_at, a.paragraphs, a.translation),
+          db.prepare("UPDATE articles SET translation=?, translated_chunks=?, ai_provider=?, updated_at=? WHERE item_id=? AND updated_at IS ? AND paragraphs IS ? AND translation IS ? AND EXISTS(SELECT 1 FROM items WHERE id=? AND metrics=?)")
+            .bind(JSON.stringify(tr), done, provider, now, item.id, a.updated_at, a.paragraphs, a.translation, item.id, metadata),
+        ]);
+        if (!itemWrite.meta.changes || !articleWrite.meta.changes) return staleArticle();
+        item.metrics = metadata; a.translation = JSON.stringify(tr); a.updated_at = now;
       }
       const view = articleView(await db.prepare("SELECT * FROM articles WHERE item_id=?").bind(item.id).first(), item);
       if (err) { const r = aiFail(err); const b = await r.json(); return json({ ...b, article: view }, r.status); }
       return json({ article: view });
     }
     if (rd[2] === "summary" && m === "POST") {
-      const a = await loadArticle(db, item, fetchImpl, now);
+      const a = await loadArticle(db, item, fetchImpl, now).catch((e) => { if (e.message === "stale_source") return null; throw e; });
+      if (!a) return staleArticle();
       if (a.summary && url.searchParams.get("refresh") !== "1") return json({ article: articleView(a, item), cached: true });
-      const text = a.status === "ok" ? pj(a.paragraphs, []).map((x) => x.text).join("\n\n") : (item.raw_excerpt || item.summary || "");
+      if (a.status !== "ok") return json({ error: "no_full_text", hint: "未擷取到可核對正文；RSS 摘錄不能當作全文做 AI 總結" }, 422);
+      const text = pj(a.paragraphs, []).map((x) => x.text).join("\n\n");
       if (text.length < 200) return json({ error: "insufficient_content", hint: "內容太短，AI 未能總結；請撳原文閱讀" }, 422);
       try { const s = await generate(env, READER_SUMMARY_PROMPT, `${a.title || item.title}\n${item.url}\n\n${text.slice(0, 11000)}`, parseReaderSummary, { fetchImpl });
-        await db.prepare("UPDATE articles SET summary=?, ai_provider=?, updated_at=? WHERE item_id=?").bind(JSON.stringify({ ...s, provider: undefined, partial: text.length > 11000, from_excerpt: a.status !== "ok" }), s.provider, now, item.id).run();
+        const changed = await db.prepare("UPDATE articles SET summary=?, ai_provider=?, updated_at=? WHERE item_id=? AND updated_at IS ? AND paragraphs IS ? AND summary IS ? AND EXISTS(SELECT 1 FROM items WHERE id=? AND metrics IS ?)")
+          .bind(JSON.stringify({ ...s, provider: s.provider, partial: text.length > 11000, from_excerpt: false }), s.provider, now, item.id, a.updated_at, a.paragraphs, a.summary, item.id, item.metrics).run();
+        if (!changed.meta.changes) return staleArticle();
       } catch (e) { return aiFail(e); }
       return json({ article: articleView(await db.prepare("SELECT * FROM articles WHERE item_id=?").bind(item.id).first(), item) });
     }

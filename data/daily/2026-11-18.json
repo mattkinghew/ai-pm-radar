@@ -1,0 +1,334 @@
+{
+  "date": "2026-11-18",
+  "generated_by": "scripts/daily-from-inbox.mjs",
+  "review": {
+    "status": "draft"
+  },
+  "needs_review": true,
+  "held": [],
+  "articles": [
+    {
+      "question_title": "Introducing GPT-6.2 Astra and Sol",
+      "short_title": "Introducing GPT-6.2 Astra and Sol",
+      "summary": "Introducing GPT‑6.2 Astra and Sol, with better professional outputs, coding, computer use, and efficiency at lower cost across ChatGPT Work, Codex, and the API.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/introducing-gpt-6-2-astra-sol",
+      "published_at": "2026-11-17T17:45:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 10,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Introducing ChatGPT for Sales",
+      "short_title": "Introducing ChatGPT for Sales",
+      "summary": "Explore the new Sales plugin and 30+ new and expanded partner plugins in ChatGPT to research prospects, prepare pitches, update your CRM, and move deals forward.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/introducing-chatgpt-for-sales",
+      "published_at": "2026-11-17T08:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Astra for Law leads in legal intelligence",
+      "short_title": "Astra for Law leads in legal intelligence",
+      "summary": "Astra for Law ranked first in a launch evaluation spanning 24 areas of law. Every ChatGPT Enterprise customer can now request access.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/astra-law-6-2",
+      "published_at": "2026-11-17T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Introducing OpenAI for Chile",
+      "short_title": "Introducing OpenAI for Chile",
+      "summary": "OpenAI and the Government of Chile are partnering to support responsible AI adoption, build public-sector skills and help local startups develop AI applications.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/introducing-openai-for-chile",
+      "published_at": "2026-11-17T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Strengthening NATO and allied cyber defenses with AI",
+      "short_title": "Strengthening NATO and allied cyber defenses with AI",
+      "summary": "How OpenAI is working with NATO and allied cyber agencies to help trusted defenders find vulnerabilities, test fixes and protect essential systems.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/strengthening-nato-allied-cyber-defences-ai",
+      "published_at": "2026-11-17T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Broadening access to AI for scientists",
+      "short_title": "Broadening access to AI for scientists",
+      "summary": "We’re expanding our ChatGPT for Academic Researchers program to offer 200,000 researchers worldwide free access to our frontier models.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/expanding-chatgpt-for-academic-researchers",
+      "published_at": "2026-11-16T17:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Strengthening the fight against online child sexual abuse with new tools and support",
+      "short_title": "Strengthening the fight against online child sexual abuse with new tools and support",
+      "summary": "New tools, practical guidance, and partnerships will help prevent, detect and respond to online child sexual exploitation and abuse.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "APPLY_NOW"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/strengthening-online-child-safety",
+      "published_at": "2026-11-16T17:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "APPLY_NOW",
+      "pref_score": 9,
+      "pref_reasons": [
+        "apply_now",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Science at the Frontier: How scientists use ChatGPT",
+      "short_title": "Science at the Frontier: How scientists use ChatGPT",
+      "summary": "Explore how more than 1,800 scientists use ChatGPT in research. See findings on daily workflows, reported productivity, and expectations for discovery.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "APPLY_NOW"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/science-at-the-frontier",
+      "published_at": "2026-11-16T12:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "APPLY_NOW",
+      "pref_score": 8,
+      "pref_reasons": [
+        "apply_now",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "How Revolut raises ambition without lowering the bar",
+      "short_title": "How Revolut raises ambition without lowering the bar",
+      "summary": "Discover how Revolut uses OpenAI models and Codex to cut coding time by 30–60%, scale financial crime investigations, and innovate without compromising security.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/business/customer-stories/revolut",
+      "published_at": "2026-11-16T09:30:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 8,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "LVMH’s Media Division announces strategic partnership with OpenAI",
+      "short_title": "LVMH’s Media Division announces strategic partnership with OpenAI",
+      "summary": "LVMH’s Media Division and OpenAI announce a partnership to support journalism with AI and make its publications more accessible through ChatGPT.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/lvmh-media-division-partnership",
+      "published_at": "2026-11-16T09:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 8,
+      "pref_reasons": [
+        "tech_news",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+[
+  {
+    "id": "anthropic",
+    "reason": "official RSS endpoints 404 on 2026-11-15; no official feed link on anthropic.com/news",
+    "since": "2026-11-15",
+    "review_by": "2026-12-15"
+  }
+]

@@ -1,0 +1,336 @@
+{
+  "date": "2026-11-15",
+  "generated_by": "scripts/daily-from-inbox.mjs",
+  "review": {
+    "status": "draft"
+  },
+  "needs_review": true,
+  "held": [],
+  "articles": [
+    {
+      "question_title": "Show HN: Langfuse AI Gateway, open source rust gateway to trace every LLM call",
+      "short_title": "Show HN: Langfuse AI Gateway, open source rust gateway to trace every LLM call",
+      "summary": "Hi HN, this is Max, Marc and Clemens, co-founders of Langfuse, the open source tool for agent &amp; observability &amp; evals (<a href=\"https:&#x2F;&#x2F;github.com&#x2F;langfuse&#x2F;langfuse\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;langfuse&#x2F;langfuse</a>).<p>It’s been a minute since our last Show HN in August 2023 (<a href=\"https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=37310070\">https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=37310070</a>) - we’ve been busy building out and serving our tracing &amp; eval pieces over the past years and have been very lucky to build a successful company and open source project around it. Today, we are happy to show the beta of Langfuse AI Gateway: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;langfuse&#x2F;langfuse&#x2F;tree&#x2F;main&#x2F;ai-gateway\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;langfuse&#x2F;langfuse&#x2F;tree&#x2F;main&#x2F;ai-gateway</a>. You may ask, why an AI Gateway as our second product: it’s been one our community’s strongest asks + integration pattern that we’ve seen. We want to offer a scalable, reliable and secure way to solve for the gateway use case in the same way that we’ve done with tracing&#",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "SOCIAL_VIRAL_STRATEGY",
+      "tags": [
+        "GITHUB_PROJECT"
+      ],
+      "source_name": "Hacker News",
+      "source_url": "https://github.com/langfuse/langfuse/tree/main/ai-gateway",
+      "published_at": "2026-11-13T15:10:20.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "GITHUB_PROJECT",
+      "pref_score": 28,
+      "pref_reasons": [
+        "agent_governance",
+        "github_project",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Show HN: Mimzie, an agent-neutral alternative to the Claude Suite/Claude Cowork",
+      "short_title": "Show HN: Mimzie, an agent-neutral alternative to the Claude Suite/Claude Cowork",
+      "summary": "hi HN!<p>I built Mimzie, an agent neutral AI workspace inspired by the Claude Suite (Docs, Sheets, Slides) and Cowork.<p>It&#x27;s a free desktop app that runs ChatGPT, Claude, Gemini, and Grok in their native CLI harnesses. Think T3 Code or Conductor but for knowledge work. It&#x27;s basically a GUI for managing knowledge work agents in various form factors. One of those form factors is Bots, akin to Grok Bot or Dots.<p>The original idea for mimzie was simple: I pay for Claude and ChatGPT, and a lot of my day-to-day work lives in .xlsx, .pptx and .docx files. Moreover, I was sick and tired of losing context between AI platforms. I didn&#x27;t want to bet the house on one AI lab&#x27;s product, be it the ChatGPT or the Claude Desktop app.<p>So I built an AI desktop app that was agent neutral.<p>The goal of mimzie is to bring the kind of agent workflows that devs have had with codex and claude code into the hands of everyone. And to have a friendly GUI to do it. I&#x27;ve found that the personal agents, hermes and openclaw, are intimidating to set up and confusing to the average non-technical person.<p>some of the core principles of mimzie:<p>- your file stays your file: edits are d",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "SOCIAL_VIRAL_STRATEGY",
+      "tags": [
+        "AGENT_GOVERNANCE"
+      ],
+      "source_name": "Hacker News",
+      "source_url": "https://mimzie.com/",
+      "published_at": "2026-11-11T00:29:45.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "AGENT_GOVERNANCE",
+      "pref_score": 26,
+      "pref_reasons": [
+        "agent_governance",
+        "apply_now",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "JioStar’s chief architect on AI discovery at 500M-user scale",
+      "short_title": "JioStar’s chief architect on AI discovery at 500M-user scale",
+      "summary": "JioStar’s Vijay Seshadri explains AI discovery at 500M-user scale. Read his lessons on evals, guardrails, and taking AI into production.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "AGENT_GOVERNANCE"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/jiostar-vijay-seshadri",
+      "published_at": "2026-11-11T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "AGENT_GOVERNANCE",
+      "pref_score": 26,
+      "pref_reasons": [
+        "agent_governance",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Introducing ChatGPT Wallet",
+      "short_title": "Introducing ChatGPT Wallet",
+      "summary": "Introducing ChatGPT Wallet, a secure way for agents in ChatGPT Work, Codex, and dots to complete purchases with user approval and existing card protections.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/introducing-chatgpt-wallet",
+      "published_at": "2026-11-13T15:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 8,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Show HN: AI-drop project – drop traffic fast from misbehaving crawlers (AGPL)",
+      "short_title": "Show HN: AI-drop project – drop traffic fast from misbehaving crawlers (AGPL)",
+      "summary": "Hello!<p>All started with 4 million requests &#x2F; day on rocketgit.com (AGPL git hosting). Instead of thousands. Enough is enough!<p>Presentation (8 pages): <a href=\"https:&#x2F;&#x2F;rocketgit.com&#x2F;user&#x2F;catalinux&#x2F;ai-drop&#x2F;artefacts&#x2F;download&#x2F;docs&#x2F;pre1.pdf\" rel=\"nofollow\">https:&#x2F;&#x2F;rocketgit.com&#x2F;user&#x2F;catalinux&#x2F;ai-drop&#x2F;artefacts&#x2F;downl...</a><p>So, I built AI-drop free-software project (AGPL) to block this kind of crawlers. rocketgit.com has a very restrictive robots.txt (only around 10 pages are allowed). But the crawlers are not respecting it. So, who is not respecting it will be blocked.<p>Limiting by IP or user-agent is not working anymore. The crawlers are using millions of IPs and it takes days to reuse an IP. And they use fake user-agents.<p>I am using honeypots to build a list of misbehaving IPs which are streamed to downstream instances. Right now I have around 1.573.000 IPv4 and 6.000 IPv6 misbehaving addresses. I keep them in the list only for 7 days to not block somebody legit. I am watching the traffic on rocketgit.com and the solution is working nicely.<p>It uses an eBPF program to fast drop the packets.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "SOCIAL_VIRAL_STRATEGY",
+      "tags": [
+        "OTHER"
+      ],
+      "source_name": "Hacker News",
+      "source_url": "https://rocketgit.com/user/catalinux/ai-drop",
+      "published_at": "2026-11-13T08:05:44.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "OTHER",
+      "pref_score": 8,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Shield helps technicians hand off legacy portal work with OpenAI",
+      "short_title": "Shield helps technicians hand off legacy portal work with OpenAI",
+      "summary": "Shield uses OpenAI to help IT technicians hand off work in legacy portals. Its Forge agents navigate systems so technicians can focus on issues needing their judgment.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/business/customer-stories/shield",
+      "published_at": "2026-11-13T08:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 8,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Show HN: Chap – Meeting notes from live captions (no bot) with any LLM or agent",
+      "short_title": "Show HN: Chap – Meeting notes from live captions (no bot) with any LLM or agent",
+      "summary": "Chap is an AI Agent that is botless in capturing meeting notes (zoom, google meet, teams, webex) and a linked notebook (AI note taking), on any model or agent (claude code, codex and any CLI agents(opencode, hermes etc.), works with even apple intelligence models or webllm or local&#x2F;remote models. its much more once you start looking into it.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "SOCIAL_VIRAL_STRATEGY",
+      "tags": [
+        "OTHER"
+      ],
+      "source_name": "Hacker News",
+      "source_url": "https://chatpanel.net/",
+      "published_at": "2026-11-13T06:31:06.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "OTHER",
+      "pref_score": 8,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "How Amplitude ships product improvements in 1–2 days with OpenAI",
+      "short_title": "How Amplitude ships product improvements in 1–2 days with OpenAI",
+      "summary": "Built primarily on OpenAI models, Amplitude’s proactive product agent, Wave, identifies what to build, helps teams ship changes with coding agents, and measures the impact.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/business/customer-stories/amplitude",
+      "published_at": "2026-11-12T20:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 7,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Inception's Diffusion LLM API Is Shutting Down",
+      "short_title": "Inception's Diffusion LLM API Is Shutting Down",
+      "summary": "Sad to hear, but I got an email from hello@inceptionlabs.ai announcing the Mercury API that hosts their diffusion models is shutting down.<p>No blog post yet but I assume one is coming.<p>Here is the full email: ``` Hi,<p>We want to share an important update regarding the Mercury API. After careful consideration, we’ve made the decision to wind down the service. The Mercury API will remain fully available through December 28, 2026.<p>After this date, you will no longer have access to the service or any data submitted to the platform. We encourage you to retrieve any necessary data before then. If you have questions or need assistance with the transition, please reply to this email. We’re happy to help.<p>It’s been a privilege building Mercury alongside customers like you. Your feedback and ideas have been invaluable in shaping the platform, and we’re deeply grateful for your support and trust.<p>Warmly, The Inception Team ```<p>Also a shorter message on their discord from Yannis Miraoui: ``` Hi everyone, API access to all Mercury models will end on December 28, 2026. Mercury models will no longer be available from Nov 8 via OpenRouter.<p>Thank you for building with Mercury and for",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "SOCIAL_VIRAL_STRATEGY",
+      "tags": [
+        "OTHER"
+      ],
+      "source_name": "Hacker News",
+      "source_url": "https://news.ycombinator.com/item?id=50470335",
+      "published_at": "2026-11-12T16:51:58.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "OTHER",
+      "pref_score": 7,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Gondola doubles revenue as its team builds more with Codex",
+      "short_title": "Gondola doubles revenue as its team builds more with Codex",
+      "summary": "Gondola helps creatives get credit and get hired, with Codex raising its lead engineer’s output by 50% and ChatGPT simplifying daily work.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/business/customer-stories/gondola",
+      "published_at": "2026-11-12T12:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 7,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    }
+  ]
+}

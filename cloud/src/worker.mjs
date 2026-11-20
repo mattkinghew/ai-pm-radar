@@ -1,16 +1,17 @@
 import { verifyCloudflareAccessOwner } from "./access-jwt.mjs";
 import { summarize, usage } from "./ai.mjs";
-import { runDaily, analyzePending, AI_UPDATE, aiBind } from "./collector.mjs";
+import { runDaily, analyzePending, AI_UPDATE, aiBind, FEEDS, HN_URL } from "./collector.mjs";
 import { hktDay } from "./ai.mjs";
 import { handleP1, KB_COLS, kbShape as kbShapeP1 } from "./routes-p1.mjs";
-import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath, scoreLane, LANES, injectionSuspect, feedbackOverlay, normalizeTrainTerm } from "./curation.mjs";
+import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath, scoreLane, LANES, injectionSuspect, feedbackOverlay, normalizeTrainTerm, collapseRepeatedParagraphs } from "./curation.mjs";
+import { chunkParagraphs } from "./reader.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
-const ROW = "id,kind,status,title,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,action_14d,(SELECT tags FROM kb_entries WHERE item_id=items.id) AS tags";
+const ROW = "id,kind,status,title,title_source,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,raw_excerpt,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,action_14d,(SELECT tags FROM kb_entries WHERE item_id=items.id) AS tags";
 const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
-const shape = (r) => r && ({ ...r, key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), pref_reasons: pj(r.pref_reasons), tags: pj(r.tags), metrics: r.metrics ? pj(r.metrics) : null });
-const SRC = "id,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS type,value,label,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at";
+const shape = (r) => r && ({ ...r, raw_excerpt: collapseRepeatedParagraphs(r.raw_excerpt), key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), pref_reasons: pj(r.pref_reasons), tags: pj(r.tags), metrics: r.metrics ? pj(r.metrics) : null });
+const SRC = "id,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS type,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS adapter_type,value,label,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at";
 const HANDLE = /^@?([A-Za-z0-9_]{1,15})$/u;
 const trained = async (db, rows) => { const weights = (await db.prepare("SELECT key,weight FROM feedback_weights ORDER BY key").all()).results;
   return rows.map((row) => { const item = shape(row); return { ...item, ...feedbackOverlay(item, weights) }; }); };
@@ -40,6 +41,13 @@ async function bearerOk(request, env) {
 const BEARER_ROUTES = (url, m) => (url.pathname === "/api/ingest/x" && m === "POST") || (url.pathname === "/api/sources" && m === "GET");
 const hashTitle = async (title) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(title || "").normalize("NFKC").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim())))).map((x) => x.toString(16).padStart(2, "0")).join("");
 const keywordArray = (value) => Array.isArray(value) ? value.map((x) => String(x).trim().slice(0, 80)).filter(Boolean).slice(0, 30) : [];
+const CAPTURE_HISTORY_LIMIT = 8;
+const CAPTURE_HISTORY_BYTES = 64000;
+const captureReply = (id, score, needsSource, suspect, result, status) => json({ id, status: "draft", review_status: needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", lane: score.lane, pref_score: score.pref_score, pref_reasons: score.pref_reasons, injection_suspect: !!suspect, ai_calls: 0, result }, status);
+const storedCaptureReply = (item) => json({ id: item.id, status: item.status, review_status: item.review_status, lane: item.lane,
+  pref_score: item.pref_score, pref_reasons: pj(item.pref_reasons), injection_suspect: !!item.injection_suspect,
+  source: item.source, claim_status: item.claim_status, evidence_tier: item.evidence_tier, ai_provider: item.ai_provider,
+  ai_calls: 0, result: "duplicate" });
 
 async function ingestX(request, env) {
   const body = await request.json().catch(() => null);
@@ -50,13 +58,13 @@ async function ingestX(request, env) {
   const now = new Date().toISOString(); const day = hktDay(); let inserted = 0, duplicate = 0, skipped_disabled = 0; const rejected = [], disabled_handles = [];
   for (const [i, p] of posts.entries()) {
     const hm = String(p?.handle ?? "").match(HANDLE); const pid = String(p?.post_id ?? "");
-    const text = String(p?.text ?? "").trim();
+    const text = collapseRepeatedParagraphs(String(p?.text ?? "").trim());
     if (!hm || !/^\d{1,25}$/u.test(pid) || !text) { rejected.push(i); continue; }
     const handle = hm[1]; const url = /^https:\/\/(x|twitter)\.com\//u.test(p.url || "") ? p.url : `https://x.com/${handle}/status/${pid}`;
     if (!enabled.has(handle.toLowerCase())) { skipped_disabled++; disabled_handles.push({ index: i, handle: `@${handle}` }); continue; }
     const title = text.replace(/\s+/gu, " ").slice(0, 140);
-    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,url,url_norm,source,category,raw_excerpt,run_date,external_id,metrics,created_at,updated_at,ai_eligible)
-      VALUES(?, 'daily', 'draft', ?, ?, ?, ?, 'X_POST', ?, ?, ?, ?, ?, ?, ?)`)
+    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,title_source,url,url_norm,source,category,raw_excerpt,run_date,external_id,metrics,created_at,updated_at,ai_eligible)
+      VALUES(?, 'daily', 'draft', ?, 'x_text_truncation', ?, ?, ?, 'X_POST', ?, ?, ?, ?, ?, ?, ?)`)
       .bind(crypto.randomUUID(), title, url, normalizeUrl(url), `x:@${handle}`, text.slice(0, 4000), day, `x:${pid}`, p.metrics ? JSON.stringify(p.metrics).slice(0, 1000) : null,
         /^\d{4}-\d{2}-\d{2}T/u.test(p.created_at || "") ? p.created_at : now, now, enabled.get(handle.toLowerCase())).run();
     res.meta?.changes > 0 ? inserted++ : duplicate++;
@@ -90,6 +98,33 @@ export async function handle(request, env, deps = {}) {
     return json({ backend: "cloudflare", d1: !!db, ai: { gemini: !!env.GEMINI_API_KEY, fallback: env.AI_FALLBACK_PROVIDER || "none", dailyCap: Number(env.AI_DAILY_CAP || 10), autoAnalyzeLimit: Number(env.AI_AUTO_ANALYZE_LIMIT || 5), usage: await usage(env) }, cron: "0 0 * * * (08:00 HKT)", humanReviewRequired: true });
   }
   if (url.pathname === "/api/sources" && m === "GET") return listSources(db, url, true);
+  if (url.pathname === "/api/source-health" && m === "GET") {
+    const [cache, rows, configured, lastRun] = await Promise.all([
+      db.prepare("SELECT source_key,url,updated_at FROM source_http_cache").all(),
+      db.prepare("SELECT source,COUNT(*) count FROM items GROUP BY source").all(),
+      db.prepare(`SELECT ${SRC} FROM sources ORDER BY created_at`).all(),
+      db.prepare("SELECT finished_at,error FROM runs ORDER BY finished_at DESC LIMIT 1").first(),
+    ]);
+    const cached = new Map(cache.results.map((x) => [x.source_key, x]));
+    const counts = new Map(rows.results.map((x) => [x.source, Number(x.count)]));
+    let errors = [];
+    try { errors = JSON.parse(lastRun?.error || "null")?.source_errors || []; } catch { /* Older run errors are plain text. */ }
+    const errorBySource = new Map(errors.map((x) => [x.source, x.error]));
+    const sources = FEEDS.map((f) => ({ id: f.id, type: "rss", url: f.url, count: counts.get(f.id) || 0, cacheKey: `builtin:${f.id}` }));
+    sources.push({ id: "hn", type: "api", url: HN_URL, count: counts.get("hn") || 0, cacheKey: "builtin:hn" });
+    for (const s of configured.results) sources.push({ id: s.id, label: s.label, type: s.type, url: s.value, count: counts.get(s.label || s.value) || 0, enabled: !!s.enabled, cacheKey: `source:${s.id}` });
+    const health = sources.map(({ cacheKey, ...s }) => {
+      const success = cached.get(cacheKey);
+      const reason = errorBySource.get(s.id) || errorBySource.get(s.label) || null;
+      return { ...s, last_success_at: success?.updated_at || null, last_error_at: reason ? lastRun.finished_at : null,
+        last_check_at: reason ? lastRun.finished_at : success?.updated_at || null,
+        status: reason ? "error" : success ? "last_success_only" : "unknown", reason: reason || (success ? "Last successful fetch; current availability unknown" : "No recorded check") };
+    });
+    const byType = { rss: 0, api: 0, official_html: 0, manual: 1, x: 0, other: 0 };
+    for (const s of health) byType[s.type in byType ? s.type : "other"]++;
+    return json({ sources: health, catalog_counts: byType, manual_captures: counts.get("quick-capture") || 0,
+      note: "Last successful cache write is not a current availability check. X live ingestion is unknown." });
+  }
   if (url.pathname === "/api/digest" && m === "GET") {
     const days = Number(url.searchParams.get("days") || 7); if (!Number.isInteger(days) || days < 1 || days > 30) return json({ error: "bad_days" }, 400);
     const since = new Date(Date.now() - days * 86400000).toISOString();
@@ -124,10 +159,11 @@ export async function handle(request, env, deps = {}) {
     if (type === "youtube_channel" && !/^UC[A-Za-z0-9_-]{20,}$/u.test(value)) return json({ error: "bad_source" }, 400);
     if (type === "github_search" && value.length > 160) return json({ error: "bad_source" }, 400);
     const id = crypto.randomUUID(); const label = String(b?.label ?? "").trim().slice(0, 60) || null;
+    if (await db.prepare("SELECT 1 FROM sources WHERE type=? AND lower(value)=lower(?) LIMIT 1").bind(type, value).first()) return json({ error: "duplicate_source", hint: "已經有呢個訊息源" }, 409);
     const lane = LANES.includes(b?.lane_default) ? b.lane_default : (type === "github_search" || type === "github_releases" ? "GITHUB_PROJECT" : type === "youtube_channel" ? "CONTENT_WORKFLOW" : "OTHER");
     const weight = Number(b?.weight ?? 0), maxPerDay = Number(b?.max_per_day ?? 5);
     if (!Number.isInteger(weight) || weight < -2 || weight > 2 || !Number.isInteger(maxPerDay) || maxPerDay < 1 || maxPerDay > 100) return json({ error: "bad_source_settings" }, 400);
-    const r = await db.prepare(`INSERT OR IGNORE INTO sources(id,type,adapter_type,value,label,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at) VALUES(?, 'rss', ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(id, type, value, label, lane, weight, JSON.stringify(keywordArray(b?.include_keywords)), JSON.stringify(keywordArray(b?.exclude_keywords)), maxPerDay, b?.ai_eligible === true ? 1 : 0, now, now).run();
+    const r = await db.prepare(`INSERT OR IGNORE INTO sources(id,type,adapter_type,value,label,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at) VALUES(?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(id, type, type, value, label, lane, weight, JSON.stringify(keywordArray(b?.include_keywords)), JSON.stringify(keywordArray(b?.exclude_keywords)), maxPerDay, b?.ai_eligible === true ? 1 : 0, now, now).run();
     return r.meta.changes ? json({ source: await db.prepare(`SELECT ${SRC} FROM sources WHERE id=?`).bind(id).first() }, 201) : json({ error: "duplicate_source", hint: "已經有呢個訊息源" }, 409);
   }
   const sm = url.pathname.match(/^\/api\/sources\/([0-9a-f-]{36})$/u);
@@ -214,24 +250,27 @@ export async function handle(request, env, deps = {}) {
   }
   const one = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})(?:\/(review|approve|reject|translate|deep-read))?$/u);
   if (one && m === "GET" && !one[2]) {
-    const r = await db.prepare(`SELECT ${ROW},raw_excerpt FROM items WHERE id=?`).bind(one[1]).first();
+    const r = await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(one[1]).first();
     return r ? json({ item: shape(r) }) : json({ error: "not_found" }, 404);
   }
   if (one && m === "POST" && one[2] === "deep-read") {
-    const it = await db.prepare("SELECT id,title,url,summary,raw_excerpt,lane FROM items WHERE id=?").bind(one[1]).first();
+    const it = await db.prepare("SELECT id,title,url,summary,raw_excerpt,lane,updated_at,ai_provider FROM items WHERE id=?").bind(one[1]).first();
     if (!it) return json({ error: "not_found" }, 404);
     let ai; try { ai = await summarize(env, [it.title, it.url, it.raw_excerpt || it.summary || ""].filter(Boolean).join("\n"), { fetchImpl: deps.fetchImpl ?? fetch, lane: it.lane, forceModel: true }); } catch (e) { return aiErr(e); }
-    await db.prepare(AI_UPDATE).bind(...aiBind(ai, it.title, now, it.id)).run();
-    await db.prepare("UPDATE items SET review_status='ai_enriched',updated_at=? WHERE id=?").bind(now, it.id).run();
+    const changed = await db.prepare(AI_UPDATE.replace("updated_at=? WHERE", "review_status='ai_enriched',updated_at=? WHERE") + " AND title IS ? AND raw_excerpt IS ? AND updated_at IS ? AND ai_provider IS ?")
+      .bind(...aiBind(ai, it.title, now, it.id), it.title, it.raw_excerpt, it.updated_at, it.ai_provider).run();
+    if (!changed.meta.changes) return json({ error: "stale_source" }, 409);
     return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()), provider: ai.provider });
   }
   if (one && m === "POST" && one[2] === "translate") {
     // 轉中文 / re-analyze one existing item (incl. imported/unanalyzed). Counts against caps; status unchanged (human review gate kept).
-    const it = await db.prepare("SELECT id,title,url,summary,raw_excerpt FROM items WHERE id=?").bind(one[1]).first();
+    const it = await db.prepare("SELECT id,title,url,summary,raw_excerpt,updated_at,ai_provider FROM items WHERE id=?").bind(one[1]).first();
     if (!it) return json({ error: "not_found" }, 404);
     const text = [it.title, it.url, it.raw_excerpt || it.summary || ""].filter(Boolean).join("\n");
     let ai; try { ai = await summarize(env, text, { fetchImpl: deps.fetchImpl ?? fetch }); } catch (e) { return aiErr(e); }
-    await db.prepare(AI_UPDATE).bind(...aiBind(ai, ai.title_original, now, it.id)).run();
+    const changed = await db.prepare(AI_UPDATE + " AND title IS ? AND raw_excerpt IS ? AND updated_at IS ? AND ai_provider IS ?")
+      .bind(...aiBind(ai, ai.title_original, now, it.id), it.title, it.raw_excerpt, it.updated_at, it.ai_provider).run();
+    if (!changed.meta.changes) return json({ error: "stale_source" }, 409);
     return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()) });
   }
   if (one && m === "POST" && one[2]) {
@@ -251,27 +290,79 @@ export async function handle(request, env, deps = {}) {
     const body = await request.json().catch(() => null);
     const text = String(body?.text ?? "").slice(0, 20000); let link = String(body?.url ?? "").trim();
     if (link && !/^https?:\/\//u.test(link)) return json({ error: "bad_url" }, 400);
-    const content = text.trim().slice(0, 20000); if (!link && !content) return json({ error: "empty_capture" }, 400);
-    const title = String(body?.title ?? "").trim().slice(0, 240) || content.split(/\n/u).map((x) => x.trim()).find(Boolean)?.replace(/^#+\s*/u, "").slice(0, 160) || link || "URL 待整理來源";
+    const content = collapseRepeatedParagraphs(text.trim().slice(0, 20000)); if (!link && !content) return json({ error: "empty_capture" }, 400);
+    const sourceLanguage = ["en", "zh-Hant", "zh-Hans"].includes(body?.source_language) ? body.source_language : "unknown";
+    const languageProvenance = sourceLanguage === "unknown" ? "unknown" : "user_declared";
+    const suppliedTitle = String(body?.title ?? "").trim().slice(0, 240);
+    const inferredTitle = content.split(/\n/u).map((x) => x.trim()).find(Boolean)?.replace(/^#+\s*/u, "").slice(0, 160);
+    const title = suppliedTitle || inferredTitle || link || "URL 待整理來源";
+    const titleSource = suppliedTitle ? "user" : inferredTitle ? "inferred" : "synthesized";
     const needsSource = content.length < 80; const lane = LANES.includes(body?.lane) ? body.lane : undefined;
     const score = scoreLane({ title, url: link, raw_excerpt: content, lane, published_at: body?.published_at || null }, { nowMs: Date.now() });
     const suspect = score.injection_suspect || injectionSuspect(content);
     const id = crypto.randomUUID(); const urlNorm = normalizeUrl(link);
-    await db.prepare(`INSERT INTO items(id,kind,status,title,url,url_norm,source,category,summary,key_points,score,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,created_at,updated_at)
-      VALUES(?, 'capture', 'draft', ?, ?, ?, 'quick-capture', 'CAPTURE', ?, '[]', NULL, ?, 'extractive', ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?)`)
-      .bind(id, title, link || null, urlNorm, content.replace(/\s+/gu, " ").slice(0, 280) || "尚未取得可核對正文。", content.slice(0, 4000), score.lane, score.pref_score, JSON.stringify(score.pref_reasons), body?.published_at || null, needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now, now).run();
-    return json({ id, status: "draft", review_status: needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", lane: score.lane, pref_score: score.pref_score, pref_reasons: score.pref_reasons, injection_suspect: !!suspect, ai_calls: 0 }, 201);
+    const excerpt = content.replace(/\s+/gu, " ").slice(0, 280) || "尚未取得可核對正文。";
+    const metrics = { source_language: sourceLanguage, language_provenance: languageProvenance };
+    const paragraphs = content.split(/\n\s*\n/u).map((part) => part.trim()).filter(Boolean).map((part) => ({ tag: "p", text: part }));
+    const totalChunks = chunkParagraphs(paragraphs, 2500).length;
+    const insert = db.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,title_source,url,url_norm,source,category,summary,key_points,score,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,metrics,created_at,updated_at)
+      VALUES(?, 'capture', 'draft', ?, ?, ?, ?, 'quick-capture', 'CAPTURE', ?, '[]', NULL, ?, 'extractive', ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?, ?)`)
+      .bind(id, title, titleSource, link || null, urlNorm, excerpt, content.slice(0, 280), score.lane, score.pref_score, JSON.stringify(score.pref_reasons), body?.published_at || null, needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, JSON.stringify(metrics), now, now);
+    if (content) {
+      const articleInsert = db.prepare(`INSERT INTO articles(item_id,url,status,title,site,paragraphs,chars,translation,translated_chunks,total_chunks,fetched_at,updated_at,title_source)
+        SELECT id,?,'ok',?,'manual_text',?,?,'[]',0,?,?,?,? FROM items WHERE id=?`)
+        .bind(link || null, title, JSON.stringify(paragraphs), content.length, totalChunks, now, now, titleSource, id);
+      const [created] = await db.batch([insert, articleInsert]);
+      if (created.meta.changes) return captureReply(id, score, needsSource, suspect, "created", 201);
+    } else {
+      const created = await insert.run();
+      if (created.meta.changes) return captureReply(id, score, needsSource, suspect, "created", 201);
+    }
+    // The schema's exact (url, kind) uniqueness is the identity contract. url_norm is only a ranking hint.
+    const existing = await db.prepare("SELECT * FROM items WHERE url=? AND kind='capture'").bind(link).first();
+    if (!existing) return json({ error: "capture_conflict", hint: "擷取資料衝突，請重試" }, 409);
+    const prior = await db.prepare("SELECT * FROM articles WHERE item_id=?").bind(existing.id).first();
+    const priorMetrics = existing.metrics ? JSON.parse(existing.metrics) : {};
+    const exactReplay = prior?.site === "manual_text" && prior.paragraphs === JSON.stringify(paragraphs)
+      && priorMetrics.source_language === sourceLanguage && prior.title === title;
+    if (exactReplay || !content) return storedCaptureReply(existing);
+    if (existing.status !== "draft") return json({ error: "capture_conflict", id: existing.id, hint: "既有記錄已進入審核，不能直接更改正文" }, 409);
+    const history = Array.isArray(priorMetrics.capture_history) ? priorMetrics.capture_history : [];
+    if (history.length >= CAPTURE_HISTORY_LIMIT) return json({ error: "capture_history_full", id: existing.id, hint: "此記錄的來源歷史已滿；請先另行保存並人工處理" }, 409);
+    const previousItem = { ...existing }; delete previousItem.metrics;
+    const snapshot = { at: now, item: { ...previousItem, source_language: priorMetrics.source_language || "unknown",
+      language_provenance: priorMetrics.language_provenance || "unknown", translation_provider: priorMetrics.translation_provider || null }, article: prior };
+    const nextMetrics = { ...priorMetrics, ...metrics, capture_history: [...history, snapshot], capture_revision: crypto.randomUUID() };
+    delete nextMetrics.translation_provider;
+    if (new TextEncoder().encode(JSON.stringify(nextMetrics)).length > CAPTURE_HISTORY_BYTES)
+      return json({ error: "capture_history_full", id: existing.id, hint: "既有正文歷史超出保存上限；請先另行保存並人工處理" }, 409);
+    // D1 batch runs as one transaction. Both writes are conditional on the same CAS revision.
+    const update = db.prepare(`UPDATE items SET title=?,title_source=?,summary=?,raw_excerpt=?,ai_provider='extractive',title_zh=NULL,title_original=NULL,summary_en=NULL,key_points='[]',key_points_en='[]',score=NULL,score_reason=NULL,reco_score=NULL,reco_reason=NULL,side_income_new=0,side_income_reason=NULL,
+      metrics=?,review_status=?,injection_suspect=?,updated_at=? WHERE id=? AND status='draft' AND metrics IS ? AND updated_at IS ? AND ai_provider IS ?
+      AND ((? IS NULL AND NOT EXISTS(SELECT 1 FROM articles WHERE item_id=?)) OR EXISTS(SELECT 1 FROM articles WHERE item_id=? AND updated_at IS ? AND paragraphs IS ? AND summary IS ? AND translation IS ?))`)
+      .bind(title, titleSource, excerpt, content.slice(0, 280), JSON.stringify(nextMetrics), needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now,
+        existing.id, existing.metrics, existing.updated_at, existing.ai_provider, prior?.item_id || null, existing.id, existing.id, prior?.updated_at || null, prior?.paragraphs || null, prior?.summary || null, prior?.translation || null);
+    const articleUpsert = db.prepare(`INSERT INTO articles(item_id,url,status,title,byline,site,paragraphs,chars,error,translation,translated_chunks,total_chunks,summary,ai_provider,fetched_at,updated_at,title_source)
+      SELECT id,?,'ok',?,NULL,'manual_text',?,?,NULL,'[]',0,?,NULL,NULL,?,?,? FROM items WHERE id=? AND metrics=?
+      ON CONFLICT(item_id) DO UPDATE SET url=excluded.url,status='ok',title=excluded.title,byline=NULL,site='manual_text',paragraphs=excluded.paragraphs,chars=excluded.chars,error=NULL,title_source=excluded.title_source,
+      translation='[]',translated_chunks=0,total_chunks=excluded.total_chunks,summary=NULL,ai_provider=NULL,fetched_at=excluded.fetched_at,updated_at=excluded.updated_at`)
+      .bind(link, title, JSON.stringify(paragraphs), content.length, totalChunks, now, now, titleSource, existing.id, JSON.stringify(nextMetrics));
+    const [changed] = await db.batch([update, articleUpsert]);
+    if (!changed.meta.changes) return json({ error: "capture_conflict", id: existing.id, hint: "正文剛被更新；請核對後重試，貼上內容仍保留在表單" }, 409);
+    return captureReply(existing.id, score, needsSource, suspect, "manual_enrichment", 200);
   }
   if (url.pathname === "/api/inbox/import" && m === "POST") {
     const body = await request.json().catch(() => null); const records = Array.isArray(body) ? body : body?.records;
     if (!Array.isArray(records) || records.length > 100) return json({ error: "bad_batch", hint: "最多 100 筆 SourceInput" }, 400);
     let inserted = 0, duplicate = 0, needsSource = 0; const ids = [];
     for (const record of records) {
-      const content = String(record?.value ?? record?.text ?? "").trim().slice(0, 20000);
+      const content = collapseRepeatedParagraphs(String(record?.value ?? record?.text ?? "").trim().slice(0, 20000));
       const link = String(record?.sourceUrl ?? record?.url ?? "").trim();
       if (link && !/^https?:\/\//u.test(link)) continue;
       if (!content && !link) continue;
-      const title = String(record?.title ?? "").trim().slice(0, 240) || link || content.slice(0, 120) || "未命名來源";
+      const suppliedTitle = String(record?.title ?? "").trim().slice(0, 240);
+      const title = suppliedTitle || link || content.slice(0, 120) || "未命名來源";
+      const titleSource = suppliedTitle ? "user" : link || !content ? "synthesized" : "inferred";
       const urlNorm = normalizeUrl(link); const titleHash = await hashTitle(title);
       const exists = await db.prepare("SELECT id FROM items WHERE (url_norm=? AND ? IS NOT NULL) OR title_hash=? LIMIT 1").bind(urlNorm, urlNorm, titleHash).first();
       if (exists) { duplicate++; continue; }
@@ -280,9 +371,9 @@ export async function handle(request, env, deps = {}) {
       const scored = scoreLane({ title, raw_excerpt: content, lane: laneHint, published_at: published });
       const suspect = scored.injection_suspect || injectionSuspect(content); const short = content.length < 80; if (short) needsSource++;
       const id = crypto.randomUUID();
-      await db.prepare(`INSERT INTO items(id,kind,status,title,url,url_norm,title_hash,source,category,summary,key_points,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,created_at,updated_at)
-        VALUES(?, 'capture', 'draft', ?, ?, ?, ?, ?, 'CAPTURE', ?, '[]', ?, 'extractive', ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?)`)
-        .bind(id, title, link || null, urlNorm, titleHash, String(record?.platform || record?.kind || "manual").slice(0, 80), content.replace(/\s+/gu, " ").slice(0, 280) || "尚未取得可核對正文。", content.slice(0, 4000), scored.lane, scored.pref_score, JSON.stringify(scored.pref_reasons), published, short ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now, now).run();
+      await db.prepare(`INSERT INTO items(id,kind,status,title,title_source,url,url_norm,title_hash,source,category,summary,key_points,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,created_at,updated_at)
+        VALUES(?, 'capture', 'draft', ?, ?, ?, ?, ?, ?, 'CAPTURE', ?, '[]', ?, 'extractive', ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?)`)
+        .bind(id, title, titleSource, link || null, urlNorm, titleHash, String(record?.platform || record?.kind || "manual").slice(0, 80), content.replace(/\s+/gu, " ").slice(0, 280) || "尚未取得可核對正文。", content.slice(0, 4000), scored.lane, scored.pref_score, JSON.stringify(scored.pref_reasons), published, short ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now, now).run();
       inserted++; ids.push(id);
     }
     return json({ inserted, duplicate, needs_source_review: needsSource, ai_calls: 0, ids }, 201);

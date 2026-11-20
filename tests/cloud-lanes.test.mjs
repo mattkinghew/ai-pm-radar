@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { handle } from "../cloud/src/worker.mjs";
-import { collect } from "../cloud/src/collector.mjs";
+import { collect, FEEDS, HN_URL } from "../cloud/src/collector.mjs";
 import { LANES, LANE_RULES, scoreLane } from "../cloud/src/curation.mjs";
 import { usage } from "../cloud/src/ai.mjs";
 import { fakeD1, accessKit, TEAM, AUD, ownerHash } from "./helpers/cloud-fakes.mjs";
@@ -74,11 +74,16 @@ test("source setting API validates bounds and persists lane, weights, and filter
 
 test("GitHub search adapter uses the official endpoint and handles 403 per-source", async () => {
   const errors = []; const calls = [];
-  const rows = await collect(async (url, init) => { calls.push({ url: String(url), init }); return new Response(JSON.stringify({ message: "rate limit" }), { status: 403 }); },
+  const rows = await collect(async (url, init) => { const target = String(url); calls.push({ url: target, init });
+    if (target.startsWith("https://api.github.com/search/repositories?")) return new Response(JSON.stringify({ message: "rate limit" }), { status: 403 });
+    if (FEEDS.some((feed) => feed.url === target)) return new Response("<rss><channel></channel></rss>", { headers: { "content-type": "application/rss+xml" } });
+    if (target === HN_URL) return Response.json({ hits: [] });
+    throw new Error(`unexpected_fixture_url:${target}`);
+  },
     [{ id: "gh1", type: "github_search", value: "agent harness", label: "GH synthetic", lane_default: "GITHUB_PROJECT", max_per_day: 5, ai_eligible: 0 }],
     { githubToken: "", onError: (x) => errors.push(x) });
   assert.equal(rows.length, 0); const github = calls.find((x) => x.url.startsWith("https://api.github.com/search/repositories?"));
-  assert.ok(github); assert.ok(github.init.signal); assert.equal(errors.length, 1); assert.equal(errors[0].source, "GH synthetic"); assert.equal(errors[0].error, "github_403");
+  assert.ok(github); assert.ok(github.init.signal); assert.equal(errors.length, 1); assert.deepEqual(errors[0], { source: "GH synthetic", error: "github_403" });
 });
 
 test("GitHub repositories/releases and YouTube Atom parse official source metadata", async () => {
@@ -91,7 +96,9 @@ test("GitHub repositories/releases and YouTube Atom parse official source metada
     if (String(url).includes("search/repositories")) return Response.json({ items: [{ full_name: "org/demo", description: "Synthetic project", stargazers_count: 42, language: "TypeScript", pushed_at: "2026-11-09T00:00:00Z", html_url: "https://github.com/org/demo" }] });
     if (String(url).includes("/releases?")) return Response.json([{ name: "Synthetic v1", tag_name: "v1", body: "Synthetic release notes", html_url: "https://github.com/org/project/releases/tag/v1", published_at: "2026-11-09T00:00:00Z" }]);
     if (String(url).includes("youtube.com/feeds/videos.xml")) return new Response(`<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"><entry><title>Synthetic video</title><link href="https://www.youtube.com/watch?v=abc"/><published>2026-11-09T00:00:00Z</published><summary>Synthetic description</summary></entry></feed>`);
-    return new Response("not found", { status: 404 });
+    if (FEEDS.some((feed) => feed.url === String(url))) return new Response("<rss><channel></channel></rss>");
+    if (String(url) === HN_URL) return Response.json({ hits: [] });
+    throw new Error(`unexpected_fixture_url:${url}`);
   }, sources);
   const project = rows.find((x) => x.title === "org/demo"); const release = rows.find((x) => x.title === "Synthetic v1"); const video = rows.find((x) => x.title === "Synthetic video");
   assert.match(project.excerpt, /Stars: 42; language: TypeScript/u); assert.equal(project.lane, "GITHUB_PROJECT");
@@ -109,7 +116,10 @@ test("RSS, YouTube Atom, and GitHub adapters persist validators and honor 304", 
   ];
   const target = (url) => url === "https://example.test/feed.xml" ? "feed" : url.includes("search/repositories") ? "search" : url.includes("/releases?") ? "release" : url.includes("youtube.com/feeds/videos.xml") ? "video" : null;
   const fetchImpl = async (url, init) => {
-    const kind = target(String(url)); if (!kind) return new Response("", { status: 404 });
+    const kind = target(String(url));
+    if (!kind && FEEDS.some((feed) => feed.url === String(url))) return round ? new Response(null, { status: 304 }) : new Response("<rss><channel></channel></rss>");
+    if (!kind && String(url) === HN_URL) return round ? new Response(null, { status: 304 }) : Response.json({ hits: [] });
+    if (!kind) throw new Error(`unexpected_fixture_url:${url}`);
     calls.push({ kind, url: String(url), headers: init.headers, signal: init.signal });
     const headers = { etag: `"${kind}-v1"`, "last-modified": "Wed, 11 Nov 2026 00:00:00 GMT" };
     if (round) return new Response(null, { status: 304, headers });
@@ -135,7 +145,9 @@ test("RSS, YouTube Atom, and GitHub adapters persist validators and honor 304", 
   sources[2].value = "other/repo";
   const changed = [];
   const withoutValidators = async (url, init) => {
-    if (!String(url).includes("/releases?")) return new Response("", { status: 404 });
+    if (FEEDS.some((feed) => feed.url === String(url))) return new Response(null, { status: 304 });
+    if (String(url) === HN_URL) return new Response(null, { status: 304 });
+    if (!String(url).includes("/releases?")) throw new Error(`unexpected_fixture_url:${url}`);
     changed.push(init.headers);
     return Response.json([{ name: "Other release", html_url: "https://github.com/other/repo/releases/tag/v1" }]);
   };

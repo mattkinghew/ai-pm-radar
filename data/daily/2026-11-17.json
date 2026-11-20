@@ -1,0 +1,340 @@
+{
+  "date": "2026-11-17",
+  "generated_by": "scripts/daily-from-inbox.mjs",
+  "review": {
+    "status": "draft"
+  },
+  "needs_review": true,
+  "held": [],
+  "articles": [
+    {
+      "question_title": "Show HN: A local-first AI agent for the desktop, no Electron, any LLM endpoint",
+      "short_title": "Show HN: A local-first AI agent for the desktop, no Electron, any LLM endpoint",
+      "summary": "Hey folks. Most all the apps I see for agent harnesses are typescript based, and involve either electron or some form of IPC to function as a desktop app.<p>In the age of LLM&#x27;s, I thought it would be cool to build out a prototype of what a modern desktop application would like for this, without using any web code, since I can have agents pretty aggressively work on the cross-platform compatibility on my behalf. After about a week, I ended up with a harness that feels pretty good!<p>Feel free to try it from the releases or you can install directly via:<p>``` cargo install byob ````",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "SOCIAL_VIRAL_STRATEGY",
+      "tags": [
+        "AGENT_GOVERNANCE"
+      ],
+      "source_name": "Hacker News",
+      "source_url": "https://github.com/Scronkfinkle/byob",
+      "published_at": "2026-11-15T14:52:06.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "AGENT_GOVERNANCE",
+      "pref_score": 29,
+      "pref_reasons": [
+        "agent_governance",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Show HN: Langfuse AI Gateway, open source rust gateway to trace every LLM call",
+      "short_title": "Show HN: Langfuse AI Gateway, open source rust gateway to trace every LLM call",
+      "summary": "Hi HN, this is Max, Marc and Clemens, co-founders of Langfuse, the open source tool for agent &amp; observability &amp; evals (<a href=\"https:&#x2F;&#x2F;github.com&#x2F;langfuse&#x2F;langfuse\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;langfuse&#x2F;langfuse</a>).<p>It’s been a minute since our last Show HN in August 2023 (<a href=\"https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=37310070\">https:&#x2F;&#x2F;news.ycombinator.com&#x2F;item?id=37310070</a>) - we’ve been busy building out and serving our tracing &amp; eval pieces over the past years and have been very lucky to build a successful company and open source project around it. Today, we are happy to show the beta of Langfuse AI Gateway: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;langfuse&#x2F;langfuse&#x2F;tree&#x2F;main&#x2F;ai-gateway\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;langfuse&#x2F;langfuse&#x2F;tree&#x2F;main&#x2F;ai-gateway</a>. You may ask, why an AI Gateway as our second product: it’s been one our community’s strongest asks + integration pattern that we’ve seen. We want to offer a scalable, reliable and secure way to solve for the gateway use case in the same way that we’ve done with tracing&#",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "SOCIAL_VIRAL_STRATEGY",
+      "tags": [
+        "GITHUB_PROJECT"
+      ],
+      "source_name": "Hacker News",
+      "source_url": "https://github.com/langfuse/langfuse/tree/main/ai-gateway",
+      "published_at": "2026-11-13T15:10:20.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "GITHUB_PROJECT",
+      "pref_score": 27,
+      "pref_reasons": [
+        "agent_governance",
+        "github_project",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Show HN: Mimzie, an agent-neutral alternative to the Claude Suite/Claude Cowork",
+      "short_title": "Show HN: Mimzie, an agent-neutral alternative to the Claude Suite/Claude Cowork",
+      "summary": "hi HN!<p>I built Mimzie, an agent neutral AI workspace inspired by the Claude Suite (Docs, Sheets, Slides) and Cowork.<p>It&#x27;s a free desktop app that runs ChatGPT, Claude, Gemini, and Grok in their native CLI harnesses. Think T3 Code or Conductor but for knowledge work. It&#x27;s basically a GUI for managing knowledge work agents in various form factors. One of those form factors is Bots, akin to Grok Bot or Dots.<p>The original idea for mimzie was simple: I pay for Claude and ChatGPT, and a lot of my day-to-day work lives in .xlsx, .pptx and .docx files. Moreover, I was sick and tired of losing context between AI platforms. I didn&#x27;t want to bet the house on one AI lab&#x27;s product, be it the ChatGPT or the Claude Desktop app.<p>So I built an AI desktop app that was agent neutral.<p>The goal of mimzie is to bring the kind of agent workflows that devs have had with codex and claude code into the hands of everyone. And to have a friendly GUI to do it. I&#x27;ve found that the personal agents, hermes and openclaw, are intimidating to set up and confusing to the average non-technical person.<p>some of the core principles of mimzie:<p>- your file stays your file: edits are d",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "SOCIAL_VIRAL_STRATEGY",
+      "tags": [
+        "AGENT_GOVERNANCE"
+      ],
+      "source_name": "Hacker News",
+      "source_url": "https://mimzie.com/",
+      "published_at": "2026-11-11T00:29:45.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "AGENT_GOVERNANCE",
+      "pref_score": 24,
+      "pref_reasons": [
+        "agent_governance",
+        "apply_now",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "JioStar’s chief architect on AI discovery at 500M-user scale",
+      "short_title": "JioStar’s chief architect on AI discovery at 500M-user scale",
+      "summary": "JioStar’s Vijay Seshadri explains AI discovery at 500M-user scale. Read his lessons on evals, guardrails, and taking AI into production.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "AGENT_GOVERNANCE"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/jiostar-vijay-seshadri",
+      "published_at": "2026-11-11T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "AGENT_GOVERNANCE",
+      "pref_score": 24,
+      "pref_reasons": [
+        "agent_governance",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Broadening access to AI for scientists",
+      "short_title": "Broadening access to AI for scientists",
+      "summary": "We’re expanding our ChatGPT for Academic Researchers program to offer 200,000 researchers worldwide free access to our frontier models.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/expanding-chatgpt-for-academic-researchers",
+      "published_at": "2026-11-16T17:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 10,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Strengthening the fight against online child sexual abuse with new tools and support",
+      "short_title": "Strengthening the fight against online child sexual abuse with new tools and support",
+      "summary": "New tools, practical guidance, and partnerships will help prevent, detect and respond to online child sexual exploitation and abuse.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "APPLY_NOW"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/strengthening-online-child-safety",
+      "published_at": "2026-11-16T17:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "APPLY_NOW",
+      "pref_score": 10,
+      "pref_reasons": [
+        "apply_now",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Science at the Frontier: How scientists use ChatGPT",
+      "short_title": "Science at the Frontier: How scientists use ChatGPT",
+      "summary": "Explore how more than 1,800 scientists use ChatGPT in research. See findings on daily workflows, reported productivity, and expectations for discovery.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "APPLY_NOW"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/science-at-the-frontier",
+      "published_at": "2026-11-16T12:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "APPLY_NOW",
+      "pref_score": 9,
+      "pref_reasons": [
+        "apply_now",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "LVMH’s Media Division announces strategic partnership with OpenAI",
+      "short_title": "LVMH’s Media Division announces strategic partnership with OpenAI",
+      "summary": "LVMH’s Media Division and OpenAI announce a partnership to support journalism with AI and make its publications more accessible through ChatGPT.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/lvmh-media-division-partnership",
+      "published_at": "2026-11-16T09:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "tech_news",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Our first phase of embedded assessments",
+      "short_title": "Our first phase of embedded assessments",
+      "summary": "OpenAI begins embedded assessments with Apollo Research, METR, and Transluce, and Goodfire to independently evaluate model alignment, safeguards, and monitoring systems.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/our-first-phase-of-embedded-assessments",
+      "published_at": "2026-11-16T08:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Advancing computer-use agents for healthcare teams",
+      "short_title": "Advancing computer-use agents for healthcare teams",
+      "summary": "Source headline: Advancing computer-use agents for healthcare teams",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/advancing-computer-use-for-healthcare-teams",
+      "published_at": "2026-11-16T06:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 9,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    }
+  ]
+}

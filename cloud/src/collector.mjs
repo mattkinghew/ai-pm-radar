@@ -1,6 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import { summarize, hktDay, reserveAutoItem } from "./ai.mjs";
-import { normalizeUrl, scoreLane, LANES } from "./curation.mjs";
+import { normalizeUrl, scoreLane, LANES, collapseRepeatedParagraphs } from "./curation.mjs";
 
 export const FEEDS = [
   { id: "openai", category: "AI_TECH_NEWS", url: "https://openai.com/news/rss.xml" },
@@ -18,21 +18,27 @@ export const FEEDS = [
 export const HN_URL = "https://hn.algolia.com/api/v1/search_by_date?query=AI%20OR%20LLM&tags=story&hitsPerPage=30";
 const NAMED = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", hellip: "…", mdash: "—", ndash: "–", rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "“" };
 export const decodeEntities = (s) => String(s ?? "").replace(/&(?:#(\d+)|#x([0-9a-f]+)|([a-z]+));/giu, (m, d, h, n) => d ? String.fromCodePoint(+d) : h ? String.fromCodePoint(parseInt(h, 16)) : NAMED[n.toLowerCase()] ?? m);
-const strip = (s) => decodeEntities(decodeEntities(String(s ?? "").replace(/<!\[CDATA\[|\]\]>/gu, "")).replace(/<[^>]+>/gu, " ")).replace(/\s+/gu, " ").trim();
+const strip = (s) => {
+  const html = decodeEntities(String(s ?? "").replace(/<!\[CDATA\[|\]\]>/gu, "").replace(/<\/(?:p|div|li|h[1-6]|blockquote|pre)\s*>/giu, "\n\n").replace(/<br\s*\/?>/giu, "\n"));
+  const plain = decodeEntities(html.replace(/<[^>]+>/gu, " ")).replace(/[\t\f\v ]+/gu, " ").replace(/ *\n+ */gu, "\n\n").trim();
+  return collapseRepeatedParagraphs(plain);
+};
 
 export function parseFeed(xml, feed, limit = 5) {
   const doc = new XMLParser({ ignoreAttributes: false }).parse(xml);
   const raw = doc?.rss?.channel?.item ?? doc?.feed?.entry ?? [];
-  return (Array.isArray(raw) ? raw : [raw]).slice(0, limit).map((it) => ({
-    title: strip(it.title?.["#text"] ?? it.title),
-    url: typeof it.link === "string" ? it.link : (it.link?.["@_href"] ?? (Array.isArray(it.link) ? it.link[0]?.["@_href"] : "")),
-    excerpt: strip(it.description ?? it.summary?.["#text"] ?? it.summary ?? it["content:encoded"]).slice(0, 3000),
-    source: feed.id, category: feed.category, published_at: it.pubDate || it.published || it.updated || null,
-  })).filter((x) => x.title && x.url);
+  return (Array.isArray(raw) ? raw : [raw]).slice(0, limit).map((it) => {
+    const excerpt = strip(it.description ?? it.summary?.["#text"] ?? it.summary ?? it["content:encoded"]).slice(0, 3000);
+    const feedTitle = strip(it.title?.["#text"] ?? it.title);
+    const url = typeof it.link === "string" ? it.link : (it.link?.["@_href"] ?? (Array.isArray(it.link) ? it.link[0]?.["@_href"] : ""));
+    const inferredTitle = excerpt.split(/\n/u).map((line) => line.trim()).find(Boolean)?.slice(0, 160);
+    return { title: feedTitle || inferredTitle || (url ? "URL 待整理來源" : ""), title_source: feedTitle ? "feed" : inferredTitle ? "inferred" : "synthesized",
+      url, excerpt, source: feed.id, category: feed.category, published_at: it.pubDate || it.published || it.updated || null };
+  }).filter((x) => x.title && x.url);
 }
 
 export async function userFeeds(db) {
-  try { return (await db.prepare("SELECT id,adapter_type AS type,value,label,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible FROM sources WHERE enabled=1 ORDER BY created_at LIMIT 30").all()).results || []; } catch { return []; }
+  try { return (await db.prepare("SELECT id,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS type,value,label,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible FROM sources WHERE enabled=1 ORDER BY created_at LIMIT 30").all()).results || []; } catch { return []; }
 }
 const timedFetch = (fetchImpl, url, init = {}) => fetchImpl(url, { ...init, signal: AbortSignal.timeout(10000) });
 const validator = (value) => typeof value === "string" && value.length <= 512 ? value : null;
@@ -69,7 +75,7 @@ export async function collect(fetchImpl = fetch, extra = [], { githubToken = "",
   const standard = [...FEEDS.map((f) => ({ ...f, type: "rss", ai_eligible: 1, weight: 0, cacheKey: `builtin:${f.id}` })), ...extra.filter((s) => s.type === "rss").map((s) => ({ ...s, id: `user:${s.label || s.id}`, url: s.value, category: s.lane_default || "OTHER", cacheKey: `source:${s.id}` }))];
   const adapters = extra.filter((s) => s.type !== "rss" && s.type !== "x").slice(0, 30);
   const jobs = [
-    ...standard.map((feed) => async () => { const r = await conditionalFetch(fetchImpl, feed.url, feed.cacheKey, db, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }); return r.status === 304 ? [] : r.ok ? parseFeed(await r.text(), feed) : []; }),
+    ...standard.map((feed) => async () => { const r = await conditionalFetch(fetchImpl, feed.url, feed.cacheKey, db, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }); if (r.status === 304) return []; if (!r.ok) throw new Error(`http_${r.status}`); return parseFeed(await r.text(), feed); }),
     ...adapters.map((s) => async () => {
       const headers = { "user-agent": "ai-pm-radar-cloud/1", accept: "application/vnd.github+json" };
       if (githubToken && s.type.startsWith("github_")) headers.authorization = `Bearer ${githubToken}`;
@@ -78,13 +84,13 @@ export async function collect(fetchImpl = fetch, extra = [], { githubToken = "",
         const r = await conditionalFetch(fetchImpl, `https://api.github.com/search/repositories?${query}`, `source:${s.id}`, db, { headers });
         if (r.status === 304) return [];
         if (!r.ok) throw new Error(`github_${r.status}`);
-        return (await r.json()).items.slice(0, Math.min(10, s.max_per_day || 5)).map((x) => ({ title: x.full_name, excerpt: `${x.description || ""} Stars: ${x.stargazers_count}; language: ${x.language || "unknown"}; pushed_at: ${x.pushed_at || "unknown"}`, url: x.html_url, source: s.label || s.value, category: "GITHUB_PROJECT", lane: "GITHUB_PROJECT", published_at: x.pushed_at || null }));
+        return (await r.json()).items.slice(0, Math.min(10, s.max_per_day || 5)).map((x) => ({ title: x.full_name, title_source: "page", excerpt: `${x.description || ""} Stars: ${x.stargazers_count}; language: ${x.language || "unknown"}; pushed_at: ${x.pushed_at || "unknown"}`, url: x.html_url, source: s.label || s.value, category: "GITHUB_PROJECT", lane: "GITHUB_PROJECT", published_at: x.pushed_at || null }));
       }
       if (s.type === "github_releases") {
         const repo = String(s.value).replace(/^https:\/\/github\.com\//u, "").replace(/\/$/u, "");
         if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(repo)) throw new Error("bad_github_repo");
         const r = await conditionalFetch(fetchImpl, `https://api.github.com/repos/${repo}/releases?per_page=3`, `source:${s.id}`, db, { headers }); if (r.status === 304) return []; if (!r.ok) throw new Error(`github_${r.status}`);
-        return (await r.json()).slice(0, 3).map((x) => ({ title: x.name || x.tag_name, excerpt: String(x.body || "").slice(0, 3000), url: x.html_url, source: s.label || repo, category: "GITHUB_PROJECT", lane: "GITHUB_PROJECT", published_at: x.published_at || null }));
+        return (await r.json()).slice(0, 3).map((x) => ({ title: x.name || x.tag_name, title_source: "page", excerpt: String(x.body || "").slice(0, 3000), url: x.html_url, source: s.label || repo, category: "GITHUB_PROJECT", lane: "GITHUB_PROJECT", published_at: x.published_at || null }));
       }
       if (s.type === "youtube_channel") {
         const channel = String(s.value).trim(); if (!/^UC[A-Za-z0-9_-]{20,}$/u.test(channel)) throw new Error("bad_youtube_channel");
@@ -93,7 +99,7 @@ export async function collect(fetchImpl = fetch, extra = [], { githubToken = "",
       }
       throw new Error("unsupported_source_type");
     }),
-    async () => { const r = await timedFetch(fetchImpl, HN_URL, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }); return r.ok ? ((await r.json()).hits ?? []).slice(0, 10).filter((h) => h.title).map((h) => ({ title: decodeEntities(h.title), url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`, excerpt: h.title, source: "hn", category: "AI_TECH_NEWS" })) : []; },
+    async () => { const r = await conditionalFetch(fetchImpl, HN_URL, "builtin:hn", db, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }); if (r.status === 304) return []; if (!r.ok) throw new Error(`http_${r.status}`); return ((await r.json()).hits ?? []).slice(0, 10).filter((h) => h.title).map((h) => ({ title: decodeEntities(h.title), title_source: "page", url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`, excerpt: h.title, source: "hn", category: "AI_TECH_NEWS" })); },
   ];
   const results = await mapLimit(jobs, 6, async (job, index) => { const result = await job(); if (result?.error) onError({ index, error: result.error }); return result; });
   return results.flatMap((r, index) => { if (r?.error) { const src = index >= standard.length && index < standard.length + adapters.length ? adapters[index - standard.length] : standard[index]; onError({ source: src?.label || src?.id || "hn", error: r.error }); return []; }
@@ -119,8 +125,9 @@ export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = 
     const un = normalizeUrl(it.url);
     if (un && await env.DB.prepare("SELECT 1 FROM items WHERE url_norm=? LIMIT 1").bind(un).first()) continue; // cross-source / tracking-param dup
     const scored = scoreLane({ ...it, published_at: it.published_at }, { sourceWeight: it.source_weight, nowMs });
-    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,url,url_norm,source,category,raw_excerpt,run_date,created_at,updated_at,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,ai_eligible)
-      VALUES(?, 'daily', 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unverified', ?, 'needs_review', ?, ?)`).bind(crypto.randomUUID(), it.title, it.url, un, it.source, it.category, it.excerpt, day, now, now, scored.lane, scored.pref_score, JSON.stringify(scored.pref_reasons), it.published_at || null, String(it.source || "").startsWith("github") ? "official" : "secondary", scored.injection_suspect ? 1 : 0, it.ai_eligible ?? 1).run();
+    const excerpt = collapseRepeatedParagraphs(it.excerpt || "");
+    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,title_source,url,url_norm,source,category,raw_excerpt,run_date,created_at,updated_at,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,ai_eligible)
+      VALUES(?, 'daily', 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unverified', ?, 'needs_review', ?, ?)`).bind(crypto.randomUUID(), it.title, it.title_source || "inferred", it.url, un, it.source, it.category, excerpt, day, now, now, scored.lane, scored.pref_score, JSON.stringify(scored.pref_reasons), it.published_at || null, String(it.source || "").startsWith("github") ? "official" : "secondary", scored.injection_suspect ? 1 : 0, it.ai_eligible ?? 1).run();
     if (res.meta?.changes > 0) { collected++; if (countKey) counts.set(countKey, (counts.get(countKey) || 0) + 1); }
   }
   if (env.AI_ANALYSIS_ENABLED !== "false") ({ analyzed, error } = await analyzePending(env, { fetchImpl, nowMs, day }));
@@ -133,7 +140,7 @@ export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now() } = 
 export async function analyzePending(env, { fetchImpl = fetch, nowMs = Date.now(), day = hktDay(nowMs), limit = 120 } = {}) {
   const now = new Date(nowMs).toISOString(); let analyzed = 0, error = null; let llmItems = 0;
   const autoLimit = Number(env.AI_AUTO_ANALYZE_LIMIT || 5);
-  const rows = (await env.DB.prepare("SELECT id,title,url,raw_excerpt,lane FROM items WHERE kind='daily' AND run_date=? AND ai_provider IS NULL AND ai_eligible=1 ORDER BY created_at LIMIT ?").bind(day, limit).all()).results || [];
+  const rows = (await env.DB.prepare("SELECT id,title,url,raw_excerpt,lane,updated_at FROM items WHERE kind='daily' AND run_date=? AND ai_provider IS NULL AND ai_eligible=1 ORDER BY created_at LIMIT ?").bind(day, limit).all()).results || [];
   for (const it of rows) {
     const text = `${it.title || ""}\n${it.raw_excerpt || ""}`;
     const han = (text.match(/\p{Script=Han}/gu) || []).length;
@@ -153,7 +160,9 @@ export async function analyzePending(env, { fetchImpl = fetch, nowMs = Date.now(
         autoSlot = true;
       } });
       if (autoSlot) llmItems++;
-      await env.DB.prepare(AI_UPDATE).bind(...aiBind(ai, it.title, now, it.id)).run(); analyzed++;
+      const changed = await env.DB.prepare(AI_UPDATE + " AND title IS ? AND raw_excerpt IS ? AND updated_at IS ? AND ai_provider IS NULL")
+        .bind(...aiBind(ai, it.title, now, it.id), it.title, it.raw_excerpt, it.updated_at).run();
+      if (changed.meta.changes) analyzed++;
     } catch (e) {
       if (e.message === "ai_daily_cap_reached") { error = "cap_reached"; break; }
       if (autoSlot) llmItems++;

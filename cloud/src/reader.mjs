@@ -20,7 +20,9 @@ const PAYWALL = /(subscribe to (continue|read)|already a subscriber|sign in to (
 
 export function extractArticle(html, url = "") {
   const src = String(html || "").slice(0, 2_000_000);
-  const title = meta(src, /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)/iu) || meta(src, /<title[^>]*>([\s\S]*?)<\/title>/iu);
+  const ogTitle = meta(src, /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)/iu);
+  const pageTitle = meta(src, /<title[^>]*>([\s\S]*?)<\/title>/iu);
+  const title = ogTitle || pageTitle;
   const byline = meta(src, /<meta[^>]+name=["']author["'][^>]+content=["']([^"']+)/iu);
   const site = meta(src, /<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)/iu) || (() => { try { return new URL(url).hostname; } catch { return ""; } })();
   const body = src.replace(/<!--[\s\S]*?-->/gu, " ").replace(DROP, " ");
@@ -47,7 +49,7 @@ export function extractArticle(html, url = "") {
   // trailing related-link lists (li runs at the end) are rarely body text
   while (out.length > 3 && out[out.length - 1].tag === "li") out.pop();
   const cleanTitle = site && title ? title.replace(new RegExp(`\\s*[|\\-–—]\\s*${site.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}\\s*$`, "iu"), "") : title;
-  return { title: cleanTitle, byline, site, paragraphs: out, chars: out.reduce((s, p) => s + p.text.length, 0), status };
+  return { title: cleanTitle, title_source: ogTitle ? "og" : pageTitle ? "page" : "inferred", byline, site, paragraphs: out, chars: out.reduce((s, p) => s + p.text.length, 0), status };
 }
 
 // Chunk paragraphs to <= maxChars per chunk (keeps paragraph boundaries; splits giant paragraphs).

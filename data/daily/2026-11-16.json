@@ -1,0 +1,333 @@
+{
+  "date": "2026-11-16",
+  "generated_by": "scripts/daily-from-inbox.mjs",
+  "review": {
+    "status": "draft"
+  },
+  "needs_review": true,
+  "held": [],
+  "articles": [
+    {
+      "question_title": "JioStar’s chief architect on AI discovery at 500M-user scale",
+      "short_title": "JioStar’s chief architect on AI discovery at 500M-user scale",
+      "summary": "JioStar’s Vijay Seshadri explains AI discovery at 500M-user scale. Read his lessons on evals, guardrails, and taking AI into production.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "AGENT_GOVERNANCE"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/jiostar-vijay-seshadri",
+      "published_at": "2026-11-11T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "AGENT_GOVERNANCE",
+      "pref_score": 25,
+      "pref_reasons": [
+        "agent_governance",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "A step toward defining the Standard Model on a lattice",
+      "short_title": "A step toward defining the Standard Model on a lattice",
+      "summary": "Explore a candidate nonperturbative lattice definition of the Standard Model and how GPT-6 Astra helped turn the idea into a detailed proof.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/step-toward-defining-the-standard-model",
+      "published_at": "2026-11-15T22:00:01.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 10,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Our new blog for science",
+      "short_title": "Our new blog for science",
+      "summary": "The OpenAI science blog shares new findings, practical methods, and firsthand accounts from researchers using AI to advance scientific discovery.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "APPLY_NOW"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/our-new-blog-for-science",
+      "published_at": "2026-11-15T22:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "APPLY_NOW",
+      "pref_score": 10,
+      "pref_reasons": [
+        "apply_now",
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Introducing ChatGPT Wallet",
+      "short_title": "Introducing ChatGPT Wallet",
+      "summary": "Introducing ChatGPT Wallet, a secure way for agents in ChatGPT Work, Codex, and dots to complete purchases with user approval and existing card protections.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/introducing-chatgpt-wallet",
+      "published_at": "2026-11-13T15:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 8,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Shield helps technicians hand off legacy portal work with OpenAI",
+      "short_title": "Shield helps technicians hand off legacy portal work with OpenAI",
+      "summary": "Shield uses OpenAI to help IT technicians hand off work in legacy portals. Its Forge agents navigate systems so technicians can focus on issues needing their judgment.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/business/customer-stories/shield",
+      "published_at": "2026-11-13T08:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 7,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "How Amplitude ships product improvements in 1–2 days with OpenAI",
+      "short_title": "How Amplitude ships product improvements in 1–2 days with OpenAI",
+      "summary": "Built primarily on OpenAI models, Amplitude’s proactive product agent, Wave, identifies what to build, helps teams ship changes with coding agents, and measures the impact.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/business/customer-stories/amplitude",
+      "published_at": "2026-11-12T20:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 7,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Gondola doubles revenue as its team builds more with Codex",
+      "short_title": "Gondola doubles revenue as its team builds more with Codex",
+      "summary": "Gondola helps creatives get credit and get hired, with Codex raising its lead engineer’s output by 50% and ChatGPT simplifying daily work.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/business/customer-stories/gondola",
+      "published_at": "2026-11-12T12:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 6,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Holiday Extras is rethinking what it can build with Codex",
+      "short_title": "Holiday Extras is rethinking what it can build with Codex",
+      "summary": "With Codex, Holiday Extras is turning customer expertise into better apps, higher booking conversion and new possibilities for growth.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/business/customer-stories/holidays-extras-codex",
+      "published_at": "2026-11-12T09:30:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 6,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Supporting research on AI and children’s safety",
+      "short_title": "Supporting research on AI and children’s safety",
+      "summary": "OpenAI commits $2 million to research on AI and children’s safety. The work supports shared tools to measure risks and opportunities for young people.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/children-first-declaration",
+      "published_at": "2026-11-12T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 6,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    },
+    {
+      "question_title": "Gilbert + Tobin rethinks the business of law with AI",
+      "short_title": "Gilbert + Tobin rethinks the business of law with AI",
+      "summary": "A conversation with Sam Nickless, Partner and Chief Executive Officer at Gilbert + Tobin.",
+      "why_it_matters": "Candidate for human review; significance has not been assessed.",
+      "business_angle": "Pending human assessment of business relevance.",
+      "ai_pm_angle": "Pending human assessment of AI product relevance.",
+      "risk_note": "Source content, publication date, and claims require human verification before any publication.",
+      "category": "AI_TECH_NEWS",
+      "tags": [
+        "TECH_NEWS"
+      ],
+      "source_name": "openai",
+      "source_url": "https://openai.com/index/gilbert-tobin-sam-nickless",
+      "published_at": "2026-11-12T00:00:00.000Z",
+      "published_at_basis": "source",
+      "impact_score": 1,
+      "relevance_score": 1,
+      "trust_score": 1,
+      "lane": "TECH_NEWS",
+      "pref_score": 6,
+      "pref_reasons": [
+        "freshness_published_at"
+      ],
+      "needs_review": true,
+      "generated_by": "scripts/daily-from-inbox.mjs",
+      "review": {
+        "status": "draft",
+        "human_review_required": true,
+        "review_notes": "Automatically collected draft. Scores are placeholders; verify source and write editorial analysis before publication."
+      }
+    }
+  ]
+}
