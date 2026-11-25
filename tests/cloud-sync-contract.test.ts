@@ -92,6 +92,29 @@ test("material change resets both approvals, keeps immutable revisions and rejec
   assert.throws(() => getApprovedCloudSourceRecord(state, "daily_candidate"), /approval/);
 });
 
+test("title and evidence edits are material revisions and cannot reuse prior approval", async () => {
+  let approved = await createCloudSourceState(record(), at);
+  approved = reviewCloudSourceState(approved, 1, at);
+  approved = approveCloudSourceState(approved, 2, "daily_candidate", at, daily);
+  const originalFingerprint = getCloudSourceRevision(approved).fingerprint;
+  const source = record();
+  const changedEvidence = {
+    source: sourceUrl,
+    timestamp: null,
+    text_reference: "No outcome savings were measured.",
+  };
+
+  for (const editedRecord of [
+    { ...source, title: "Changed synthetic title" },
+    { ...source, evidence: [changedEvidence], key_claims: [{ ...source.key_claims[0]!, evidence: [changedEvidence] }] },
+  ]) {
+    const edited = await editCloudSourceState(approved, 3, editedRecord, at);
+    assert.notEqual(getCloudSourceRevision(edited).fingerprint, originalFingerprint);
+    assert.deepEqual(cloudApprovals(edited), { reviewed: false, daily: false, reuse: false });
+    assert.throws(() => getApprovedCloudSourceRecord(edited, "daily_candidate"), /approval/);
+  }
+});
+
 test("rejecting a reviewed source resets both approval scopes", async () => {
   let state = await createCloudSourceState(record(), at);
   state = reviewCloudSourceState(state, 1, at);

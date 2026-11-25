@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { handle } from "../cloud/src/worker.mjs";
 import { safeFetchUrl, extractArticle, chunkParagraphs, parseSourceLines, parseNotes, discoverFeed } from "../cloud/src/reader.mjs";
 import { fakeD1, accessKit, TEAM, AUD, ownerHash } from "./helpers/cloud-fakes.mjs";
@@ -53,7 +54,8 @@ test("same URL manual capture preserves reader history and rejects duplicate rac
   const reviewedReplay = await post(env, calls, "/api/capture", { url, text, source_language: "zh-Hant" });
   assert.equal(reviewedReplay.status, 200);
   const replayBody = await reviewedReplay.json();
-  assert.equal(replayBody.status, "reviewed"); assert.equal(replayBody.review_status, "human_reviewed"); assert.equal(replayBody.pref_score, 99);
+  assert.equal(replayBody.status, "reviewed"); assert.equal(replayBody.review_status, "human_reviewed"); assert.equal(replayBody.pref_score, null);
+  assert.equal((await env.DB.prepare("SELECT pref_score FROM items WHERE id=?").bind(id).first()).pref_score, 99); // persisted legacy scalar is hidden because no relevance breakdown supports it
   assert.equal(replayBody.source, "quick-capture"); assert.equal(replayBody.ai_provider, "extractive");
 });
 
@@ -102,8 +104,8 @@ const gemText = (body) => {
 const mkFetch = (calls) => async (u, o) => {
   u = String(u);
   if (u.includes("generativelanguage")) { calls.ai++; return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(gemText(o.body)) }] } }] })); }
-  if (u.includes("blog.example.com/feed")) return new Response(`<?xml version="1.0"?><rss><channel><item><title>a</title></item></channel></rss>`, { headers: { "content-type": "application/rss+xml" } });
-  if (u.includes("blog.example.com")) return new Response(`<html><head><link rel="alternate" type="application/rss+xml" href="/feed.xml"></head></html>`, { headers: { "content-type": "text/html" } });
+  if (u.includes("openai.com/feed")) return new Response(`<?xml version="1.0"?><rss><channel><item><title>a</title></item></channel></rss>`, { headers: { "content-type": "application/rss+xml" } });
+  if (u.includes("openai.com")) return new Response(`<html><head><link rel="alternate" type="application/rss+xml" href="/feed.xml"></head></html>`, { headers: { "content-type": "text/html" } });
   if (u.includes("paywall.example.com")) return new Response("no", { status: 403, headers: { "content-type": "text/html" } });
   if (u.includes("news.example.com")) return new Response(HTML, { headers: { "content-type": "text/html; charset=utf-8" } });
   return new Response("nf", { status: 404 });
@@ -211,15 +213,35 @@ test("selected manual English body persists separately from excerpt, summary and
   article = (await post(env, calls, `/api/items/${id}/reader/summary`).then((r) => r.json())).article;
   assert.equal(article.summary.tldr, "AI 代理改變產品團隊");
   assert.equal(article.summary.provider, "gemini");
+  assert.equal(article.summary.model, "gemini-3.5-flash-lite");
+  assert.equal(article.summary.content_basis, "full_text");
+  assert.equal(article.summary.source_type, "manual_text");
+  assert.equal(article.ai_model, "gemini-3.5-flash-lite");
   article = (await post(env, calls, `/api/items/${id}/reader/translate`).then((r) => r.json())).article;
   assert.match(article.translation[0], /中文段落/u);
   assert.equal(article.translation_target, "body");
   assert.equal(article.translation_language, "zh-Hant");
   assert.equal(article.translation_provider, "gemini");
+  assert.equal(article.translation_model, "gemini-3.5-flash-lite");
+  assert.equal(article.translation_language, "zh-Hant");
   const reloaded = (await call(env, calls, `/api/items/${id}/reader`).then((r) => r.json())).article;
   assert.deepEqual(reloaded.translation, article.translation);
   assert.deepEqual(reloaded.summary, article.summary);
   assert.equal(calls.ai, 2);
+});
+
+test("RSS excerpt is never accepted or labeled as a full-text AI summary", async () => {
+  const env = mkEnv(), calls = { ai: 0 }, id = await addItem(env, "https://paywall.example.com/article", "Synthetic RSS excerpt only.");
+  const read = await call(env, calls, `/api/items/${id}/reader`);
+  const article = (await read.json()).article;
+  assert.equal(article.content_basis, "insufficient");
+  assert.equal(article.source_excerpt, "Synthetic RSS excerpt only.");
+  const summary = await post(env, calls, `/api/items/${id}/reader/summary`);
+  const body = await summary.json();
+  assert.equal(summary.status, 422);
+  assert.equal(body.code, "no_full_text");
+  assert.equal(article.summary, null);
+  assert.equal(calls.ai, 0);
 });
 
 test("short manual body does not reach either selected AI action", async () => {
@@ -242,8 +264,52 @@ test("selected URL capture extracts before AI and keeps original URL", async () 
   assert.equal(article.language_provenance, "html_lang");
   assert.ok(article.paragraphs.length > 0);
   assert.equal(calls.ai, 0);
-  assert.equal((await post(env, calls, `/api/items/${id}/reader/summary`)).status, 200);
+  const summaryResponse = await post(env, calls, `/api/items/${id}/reader/summary`);
+  assert.equal(summaryResponse.status, 200);
+  const summary = (await summaryResponse.json()).article;
+  assert.equal(summary.source_type, "selected_url");
+  assert.equal(summary.summary.source_type, "selected_url");
   assert.equal(calls.ai, 1);
+});
+
+test("reader preserves source_type instead of source label and reflects configured translation language", async () => {
+  const env = mkEnv(); env.AI_TARGET_LANGUAGE = "en";
+  const now = new Date().toISOString(), id = crypto.randomUUID();
+  await env.DB.prepare("INSERT INTO items(id,kind,status,title,url,source,source_type,raw_excerpt,created_at,updated_at) VALUES(?, 'daily','draft','Synthetic title','https://news.example.com/provenance','Publisher feed name','rss',?,?,?)")
+    .bind(id, LONG.repeat(6), now, now).run();
+  const calls = { ai: 0 }; let submittedPrompt = "";
+  const fetchImpl = async (url, init) => {
+    if (String(url).includes("generativelanguage")) {
+      calls.ai++;
+      submittedPrompt = JSON.parse(init.body).contents[0].parts[0].text;
+      const result = submittedPrompt.startsWith("你是專業科技譯者")
+        ? { paragraphs: JSON.parse(submittedPrompt.split("\n---\n")[1]).paragraphs.map(() => "Synthetic translated paragraph") }
+        : { title_zh: "合成標題", tldr: "合成摘要", key_points: ["要點一", "要點二", "要點三"], why_ai_pm: "合成 AI PM 關聯", why_side_income: "合成業務關聯", actions: [] };
+      return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(result) }] } }] }));
+    }
+    return mkFetch(calls)(url, init);
+  };
+  const getReader = async (suffix = "") => (await handle(req(`/api/items/${id}/reader${suffix}`), env, { authFetch, fetchImpl })).json();
+  const loaded = (await getReader()).article;
+  assert.equal(loaded.source_type, "rss");
+  assert.equal(loaded.translation_language, "en");
+  const translated = await handle(req(`/api/items/${id}/reader/translate`, { method: "POST" }), env, { authFetch, fetchImpl });
+  assert.equal(translated.status, 200);
+  const article = (await translated.json()).article;
+  assert.equal(article.source_type, "rss");
+  assert.equal(article.translation_language, "en");
+  assert.match(submittedPrompt, /English/u);
+  const summary = await handle(req(`/api/items/${id}/reader/summary`, { method: "POST" }), env, { authFetch, fetchImpl });
+  assert.equal(summary.status, 200);
+  const summarizedArticle = (await summary.json()).article;
+  assert.equal(summarizedArticle.source_type, "rss");
+  assert.equal(summarizedArticle.summary.source_type, "rss");
+  assert.equal(summarizedArticle.summary.content_basis, "full_text");
+  assert.equal(calls.ai, 3);
+
+  const ui = readFileSync(new URL("../cloud/public/app.js", import.meta.url), "utf8");
+  assert.ok(ui.includes('lang="${esc(a.translation_language || "zh-Hant")}"'));
+  assert.match(ui, /targetLanguageName\(a\.translation_language\)/u);
 });
 
 test("failed URL capture retries only on explicit refresh and persists recovered body", async () => {
@@ -364,18 +430,31 @@ test("reader rejects unsafe redirects and oversized HTML without spending AI quo
 
 test("parseSourceLines + bulk sources preview/commit with discovery and dedupe", async () => {
   const rows = parseSourceLines("# comment\nhttps://blog.example.com\n@sama\nhttps://x.com/karpathy\n@sama\nnot a url\n");
-  assert.deepEqual(rows.map((r) => [r.type, r.status]), [["rss", "pending"], ["x", "pending"], ["x", "pending"], ["x", "duplicate_in_batch"], [null, "invalid"]].map(([t, s]) => [t ?? rows[4].type, s]));
+  assert.deepEqual(rows.map((r) => [r.type, r.status]), [["rss", "pending"], ["x", "pending"], ["x", "pending"], ["x", "duplicate_in_batch"], [null, "needs_map"]]);
   assert.equal(discoverFeed(`<link rel="alternate" type="application/atom+xml" href="/atom">`, "https://a.com/b"), "https://a.com/atom");
   const env = mkEnv(), calls = { ai: 0 }; const now = new Date().toISOString();
   await env.DB.prepare("INSERT INTO sources(id,type,value,label,enabled,created_at,updated_at) VALUES(?,?,?,?,1,?,?)").bind(crypto.randomUUID(), "x", "@sama", null, now, now).run();
   const base = (await env.DB.prepare("SELECT COUNT(*) n FROM sources").first()).n;
-  const text = "https://blog.example.com\nhttps://dead.example.com/rss\n@sama\n@karpathy";
+  const text = "https://openai.com\nhttps://dead.example.com/rss\n@sama\n@karpathy";
   let r = await post(env, calls, "/api/sources/bulk", { text }); let b = await r.json();
-  assert.equal(b.preview[0].status, "new"); assert.equal(b.preview[0].value, "https://blog.example.com/feed.xml"); assert.equal(b.preview[1].status, "not_feed");
+  assert.equal(b.preview[0].status, "new"); assert.equal(b.preview[0].value, "https://openai.com/feed.xml"); assert.equal(b.preview[1].status, "not_feed");
   assert.equal(b.preview.find((x) => x.value.toLowerCase() === "@sama").status, "exists");
   assert.equal((await env.DB.prepare("SELECT COUNT(*) n FROM sources").first()).n, base, "dry run writes nothing");
   r = await post(env, calls, "/api/sources/bulk", { text, commit: true }); b = await r.json(); assert.equal(b.added, 2);
   assert.equal((await env.DB.prepare("SELECT COUNT(*) n FROM sources").first()).n, base + 2); assert.equal(calls.ai, 0);
+});
+
+test("source preview blocks unlisted hosts and validates redirects before another request", async () => {
+  const env = mkEnv(); let requested = [];
+  const preview = (text) => handle(req("/api/sources/bulk", { method: "POST", headers: J, body: JSON.stringify({ text }) }), env, { authFetch, fetchImpl: async (url, init) => {
+    requested.push(String(url)); assert.equal(init.redirect, "manual");
+    return new Response(null, { status: 302, headers: { location: "http://169.254.169.254/latest/meta-data" } });
+  } });
+  const blockedHost = await preview("https://user-controlled.example/feed.xml").then((r) => r.json());
+  assert.equal(blockedHost.preview[0].status, "not_feed"); assert.match(blockedHost.preview[0].error, /allowlist/u); assert.deepEqual(requested, []);
+  const blockedRedirect = await preview("https://openai.com/feed.xml").then((r) => r.json());
+  assert.equal(blockedRedirect.preview[0].status, "not_feed"); assert.match(blockedRedirect.preview[0].error, /redirect|重新導向/u);
+  assert.deepEqual(requested, ["https://openai.com/feed.xml"]);
 });
 
 test("parseNotes + bulk KB import, search/tag, synthesize -> new synthesis note with export", async () => {

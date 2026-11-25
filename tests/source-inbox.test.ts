@@ -27,7 +27,7 @@ import {
   summariseAnalysisEvidenceIssueLocations,
   validateAIAnalysisDraft,
 } from "../lib/ai-analysis.ts";
-import { parseSourceDrafts, serializeSourceDrafts } from "../lib/source-draft-storage.ts";
+import { isWorkbenchDraftItem, parseSourceDrafts, serializeSourceDrafts } from "../lib/source-draft-storage.ts";
 import { decideResearchImport, researchFormFingerprint } from "../lib/research-handoff.ts";
 
 const capturedAt = "2026-09-19T00:00:00.000Z";
@@ -442,6 +442,24 @@ test("accepts only the current local draft backup version", () => {
   const backup = serializeSourceDrafts([{ id: "source-1", body: "synthetic" }], capturedAt);
   assert.deepEqual(parseSourceDrafts<{ id: string; body: string }>(backup).items, [{ id: "source-1", body: "synthetic" }]);
   assert.throws(() => parseSourceDrafts('{"version":99,"saved_at":"2026-09-19T00:00:00.000Z","items":[]}'), /Unsupported draft backup version/);
+});
+
+test("validates nested workbench backup records before restore", () => {
+  const material = {
+    id: "synthetic-1", input: "Synthetic source text", status: "captured",
+    title: "Synthetic source", sourceUrl: "", error: "", form: { body: "Synthetic source text" },
+    reviewedFingerprint: null, approvedFingerprint: null, approvalSeal: null, rejectedFingerprint: null,
+  };
+  const item = {
+    stage: "draft", inputMode: "text", inputValue: "Synthetic source text", candidateDate: "2026-09-19",
+    form: { body: "Synthetic source text" }, materials: [material], activeMaterialId: "synthetic-1",
+  };
+  assert.equal(isWorkbenchDraftItem(item), true);
+  assert.equal(isWorkbenchDraftItem({ ...item, materials: [{ ...material, status: "approved" }] }), false);
+  assert.equal(isWorkbenchDraftItem({ ...item, materials: [{ ...material, form: "malformed" }] }), false);
+  assert.equal(isWorkbenchDraftItem({ ...item, materials: [{ ...material, form: { body: 7 } }] }), false);
+  assert.equal(isWorkbenchDraftItem({ ...item, form: { body: 7 } }), false);
+  assert.equal(isWorkbenchDraftItem({ ...item, form: null }), false);
 });
 
 test("merges background research only when the imported draft was not edited", () => {

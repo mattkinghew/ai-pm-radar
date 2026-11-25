@@ -90,20 +90,53 @@ export function synthesisMarkdown(s, sources) {
 
 // ---- Bulk sources: one per line ----
 const HANDLE = /^@?([A-Za-z0-9_]{1,15})$/u;
+const YOUTUBE_CHANNEL = /^UC[A-Za-z0-9_-]{20,}$/u;
+function classifySourceLine(raw) {
+  const search = raw.match(/^github_search\s*:\s*(.{1,160})$/iu);
+  if (search) return { type: "github_search", value: search[1].trim(), status: "pending" };
+  const xm = raw.match(/^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/?(?:\?.*)?$/iu);
+  if (xm && !["home", "search", "i", "explore"].includes(xm[1].toLowerCase())) return { type: "x", value: "@" + xm[1], status: "pending" };
+  if (HANDLE.test(raw) && raw.startsWith("@")) return { type: "x", value: "@" + raw.match(HANDLE)[1], status: "pending" };
+  if (YOUTUBE_CHANNEL.test(raw)) return { type: "youtube_channel", value: raw, status: "pending" };
+  if (/^https:\/\//iu.test(raw)) {
+    let url;
+    try { url = new URL(raw); } catch { return { type: null, value: raw, status: "invalid", error: "invalid_url" }; }
+    if (!safeFetchUrl(raw)) return { type: null, value: raw, status: "invalid", error: "unsafe_or_invalid_url" };
+    const host = url.hostname.toLowerCase().replace(/^www\./u, "");
+    if (host === "x.com" || host === "twitter.com") return { type: null, value: raw, status: "needs_map", error: "needs_map" };
+    if (host === "github.com") {
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (parts[0]?.toLowerCase() === "search") {
+        const query = url.searchParams.get("q")?.trim();
+        return query ? { type: "github_search", value: query.slice(0, 160), status: "pending" } : { type: null, value: raw, status: "needs_map", error: "needs_map" };
+      }
+      if (parts.length >= 2 && /^[A-Za-z0-9_.-]+$/u.test(parts[0]) && /^[A-Za-z0-9_.-]+$/u.test(parts[1]) && (parts.length === 2 || (parts.length === 3 && parts[2].toLowerCase() === "releases"))) {
+        return { type: "github_releases", value: `${parts[0]}/${parts[1].replace(/\.git$/iu, "")}`, status: "pending" };
+      }
+      return { type: null, value: raw, status: "needs_map", error: "needs_map" };
+    }
+    if (host === "youtube.com") {
+      if (url.pathname === "/feeds/videos.xml") {
+        const channelId = url.searchParams.get("channel_id") || "";
+        return YOUTUBE_CHANNEL.test(channelId) ? { type: "youtube_channel", value: channelId, status: "pending" } : { type: null, value: raw, status: "needs_map", error: "needs_map" };
+      }
+      return { type: null, value: raw, status: "needs_map", error: "needs_map" };
+    }
+    return { type: "rss", value: raw, status: "pending" };
+  }
+  if (/^http:\/\//iu.test(raw)) return { type: null, value: raw, status: "invalid", error: "需要 https" };
+  const repo = raw.match(/^([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+)$/u);
+  if (repo) return { type: "github_releases", value: `${repo[1]}/${repo[2].replace(/\.git$/iu, "")}`, status: "pending" };
+  return { type: null, value: raw, status: "needs_map", error: "needs_map" };
+}
 export function parseSourceLines(text) {
   const rows = []; const seen = new Set();
   for (const raw of String(text || "").split(/\r?\n/u).map((l) => l.trim()).filter((l) => l && !l.startsWith("#")).slice(0, 100)) {
-    let type = null, value = null, error = null;
-    const xm = raw.match(/^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/?(?:\?.*)?$/iu);
-    if (xm && !["home", "search", "i", "explore"].includes(xm[1].toLowerCase())) { type = "x"; value = "@" + xm[1]; }
-    else if (HANDLE.test(raw) && raw.startsWith("@")) { type = "x"; value = "@" + raw.match(HANDLE)[1]; }
-    else if (/^https:\/\/\S+$/u.test(raw)) { type = "rss"; value = raw; }
-    else if (/^http:\/\//u.test(raw)) error = "需要 https";
-    else error = "唔識別（要 https:// 網址或 @handle）";
-    const key = type === "x" ? `x:${value.toLowerCase()}` : `rss:${value}`;
-    if (type && seen.has(key)) { rows.push({ line: raw, type, value, status: "duplicate_in_batch" }); continue; }
+    const source = classifySourceLine(raw), { type, value } = source;
+    const key = `${type}:${String(value || "").toLowerCase()}`;
+    if (type && seen.has(key)) { rows.push({ line: raw, ...source, status: "duplicate_in_batch" }); continue; }
     if (type) seen.add(key);
-    rows.push({ line: raw, type, value, status: error ? "invalid" : "pending", error });
+    rows.push({ line: raw, ...source });
   }
   return rows;
 }

@@ -39,8 +39,9 @@ export function selectDailyCandidates(items, now = new Date(), limit = 10) {
     if (!item || item.local_fixture === true || item.synthetic === true || !SOURCE_IDS.has(item.sourceId)) continue;
     if (item.reviewStatus !== "needs_review" || !canonicalUrl(item.url) || typeof item.title !== "string" || !item.title.trim()) continue;
     if (!validTime(item.discoveredAt) || hktDate(new Date(item.discoveredAt)) !== date) continue;
-    if (!Number.isFinite(item.pref_score)) continue;
-    if (item.injection_suspect === true) { held.push({ sourceId: item.sourceId, url: item.url, reason: "injection_suspect" }); continue; }
+    if (item.injection_suspect === true || item.curation_status === "quarantine") { held.push({ sourceId: item.sourceId, url: item.url, reason: item.curation_reason || (item.injection_suspect ? "injection_suspect" : "curation_quarantine") }); continue; }
+    if (item.pref_breakdown?.dimensions?.relevance?.status !== "observed") { held.push({ sourceId: item.sourceId, url: item.url, reason: "relevance_unknown" }); continue; }
+    if (!Number.isFinite(item.pref_score)) { held.push({ sourceId: item.sourceId, url: item.url, reason: "preference_score_unknown" }); continue; }
     eligible.push(item);
   }
 

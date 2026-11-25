@@ -49,7 +49,7 @@ import {
   validateAIAnalysisDraft,
   type AIAnalysisDraft,
 } from "@/lib/ai-analysis";
-import { parseSourceDrafts, serializeSourceDrafts } from "@/lib/source-draft-storage";
+import { isWorkbenchDraftItem, parseSourceDrafts, serializeSourceDrafts } from "@/lib/source-draft-storage";
 import { SOURCE_INBOX_DRAFT_DB_NAME, SOURCE_INBOX_DRAFT_STORE } from "@/lib/source-inbox-draft-summary";
 import { parseQuickCapture, QUICK_CAPTURE_SESSION_KEY } from "@/lib/quick-capture";
 import {
@@ -1493,7 +1493,7 @@ export function SourceInboxWorkbench({
     try {
       const parsed = parseSourceDrafts<PersistedWorkbench>(await file.text());
       const saved = parsed.items[0];
-      if (!saved || !saved.form || !Array.isArray(saved.materials)) throw new Error("Invalid draft content.");
+      if (!isWorkbenchDraftItem(saved)) throw new Error("Invalid draft content.");
       setStage(saved.stage);
       setInputMode(saved.inputMode);
       setInputValue(saved.inputValue);

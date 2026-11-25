@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { handle } from "../cloud/src/worker.mjs";
 import { collect, FEEDS, HN_URL } from "../cloud/src/collector.mjs";
+import { RADAR_FETCH_HOSTS } from "../cloud/src/safe-fetch.mjs";
 import { LANES, LANE_RULES, scoreLane } from "../cloud/src/curation.mjs";
 import { usage } from "../cloud/src/ai.mjs";
 import { fakeD1, accessKit, TEAM, AUD, ownerHash } from "./helpers/cloud-fakes.mjs";
@@ -95,8 +96,8 @@ test("GitHub repositories/releases and YouTube Atom parse official source metada
   const rows = await collect(async (url) => {
     if (String(url).includes("search/repositories")) return Response.json({ items: [{ full_name: "org/demo", description: "Synthetic project", stargazers_count: 42, language: "TypeScript", pushed_at: "2026-11-09T00:00:00Z", html_url: "https://github.com/org/demo" }] });
     if (String(url).includes("/releases?")) return Response.json([{ name: "Synthetic v1", tag_name: "v1", body: "Synthetic release notes", html_url: "https://github.com/org/project/releases/tag/v1", published_at: "2026-11-09T00:00:00Z" }]);
-    if (String(url).includes("youtube.com/feeds/videos.xml")) return new Response(`<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"><entry><title>Synthetic video</title><link href="https://www.youtube.com/watch?v=abc"/><published>2026-11-09T00:00:00Z</published><summary>Synthetic description</summary></entry></feed>`);
-    if (FEEDS.some((feed) => feed.url === String(url))) return new Response("<rss><channel></channel></rss>");
+    if (String(url).includes("youtube.com/feeds/videos.xml")) return new Response(`<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"><entry><title>Synthetic video</title><link href="https://www.youtube.com/watch?v=abc"/><published>2026-11-09T00:00:00Z</published><summary>Synthetic description</summary></entry></feed>`, { headers: { "content-type": "application/atom+xml" } });
+    if (FEEDS.some((feed) => feed.url === String(url))) return new Response("<rss><channel></channel></rss>", { headers: { "content-type": "application/rss+xml" } });
     if (String(url) === HN_URL) return Response.json({ hits: [] });
     throw new Error(`unexpected_fixture_url:${url}`);
   }, sources);
@@ -117,7 +118,7 @@ test("RSS, YouTube Atom, and GitHub adapters persist validators and honor 304", 
   const target = (url) => url === "https://example.test/feed.xml" ? "feed" : url.includes("search/repositories") ? "search" : url.includes("/releases?") ? "release" : url.includes("youtube.com/feeds/videos.xml") ? "video" : null;
   const fetchImpl = async (url, init) => {
     const kind = target(String(url));
-    if (!kind && FEEDS.some((feed) => feed.url === String(url))) return round ? new Response(null, { status: 304 }) : new Response("<rss><channel></channel></rss>");
+    if (!kind && FEEDS.some((feed) => feed.url === String(url))) return round ? new Response(null, { status: 304 }) : new Response("<rss><channel></channel></rss>", { headers: { "content-type": "application/rss+xml" } });
     if (!kind && String(url) === HN_URL) return round ? new Response(null, { status: 304 }) : Response.json({ hits: [] });
     if (!kind) throw new Error(`unexpected_fixture_url:${url}`);
     calls.push({ kind, url: String(url), headers: init.headers, signal: init.signal });
@@ -127,9 +128,10 @@ test("RSS, YouTube Atom, and GitHub adapters persist validators and honor 304", 
       : kind === "video" ? "<feed><entry><title>Video item</title><link href=\"https://youtube.com/watch?v=abc\"/></entry></feed>"
       : kind === "search" ? JSON.stringify({ items: [{ full_name: "owner/repo", html_url: "https://github.com/owner/repo" }] })
       : JSON.stringify([{ name: "Release item", html_url: "https://github.com/owner/repo/releases/tag/v1" }]);
-    return new Response(body, { status: 200, headers });
+    return new Response(body, { status: 200, headers: { ...headers, "content-type": kind === "feed" ? "application/rss+xml" : kind === "video" ? "application/atom+xml" : "application/json" } });
   };
-  const first = await collect(fetchImpl, sources, { db });
+  const testHosts = new Set([...RADAR_FETCH_HOSTS, "example.test"]);
+  const first = await collect(fetchImpl, sources, { db, allowedHosts: testHosts });
   assert.ok(first.some((x) => x.title === "Feed item"));
   assert.ok(first.some((x) => x.title === "Video item"));
   assert.equal(calls.length, 4);
@@ -137,7 +139,7 @@ test("RSS, YouTube Atom, and GitHub adapters persist validators and honor 304", 
   assert.equal(db.raw.prepare("SELECT COUNT(*) n FROM source_http_cache WHERE etag IS NOT NULL AND last_modified IS NOT NULL").get().n, 4);
   round = 1; calls.length = 0;
   const errors = [];
-  const second = await collect(fetchImpl, sources, { db, onError: (error) => errors.push(error) });
+  const second = await collect(fetchImpl, sources, { db, onError: (error) => errors.push(error), allowedHosts: testHosts });
   assert.deepEqual(second, []); assert.deepEqual(errors, []);
   assert.equal(calls.length, 4);
   assert.ok(calls.every((x) => x.headers["if-none-match"] === `"${x.kind}-v1"` && x.headers["if-modified-since"] === "Wed, 11 Nov 2026 00:00:00 GMT"));
@@ -151,8 +153,8 @@ test("RSS, YouTube Atom, and GitHub adapters persist validators and honor 304", 
     changed.push(init.headers);
     return Response.json([{ name: "Other release", html_url: "https://github.com/other/repo/releases/tag/v1" }]);
   };
-  await collect(withoutValidators, [sources[2]], { db });
-  await collect(withoutValidators, [sources[2]], { db });
+  await collect(withoutValidators, [sources[2]], { db, allowedHosts: testHosts });
+  await collect(withoutValidators, [sources[2]], { db, allowedHosts: testHosts });
   assert.equal(changed.length, 2);
   assert.ok(changed.every((headers) => !headers["if-none-match"] && !headers["if-modified-since"]));
   assert.equal(db.raw.prepare("SELECT etag,last_modified FROM source_http_cache WHERE source_key='source:release'").get().etag, null);

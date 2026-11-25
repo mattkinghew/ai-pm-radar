@@ -1,17 +1,26 @@
 import { verifyCloudflareAccessOwner } from "./access-jwt.mjs";
-import { summarize, usage } from "./ai.mjs";
+import { summarize, usage, classifyAiFailure } from "./ai.mjs";
 import { runDaily, analyzePending, AI_UPDATE, aiBind, FEEDS, HN_URL } from "./collector.mjs";
 import { hktDay } from "./ai.mjs";
 import { handleP1, KB_COLS, kbShape as kbShapeP1 } from "./routes-p1.mjs";
 import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath, scoreLane, LANES, injectionSuspect, feedbackOverlay, normalizeTrainTerm, collapseRepeatedParagraphs } from "./curation.mjs";
 import { chunkParagraphs } from "./reader.mjs";
+import { canonicalSourceValue } from "./source-import.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
-const ROW = "id,kind,status,title,title_source,url,source,category,summary,key_points,score,ai_provider,title_zh,title_original,summary_en,key_points_en,raw_excerpt,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,action_14d,(SELECT tags FROM kb_entries WHERE item_id=items.id) AS tags";
+const ROW = "id,kind,status,title,title_source,url,source,source_type,category,summary,key_points,score,ai_provider,ai_model,analysis_basis,analysis_source_type,analysis_status,analysis_error_code,title_zh,title_original,summary_en,key_points_en,raw_excerpt,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason,lane,pref_score,pref_reasons,pref_breakdown,curation_status,curation_reason,published_at,claim_status,evidence_tier,review_status,injection_suspect,action_14d,(SELECT tags FROM kb_entries WHERE item_id=items.id) AS tags";
+const DETAIL_ROW = `${ROW},original_text`;
 const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
-const shape = (r) => r && ({ ...r, raw_excerpt: collapseRepeatedParagraphs(r.raw_excerpt), key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), pref_reasons: pj(r.pref_reasons), tags: pj(r.tags), metrics: r.metrics ? pj(r.metrics) : null });
-const SRC = "id,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS type,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS adapter_type,value,label,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at";
+const shape = (r) => {
+  if (!r) return r;
+  const pref_breakdown = pj(r.pref_breakdown);
+  const relevanceKnown = pref_breakdown?.dimensions?.relevance?.status === "observed";
+  return { ...r, raw_excerpt: collapseRepeatedParagraphs(r.raw_excerpt), key_points: pj(r.key_points), key_points_en: pj(r.key_points_en), pref_reasons: pj(r.pref_reasons), pref_breakdown,
+    pref_score: relevanceKnown ? r.pref_score : null, curation_status: r.curation_status || "main", curation_reason: r.curation_reason || null,
+    tags: pj(r.tags), metrics: r.metrics ? pj(r.metrics) : null };
+};
+const SRC = "id,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS type,CASE WHEN type='x' THEN 'x' ELSE adapter_type END AS adapter_type,value,label,opml_category,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at";
 const HANDLE = /^@?([A-Za-z0-9_]{1,15})$/u;
 const trained = async (db, rows) => { const weights = (await db.prepare("SELECT key,weight FROM feedback_weights ORDER BY key").all()).results;
   return rows.map((row) => { const item = shape(row); return { ...item, ...feedbackOverlay(item, weights) }; }); };
@@ -43,9 +52,9 @@ const hashTitle = async (title) => Array.from(new Uint8Array(await crypto.subtle
 const keywordArray = (value) => Array.isArray(value) ? value.map((x) => String(x).trim().slice(0, 80)).filter(Boolean).slice(0, 30) : [];
 const CAPTURE_HISTORY_LIMIT = 8;
 const CAPTURE_HISTORY_BYTES = 64000;
-const captureReply = (id, score, needsSource, suspect, result, status) => json({ id, status: "draft", review_status: needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", lane: score.lane, pref_score: score.pref_score, pref_reasons: score.pref_reasons, injection_suspect: !!suspect, ai_calls: 0, result }, status);
+const captureReply = (id, score, needsSource, suspect, result, status) => json({ id, status: "draft", review_status: needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", lane: score.lane, pref_score: score.pref_breakdown.dimensions.relevance.status === "observed" ? score.pref_score : null, pref_reasons: score.pref_reasons, pref_breakdown: score.pref_breakdown, curation_status: score.curation_status, curation_reason: score.curation_reason, injection_suspect: !!suspect, ai_calls: 0, result }, status);
 const storedCaptureReply = (item) => json({ id: item.id, status: item.status, review_status: item.review_status, lane: item.lane,
-  pref_score: item.pref_score, pref_reasons: pj(item.pref_reasons), injection_suspect: !!item.injection_suspect,
+  pref_score: shape(item).pref_score, pref_reasons: pj(item.pref_reasons), pref_breakdown: pj(item.pref_breakdown), curation_status: item.curation_status, curation_reason: item.curation_reason, injection_suspect: !!item.injection_suspect,
   source: item.source, claim_status: item.claim_status, evidence_tier: item.evidence_tier, ai_provider: item.ai_provider,
   ai_calls: 0, result: "duplicate" });
 
@@ -58,21 +67,27 @@ async function ingestX(request, env) {
   const now = new Date().toISOString(); const day = hktDay(); let inserted = 0, duplicate = 0, skipped_disabled = 0; const rejected = [], disabled_handles = [];
   for (const [i, p] of posts.entries()) {
     const hm = String(p?.handle ?? "").match(HANDLE); const pid = String(p?.post_id ?? "");
-    const text = collapseRepeatedParagraphs(String(p?.text ?? "").trim());
-    if (!hm || !/^\d{1,25}$/u.test(pid) || !text) { rejected.push(i); continue; }
+    const originalText = String(p?.text ?? "");
+    const text = collapseRepeatedParagraphs(originalText.trim());
+    if (!hm || !/^\d{1,25}$/u.test(pid) || !text || originalText.length > 20000) { rejected.push(i); continue; }
     const handle = hm[1]; const url = /^https:\/\/(x|twitter)\.com\//u.test(p.url || "") ? p.url : `https://x.com/${handle}/status/${pid}`;
     if (!enabled.has(handle.toLowerCase())) { skipped_disabled++; disabled_handles.push({ index: i, handle: `@${handle}` }); continue; }
     const title = text.replace(/\s+/gu, " ").slice(0, 140);
-    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,title_source,url,url_norm,source,category,raw_excerpt,run_date,external_id,metrics,created_at,updated_at,ai_eligible)
-      VALUES(?, 'daily', 'draft', ?, 'x_text_truncation', ?, ?, ?, 'X_POST', ?, ?, ?, ?, ?, ?, ?)`)
-      .bind(crypto.randomUUID(), title, url, normalizeUrl(url), `x:@${handle}`, text.slice(0, 4000), day, `x:${pid}`, p.metrics ? JSON.stringify(p.metrics).slice(0, 1000) : null,
-        /^\d{4}-\d{2}-\d{2}T/u.test(p.created_at || "") ? p.created_at : now, now, enabled.get(handle.toLowerCase())).run();
+    const published = /^\d{4}-\d\d-\d\dT/u.test(p.created_at || "") ? p.created_at : null;
+    const scored = scoreLane({ title, raw_excerpt: text, published_at: published });
+    const res = await env.DB.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,title_source,url,url_norm,source,source_type,category,raw_excerpt,original_text,run_date,external_id,metrics,created_at,updated_at,ai_eligible,lane,pref_score,pref_reasons,pref_breakdown,curation_status,curation_reason,published_at,claim_status,evidence_tier,review_status,injection_suspect)
+      VALUES(${Array(29).fill("?").join(",")})`)
+      .bind(crypto.randomUUID(), "daily", "draft", title, "x_text_truncation", url, normalizeUrl(url), `x:@${handle}`, "x_post", "X_POST", text.slice(0, 4000), originalText, day, `x:${pid}`, p.metrics ? JSON.stringify(p.metrics).slice(0, 1000) : null,
+        published || now, now, enabled.get(handle.toLowerCase()), scored.lane, scored.pref_score, JSON.stringify(scored.pref_reasons), JSON.stringify(scored.pref_breakdown), scored.curation_status, scored.curation_reason, published, "unverified", "social", "needs_review", scored.injection_suspect ? 1 : 0).run();
     res.meta?.changes > 0 ? inserted++ : duplicate++;
   }
   return json({ inserted, duplicate, skipped_disabled, disabled_handles, rejected, note: "AI 分析會喺下次每日排程（或 /api/analyze）按額度處理" });
 }
-const aiErr = (e) => { const code = /^[a-z0-9_]+$/u.test(e.message || "") ? e.message : "ai_error"; console.log(JSON.stringify({ ai_error: code, cause: e.cause?.message?.slice(0, 200) }));
-  return json({ error: code, detail: code }, code === "ai_daily_cap_reached" ? 429 : code === "insufficient_content" ? 422 : 502); };
+const aiErr = (e) => { const failure = classifyAiFailure(e); console.log(JSON.stringify({ ai_error: failure.code, provider: failure.provider, provider_status: failure.status }));
+  const status = failure.code === "cap_reached" ? 429 : failure.code === "insufficient_content" ? 422 : failure.code === "stale_source" ? 409 : 502;
+  return json({ error: failure.code, code: failure.code, provider: failure.provider, provider_status: failure.status, retryable: failure.retryable, hint: failure.hint }, status); };
+const sourceKind = (item) => item.source_type || "unknown";
+const storeAnalysisFailure = (db, id, updatedAt, e) => { const f = classifyAiFailure(e); return db.prepare("UPDATE items SET analysis_status='failed',analysis_error_code=? WHERE id=? AND (ai_provider IS NULL OR ai_provider='extractive') AND updated_at IS ?").bind(f.code, id, updatedAt).run(); };
 
 // Local-only test hook: lets wrangler dev smoke tests use a mocked JWKS. Ignored unless ENVIRONMENT === "local".
 function authFetch(env) {
@@ -94,6 +109,42 @@ export async function handle(request, env, deps = {}) {
   const db = env.DB; const now = new Date().toISOString(); const m = request.method;
   const p1 = await handleP1(request, env, deps, url, m, db, now); if (p1) return p1;
 
+  if (url.pathname === "/api/items/batch-summarize" && m === "POST") {
+    const body = await request.json().catch(() => ({}));
+    const ids = Array.isArray(body?.ids) ? [...new Set(body.ids.map(String))] : [];
+    const budget = body?.budget;
+    if (body?.confirm !== true || !budget || !Number.isInteger(budget.max_items) || budget.max_items < 1 || budget.max_items > 10 || !Number.isInteger(budget.max_calls) || budget.max_calls < 1 || budget.max_calls > 20) {
+      return json({ error: "budget_approval_required", hint: "需明確確認素材數及最多 AI 呼叫次數；上限為 10 筆／20 次。", ai_calls: 0 }, 400);
+    }
+    if (!ids.length || ids.length > budget.max_items || ids.length > 10 || ids.some((id) => !/^[0-9a-f-]{36}$/iu.test(id))) return json({ error: "invalid_batch_selection", hint: "所選項目不可為空，且不得超過已確認筆數。", ai_calls: 0 }, 400);
+    const rows = (await db.prepare(`SELECT id,kind,status,title,url,source_type,raw_excerpt,updated_at,ai_provider FROM items WHERE id IN (${ids.map(() => "?").join(",")})`).bind(...ids).all()).results || [];
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    let modelCalls = 0, budgetExhausted = false; const results = [];
+    for (const id of ids) {
+      const item = byId.get(id);
+      if (!item) { results.push({ id, status: "skipped", code: "not_found" }); continue; }
+      if (item.kind !== "daily" || item.status !== "draft" || (item.ai_provider && item.ai_provider !== "extractive")) { results.push({ id, status: "skipped", code: "not_eligible" }); continue; }
+      if (String(item.raw_excerpt || "").length < 200) { results.push({ id, status: "skipped", code: "insufficient_content" }); continue; }
+      try {
+        const ai = await summarize(env, `${item.title || ""}\n${item.url || ""}\n\n${item.raw_excerpt}`, {
+          fetchImpl: deps.fetchImpl ?? fetch, nowMs: deps.nowMs, quota: "manual", forceModel: true,
+          beforeModel: async () => { if (modelCalls >= budget.max_calls) { budgetExhausted = true; throw new Error("batch_budget_exhausted"); } modelCalls++; },
+        });
+        ai.content_basis = "from_excerpt"; ai.source_type = sourceKind(item);
+        const changed = await db.prepare(AI_UPDATE + " AND kind='daily' AND status='draft' AND title IS ? AND raw_excerpt IS ? AND updated_at IS ? AND ai_provider IS ?")
+          .bind(...aiBind(ai, item.title, new Date().toISOString(), item.id), item.title, item.raw_excerpt, item.updated_at, item.ai_provider).run();
+        if (!changed.meta?.changes) { results.push({ id, status: "skipped", code: "stale_source" }); continue; }
+        results.push({ id, status: "completed", provider: ai.provider, model: ai.model || null, content_basis: "from_excerpt", source_type: ai.source_type });
+      } catch (error) {
+        if (error?.message === "batch_budget_exhausted") { results.push({ id, status: "skipped", code: "budget_exhausted" }); break; }
+        await storeAnalysisFailure(db, item.id, item.updated_at, error);
+        results.push({ id, status: "failed", ...classifyAiFailure(error) });
+      }
+    }
+    const completed = new Set(results.filter((result) => result.status === "completed" || result.status === "failed" || (result.status === "skipped" && result.code !== "budget_exhausted")).map((result) => result.id));
+    return json({ results, model_calls: modelCalls, budget: { max_items: budget.max_items, max_calls: budget.max_calls }, remaining_ids: ids.filter((id) => !completed.has(id)), budget_exhausted: budgetExhausted, review_status: "needs_review", ai_calls: modelCalls });
+  }
+
   if (url.pathname === "/api/cloud/capabilities" && m === "GET") {
     return json({ backend: "cloudflare", d1: !!db, ai: { gemini: !!env.GEMINI_API_KEY, fallback: env.AI_FALLBACK_PROVIDER || "none", dailyCap: Number(env.AI_DAILY_CAP || 10), autoAnalyzeLimit: Number(env.AI_AUTO_ANALYZE_LIMIT || 5), usage: await usage(env) }, cron: "0 0 * * * (08:00 HKT)", humanReviewRequired: true });
   }
@@ -107,8 +158,8 @@ export async function handle(request, env, deps = {}) {
     ]);
     const cached = new Map(cache.results.map((x) => [x.source_key, x]));
     const counts = new Map(rows.results.map((x) => [x.source, Number(x.count)]));
-    let errors = [];
-    try { errors = JSON.parse(lastRun?.error || "null")?.source_errors || []; } catch { /* Older run errors are plain text. */ }
+    let runDetails = null, errors = [];
+    try { runDetails = JSON.parse(lastRun?.error || "null"); errors = runDetails?.source_errors || []; } catch { /* Older run errors are plain text. */ }
     const errorBySource = new Map(errors.map((x) => [x.source, x.error]));
     const sources = FEEDS.map((f) => ({ id: f.id, type: "rss", url: f.url, count: counts.get(f.id) || 0, cacheKey: `builtin:${f.id}` }));
     sources.push({ id: "hn", type: "api", url: HN_URL, count: counts.get("hn") || 0, cacheKey: "builtin:hn" });
@@ -123,14 +174,14 @@ export async function handle(request, env, deps = {}) {
     const byType = { rss: 0, api: 0, official_html: 0, manual: 1, x: 0, other: 0 };
     for (const s of health) byType[s.type in byType ? s.type : "other"]++;
     return json({ sources: health, catalog_counts: byType, manual_captures: counts.get("quick-capture") || 0,
-      note: "Last successful cache write is not a current availability check. X live ingestion is unknown." });
+      last_analysis: runDetails?.analysis || null, note: "Last successful cache write is not a current availability check. X live ingestion is unknown." });
   }
   if (url.pathname === "/api/digest" && m === "GET") {
     const days = Number(url.searchParams.get("days") || 7); if (!Number.isInteger(days) || days < 1 || days > 30) return json({ error: "bad_days" }, 400);
     const since = new Date(Date.now() - days * 86400000).toISOString();
     const rows = await trained(db, (await db.prepare(`SELECT ${ROW} FROM items WHERE created_at>=?`).bind(since).all()).results);
     const mutes = (await db.prepare("SELECT kind,value FROM mutes").all()).results;
-    const visible = rows.filter((it) => !it.dismissed_reason && !isMuted(it, mutes)).sort(byPreference);
+    const visible = rows.filter((it) => it.curation_status !== "quarantine" && !it.dismissed_reason && !isMuted(it, mutes)).sort(byPreference);
     return json({ days, ai_calls: 0, lanes: Object.fromEntries(LANES.map((lane) => [lane, visible.filter((it) => it.lane === lane).slice(0, 3)])) });
   }
   if (url.pathname === "/api/trainer" && m === "GET") return json({ weights: (await db.prepare("SELECT key,weight,pos,neg,updated_at FROM feedback_weights ORDER BY key").all()).results });
@@ -159,11 +210,16 @@ export async function handle(request, env, deps = {}) {
     if (type === "youtube_channel" && !/^UC[A-Za-z0-9_-]{20,}$/u.test(value)) return json({ error: "bad_source" }, 400);
     if (type === "github_search" && value.length > 160) return json({ error: "bad_source" }, 400);
     const id = crypto.randomUUID(); const label = String(b?.label ?? "").trim().slice(0, 60) || null;
-    if (await db.prepare("SELECT 1 FROM sources WHERE type=? AND lower(value)=lower(?) LIMIT 1").bind(type, value).first()) return json({ error: "duplicate_source", hint: "已經有呢個訊息源" }, 409);
+    const canonicalValue = canonicalSourceValue(type, value);
+    const existingSourceRows = (await db.prepare("SELECT type,adapter_type,value,canonical_value FROM sources").all()).results;
+    if (existingSourceRows.some((source) => {
+      const sourceType = source.type === "x" || source.adapter_type === "x" ? "x" : source.adapter_type || source.type;
+      return sourceType === type && (canonicalSourceValue(sourceType, source.value) === canonicalValue || source.canonical_value === canonicalValue);
+    })) return json({ error: "duplicate_source", hint: "已經有呢個訊息源" }, 409);
     const lane = LANES.includes(b?.lane_default) ? b.lane_default : (type === "github_search" || type === "github_releases" ? "GITHUB_PROJECT" : type === "youtube_channel" ? "CONTENT_WORKFLOW" : "OTHER");
     const weight = Number(b?.weight ?? 0), maxPerDay = Number(b?.max_per_day ?? 5);
     if (!Number.isInteger(weight) || weight < -2 || weight > 2 || !Number.isInteger(maxPerDay) || maxPerDay < 1 || maxPerDay > 100) return json({ error: "bad_source_settings" }, 400);
-    const r = await db.prepare(`INSERT OR IGNORE INTO sources(id,type,adapter_type,value,label,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at) VALUES(?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(id, type, type, value, label, lane, weight, JSON.stringify(keywordArray(b?.include_keywords)), JSON.stringify(keywordArray(b?.exclude_keywords)), maxPerDay, b?.ai_eligible === true ? 1 : 0, now, now).run();
+    const r = await db.prepare(`INSERT OR IGNORE INTO sources(id,type,adapter_type,value,label,canonical_value,enabled,lane_default,weight,include_keywords,exclude_keywords,max_per_day,ai_eligible,created_at,updated_at) VALUES(?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(id, type, type, value, label, canonicalValue, lane, weight, JSON.stringify(keywordArray(b?.include_keywords)), JSON.stringify(keywordArray(b?.exclude_keywords)), maxPerDay, b?.ai_eligible === true ? 1 : 0, now, now).run();
     return r.meta.changes ? json({ source: await db.prepare(`SELECT ${SRC} FROM sources WHERE id=?`).bind(id).first() }, 201) : json({ error: "duplicate_source", hint: "已經有呢個訊息源" }, 409);
   }
   const sm = url.pathname.match(/^\/api\/sources\/([0-9a-f-]{36})$/u);
@@ -189,16 +245,21 @@ export async function handle(request, env, deps = {}) {
     const date = url.searchParams.get("date") || (await db.prepare("SELECT MAX(run_date) d FROM items WHERE kind='daily'").first())?.d;
     if (date && !/^\d{4}-\d{2}-\d{2}$/u.test(date)) return json({ error: "bad_date" }, 400);
     const lane = url.searchParams.get("lane"); if (lane && !LANES.includes(lane)) return json({ error: "bad_lane" }, 400);
+    if (url.searchParams.get("quarantine") === "1") {
+      const held = (await db.prepare(`SELECT ${ROW} FROM items WHERE curation_status='quarantine' ORDER BY updated_at DESC LIMIT 200`).all()).results;
+      return json({ date: date ?? null, items: (await trained(db, held)).sort(byPreference), mode: "quarantine", count: held.length });
+    }
     const r = await db.prepare(`SELECT ${ROW},url_norm FROM items WHERE kind='daily' AND run_date=?${lane ? " AND lane=?" : ""}`).bind(...(lane ? [date ?? "", lane] : [date ?? ""])).all();
     const mutes = (await db.prepare("SELECT kind,value FROM mutes").all()).results;
     const all = (await trained(db, r.results)).sort(byPreference);
     if (url.searchParams.get("all") === "1") return json({ date: date ?? null, items: all, mode: "all" });
-    const visible = all.filter((i) => !i.dismissed_reason && !isMuted(i, mutes));
+    const visible = all.filter((i) => i.curation_status !== "quarantine" && !i.dismissed_reason && !isMuted(i, mutes));
     const deduped = dedup(visible); const q = applyQuotas(deduped);
     const archived = visible.filter((i) => (i.pref_score ?? 0) < 0);
     const active = visible.filter((i) => (i.pref_score ?? 0) >= 0);
     const items = url.searchParams.get("archive") === "1" ? archived : q.items.filter((i) => (i.pref_score ?? 0) >= 0);
-    return json({ date: date ?? null, items, mode: "curated", archived_count: archived.length, stats: { total: all.length, hidden: all.length - visible.length, duplicates: visible.length - deduped.length, quota_held: q.held, x_cap: q.xCap } });
+    const quarantine_count = (await db.prepare("SELECT COUNT(*) n FROM items WHERE curation_status='quarantine'").first())?.n || 0;
+    return json({ date: date ?? null, items, mode: "curated", archived_count: archived.length, quarantine_count, stats: { total: all.length, hidden: all.length - visible.length, duplicates: visible.length - deduped.length, quota_held: q.held, x_cap: q.xCap } });
   }
   if (url.pathname === "/api/read-later" && m === "GET") {
     return json({ items: (await db.prepare(`SELECT ${ROW} FROM items WHERE read_later=1 ORDER BY updated_at DESC LIMIT 200`).all()).results.map(shape) });
@@ -236,6 +297,17 @@ export async function handle(request, env, deps = {}) {
   const act = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})\/action$/u);
   if (act && m === "POST") {
     const b = await request.json().catch(() => ({})); const a = b?.action; const reason = b?.reason ?? null;
+    if (a === "release_quarantine") {
+      const it = await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(act[1]).first(); if (!it) return json({ error: "not_found" }, 404);
+      if (it.curation_status !== "quarantine") return json({ error: "not_quarantined" }, 409);
+      const auditReason = typeof reason === "string" && reason.trim() ? reason.trim().slice(0, 120) : "owner_reviewed_relevance";
+      const [changed] = await db.batch([
+        db.prepare("UPDATE items SET curation_status='released',curation_reason=NULL,updated_at=? WHERE id=? AND curation_status='quarantine'").bind(now, it.id),
+        db.prepare("INSERT INTO item_curation_actions(id,item_id,action,reason,created_at) SELECT ?,?,'release_quarantine',?,? WHERE changes()>0").bind(crypto.randomUUID(), it.id, auditReason, now),
+      ]);
+      if (!changed.meta.changes) return json({ error: "curation_conflict" }, 409);
+      return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()), editorial_status_unchanged: true });
+    }
     if (!["star", "unstar", "read_later", "unread_later", "not_interested", "restore"].includes(a)) return json({ error: "bad_action" }, 400);
     if (a === "not_interested" && !REASONS.includes(reason)) return json({ error: "bad_reason", hint: REASONS.join("|") }, 400);
     const it = await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(act[1]).first(); if (!it) return json({ error: "not_found" }, 404);
@@ -250,28 +322,30 @@ export async function handle(request, env, deps = {}) {
   }
   const one = url.pathname.match(/^\/api\/items\/([0-9a-f-]{36})(?:\/(review|approve|reject|translate|deep-read))?$/u);
   if (one && m === "GET" && !one[2]) {
-    const r = await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(one[1]).first();
+    const r = await db.prepare(`SELECT ${DETAIL_ROW} FROM items WHERE id=?`).bind(one[1]).first();
     return r ? json({ item: shape(r) }) : json({ error: "not_found" }, 404);
   }
   if (one && m === "POST" && one[2] === "deep-read") {
-    const it = await db.prepare("SELECT id,title,url,summary,raw_excerpt,lane,updated_at,ai_provider FROM items WHERE id=?").bind(one[1]).first();
+    const it = await db.prepare("SELECT id,kind,source,source_type,title,url,summary,raw_excerpt,lane,updated_at,ai_provider FROM items WHERE id=?").bind(one[1]).first();
     if (!it) return json({ error: "not_found" }, 404);
-    let ai; try { ai = await summarize(env, [it.title, it.url, it.raw_excerpt || it.summary || ""].filter(Boolean).join("\n"), { fetchImpl: deps.fetchImpl ?? fetch, lane: it.lane, forceModel: true }); } catch (e) { return aiErr(e); }
+    let ai; try { ai = await summarize(env, [it.title, it.url, it.raw_excerpt || it.summary || ""].filter(Boolean).join("\n"), { fetchImpl: deps.fetchImpl ?? fetch, lane: it.lane, forceModel: true }); } catch (e) { await storeAnalysisFailure(db, it.id, it.updated_at, e); return aiErr(e); }
+    ai.content_basis = "from_excerpt"; ai.source_type = sourceKind(it);
     const changed = await db.prepare(AI_UPDATE.replace("updated_at=? WHERE", "review_status='ai_enriched',updated_at=? WHERE") + " AND title IS ? AND raw_excerpt IS ? AND updated_at IS ? AND ai_provider IS ?")
       .bind(...aiBind(ai, it.title, now, it.id), it.title, it.raw_excerpt, it.updated_at, it.ai_provider).run();
     if (!changed.meta.changes) return json({ error: "stale_source" }, 409);
-    return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()), provider: ai.provider });
+    return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()), provider: ai.provider, model: ai.model || null, content_basis: ai.content_basis, source_type: ai.source_type });
   }
   if (one && m === "POST" && one[2] === "translate") {
     // 轉中文 / re-analyze one existing item (incl. imported/unanalyzed). Counts against caps; status unchanged (human review gate kept).
-    const it = await db.prepare("SELECT id,title,url,summary,raw_excerpt,updated_at,ai_provider FROM items WHERE id=?").bind(one[1]).first();
+    const it = await db.prepare("SELECT id,kind,source,source_type,title,url,summary,raw_excerpt,updated_at,ai_provider FROM items WHERE id=?").bind(one[1]).first();
     if (!it) return json({ error: "not_found" }, 404);
     const text = [it.title, it.url, it.raw_excerpt || it.summary || ""].filter(Boolean).join("\n");
-    let ai; try { ai = await summarize(env, text, { fetchImpl: deps.fetchImpl ?? fetch }); } catch (e) { return aiErr(e); }
+    let ai; try { ai = await summarize(env, text, { fetchImpl: deps.fetchImpl ?? fetch }); } catch (e) { await storeAnalysisFailure(db, it.id, it.updated_at, e); return aiErr(e); }
+    ai.content_basis = "from_excerpt"; ai.source_type = sourceKind(it);
     const changed = await db.prepare(AI_UPDATE + " AND title IS ? AND raw_excerpt IS ? AND updated_at IS ? AND ai_provider IS ?")
       .bind(...aiBind(ai, ai.title_original, now, it.id), it.title, it.raw_excerpt, it.updated_at, it.ai_provider).run();
     if (!changed.meta.changes) return json({ error: "stale_source" }, 409);
-    return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()) });
+    return json({ item: shape(await db.prepare(`SELECT ${ROW} FROM items WHERE id=?`).bind(it.id).first()), provider: ai.provider, model: ai.model || null, content_basis: ai.content_basis, source_type: ai.source_type });
   }
   if (one && m === "POST" && one[2]) {
     // Human review gate: approve only after reviewed. Lightweight feedback: bump source weight for future retrieval.
@@ -305,9 +379,10 @@ export async function handle(request, env, deps = {}) {
     const metrics = { source_language: sourceLanguage, language_provenance: languageProvenance };
     const paragraphs = content.split(/\n\s*\n/u).map((part) => part.trim()).filter(Boolean).map((part) => ({ tag: "p", text: part }));
     const totalChunks = chunkParagraphs(paragraphs, 2500).length;
-    const insert = db.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,title_source,url,url_norm,source,category,summary,key_points,score,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,metrics,created_at,updated_at)
-      VALUES(?, 'capture', 'draft', ?, ?, ?, ?, 'quick-capture', 'CAPTURE', ?, '[]', NULL, ?, 'extractive', ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?, ?)`)
-      .bind(id, title, titleSource, link || null, urlNorm, excerpt, content.slice(0, 280), score.lane, score.pref_score, JSON.stringify(score.pref_reasons), body?.published_at || null, needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, JSON.stringify(metrics), now, now);
+    const captureSourceType = content ? "manual_text" : "selected_url";
+    const insert = db.prepare(`INSERT OR IGNORE INTO items(id,kind,status,title,title_source,url,url_norm,source,source_type,category,summary,key_points,score,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,pref_breakdown,curation_status,curation_reason,published_at,claim_status,evidence_tier,review_status,injection_suspect,metrics,created_at,updated_at)
+        VALUES(?, 'capture', 'draft', ?, ?, ?, ?, 'quick-capture', ?, 'CAPTURE', ?, '[]', NULL, ?, 'extractive', ?, ?, ?, ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?, ?)`)
+      .bind(id, title, titleSource, link || null, urlNorm, captureSourceType, excerpt, content.slice(0, 280), score.lane, score.pref_score, JSON.stringify(score.pref_reasons), JSON.stringify(score.pref_breakdown), score.curation_status, score.curation_reason, body?.published_at || null, needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, JSON.stringify(metrics), now, now);
     if (content) {
       const articleInsert = db.prepare(`INSERT INTO articles(item_id,url,status,title,site,paragraphs,chars,translation,translated_chunks,total_chunks,fetched_at,updated_at,title_source)
         SELECT id,?,'ok',?,'manual_text',?,?,'[]',0,?,?,?,? FROM items WHERE id=?`)
@@ -337,10 +412,10 @@ export async function handle(request, env, deps = {}) {
     if (new TextEncoder().encode(JSON.stringify(nextMetrics)).length > CAPTURE_HISTORY_BYTES)
       return json({ error: "capture_history_full", id: existing.id, hint: "既有正文歷史超出保存上限；請先另行保存並人工處理" }, 409);
     // D1 batch runs as one transaction. Both writes are conditional on the same CAS revision.
-    const update = db.prepare(`UPDATE items SET title=?,title_source=?,summary=?,raw_excerpt=?,ai_provider='extractive',title_zh=NULL,title_original=NULL,summary_en=NULL,key_points='[]',key_points_en='[]',score=NULL,score_reason=NULL,reco_score=NULL,reco_reason=NULL,side_income_new=0,side_income_reason=NULL,
-      metrics=?,review_status=?,injection_suspect=?,updated_at=? WHERE id=? AND status='draft' AND metrics IS ? AND updated_at IS ? AND ai_provider IS ?
+      const update = db.prepare(`UPDATE items SET title=?,title_source=?,source_type='manual_text',summary=?,raw_excerpt=?,ai_provider='extractive',title_zh=NULL,title_original=NULL,summary_en=NULL,key_points='[]',key_points_en='[]',score=NULL,score_reason=NULL,reco_score=NULL,reco_reason=NULL,side_income_new=0,side_income_reason=NULL,
+      lane=?,pref_score=?,pref_reasons=?,pref_breakdown=?,curation_status=?,curation_reason=?,metrics=?,review_status=?,injection_suspect=?,updated_at=? WHERE id=? AND status='draft' AND metrics IS ? AND updated_at IS ? AND ai_provider IS ?
       AND ((? IS NULL AND NOT EXISTS(SELECT 1 FROM articles WHERE item_id=?)) OR EXISTS(SELECT 1 FROM articles WHERE item_id=? AND updated_at IS ? AND paragraphs IS ? AND summary IS ? AND translation IS ?))`)
-      .bind(title, titleSource, excerpt, content.slice(0, 280), JSON.stringify(nextMetrics), needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now,
+      .bind(title, titleSource, excerpt, content.slice(0, 280), score.lane, score.pref_score, JSON.stringify(score.pref_reasons), JSON.stringify(score.pref_breakdown), score.curation_status, score.curation_reason, JSON.stringify(nextMetrics), needsSource ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now,
         existing.id, existing.metrics, existing.updated_at, existing.ai_provider, prior?.item_id || null, existing.id, existing.id, prior?.updated_at || null, prior?.paragraphs || null, prior?.summary || null, prior?.translation || null);
     const articleUpsert = db.prepare(`INSERT INTO articles(item_id,url,status,title,byline,site,paragraphs,chars,error,translation,translated_chunks,total_chunks,summary,ai_provider,fetched_at,updated_at,title_source)
       SELECT id,?,'ok',?,NULL,'manual_text',?,?,NULL,'[]',0,?,NULL,NULL,?,?,? FROM items WHERE id=? AND metrics=?
@@ -367,13 +442,15 @@ export async function handle(request, env, deps = {}) {
       const exists = await db.prepare("SELECT id FROM items WHERE (url_norm=? AND ? IS NOT NULL) OR title_hash=? LIMIT 1").bind(urlNorm, urlNorm, titleHash).first();
       if (exists) { duplicate++; continue; }
       const laneHint = LANES.includes(record?.lane) ? record.lane : undefined;
+      const typeInput = String(record?.sourceType ?? record?.source_type ?? record?.platform ?? "").toLocaleLowerCase();
+      const sourceType = ({ x: "x_post", twitter: "x_post", rss: "rss", github_search: "github_search", github_releases: "github_releases", youtube_channel: "youtube_channel", manual: "manual_text", manual_text: "manual_text", selected_url: "selected_url" })[typeInput] || (content ? "imported" : "selected_url");
       const published = /^\d{4}-\d\d-\d\d(?:T.*)?$/u.test(record?.publishedAt || "") ? record.publishedAt : null;
       const scored = scoreLane({ title, raw_excerpt: content, lane: laneHint, published_at: published });
       const suspect = scored.injection_suspect || injectionSuspect(content); const short = content.length < 80; if (short) needsSource++;
       const id = crypto.randomUUID();
-      await db.prepare(`INSERT INTO items(id,kind,status,title,title_source,url,url_norm,title_hash,source,category,summary,key_points,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,published_at,claim_status,evidence_tier,review_status,injection_suspect,created_at,updated_at)
-        VALUES(?, 'capture', 'draft', ?, ?, ?, ?, ?, ?, 'CAPTURE', ?, '[]', ?, 'extractive', ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?)`)
-        .bind(id, title, titleSource, link || null, urlNorm, titleHash, String(record?.platform || record?.kind || "manual").slice(0, 80), content.replace(/\s+/gu, " ").slice(0, 280) || "尚未取得可核對正文。", content.slice(0, 4000), scored.lane, scored.pref_score, JSON.stringify(scored.pref_reasons), published, short ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now, now).run();
+      await db.prepare(`INSERT INTO items(id,kind,status,title,title_source,url,url_norm,title_hash,source,source_type,category,summary,key_points,raw_excerpt,ai_provider,lane,pref_score,pref_reasons,pref_breakdown,curation_status,curation_reason,published_at,claim_status,evidence_tier,review_status,injection_suspect,created_at,updated_at)
+        VALUES(?, 'capture', 'draft', ?, ?, ?, ?, ?, ?, ?, 'CAPTURE', ?, '[]', ?, 'extractive', ?, ?, ?, ?, ?, ?, ?, 'unverified', 'social', ?, ?, ?, ?)`)
+        .bind(id, title, titleSource, link || null, urlNorm, titleHash, String(record?.platform || record?.kind || "manual").slice(0, 80), sourceType, content.replace(/\s+/gu, " ").slice(0, 280) || "尚未取得可核對正文。", content.slice(0, 4000), scored.lane, scored.pref_score, JSON.stringify(scored.pref_reasons), JSON.stringify(scored.pref_breakdown), scored.curation_status, scored.curation_reason, published, short ? "NEEDS_SOURCE_REVIEW" : "needs_review", suspect ? 1 : 0, now, now).run();
       inserted++; ids.push(id);
     }
     return json({ inserted, duplicate, needs_source_review: needsSource, ai_calls: 0, ids }, 201);

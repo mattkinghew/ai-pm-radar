@@ -11,7 +11,8 @@ const item = (id, extra = {}) => ({
   id, sourceId: "openai", title: `AI update ${id}`, url: `https://example.test/${id}`,
   summary: `Source summary ${id}`, category: "AI_TECH_NEWS", publishedAt: "2026-11-14T23:00:00Z",
   discoveredAt: "2026-11-15T00:00:00Z", reviewStatus: "needs_review",
-  lane: "TECH_NEWS", pref_score: 10, pref_reasons: ["freshness_published_at"], injection_suspect: false,
+  lane: "TECH_NEWS", pref_score: 10, pref_reasons: ["freshness_published_at"], injection_suspect: false, curation_status: "main",
+  pref_breakdown: { version: 1, dimensions: { relevance: { status: "observed", score: 40, evidence: ["tech_news"] } } },
   ...extra,
 });
 
@@ -35,14 +36,16 @@ test("builds top ranked real draft, holds injection, rejects synthetic and stale
     item("high-duplicate", { pref_score: 25, url: "https://www.example.test/high?utm_source=feed#fragment" }),
     item("middle", { pref_score: 20 }),
     item("held", { pref_score: 99, injection_suspect: true }),
+    item("unknown", { pref_score: 99, curation_status: "quarantine", curation_reason: "relevance_unknown", pref_breakdown: { version: 1, dimensions: { relevance: { status: "unknown", reason: "no_relevance_rule_match" } } } }),
     item("synthetic", { synthetic: true }),
     item("fixture", { local_fixture: true }),
     item("old", { discoveredAt: "2026-10-18T00:00:00Z" }),
   ], async ({ inboxPath, outputDir }) => {
     const result = await buildDailyFromInbox({ inboxPath, outputDir, now, limit: 3 });
     assert.equal(result.selected, 3);
-    assert.equal(result.held, 1);
+    assert.equal(result.held, 2);
     const daily = JSON.parse(await readFile(result.target, "utf8"));
+    assert.deepEqual(daily.held.map((entry) => entry.reason).sort(), ["injection_suspect", "relevance_unknown"]);
     assert.deepEqual(daily.articles.map((article) => article.source_url), ["https://example.test/high", "https://example.test/middle", "https://example.test/low"]);
     assert.equal(daily.review.status, "draft");
     assert.equal(daily.needs_review, true);

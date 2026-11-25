@@ -33,6 +33,7 @@ test("feed ingestion stores feed title provenance and collapses repeated excerpt
   const row = await database.DB.prepare("SELECT title_source,raw_excerpt FROM items WHERE url=?").bind("https://news.example/story").first();
   assert.equal(row.title_source, "feed");
   assert.equal(row.raw_excerpt, duplicate);
+  assert.equal((await database.DB.prepare("SELECT source_type FROM items WHERE url=?").bind("https://news.example/story").first()).source_type, "rss");
 });
 
 test("X ingestion labels truncated title and collapses duplicate body paragraphs", async () => {
@@ -41,9 +42,10 @@ test("X ingestion labels truncated title and collapses duplicate body paragraphs
   const post = { handle: "fixture", post_id: "12345", text: `${duplicate}\n\n${duplicate}` };
   const response = await handle(new Request("https://radar.example/api/ingest/x", { method: "POST", headers: { authorization: `Bearer ${"t".repeat(40)}`, "content-type": "application/json" }, body: JSON.stringify({ posts: [post] }) }), database);
   assert.equal(response.status, 200);
-  const row = await database.DB.prepare("SELECT id,title,title_source,raw_excerpt FROM items WHERE external_id='x:12345'").first();
+  const row = await database.DB.prepare("SELECT id,title,title_source,source_type,raw_excerpt FROM items WHERE external_id='x:12345'").first();
   assert.equal(row.title, duplicate.slice(0, 140));
   assert.equal(row.title_source, "x_text_truncation");
+  assert.equal(row.source_type, "x_post");
   assert.equal(row.raw_excerpt, duplicate);
   const item = await handle(ownerReq(`/api/items/${row.id}`), database, { authFetch }).then((r) => r.json());
   assert.equal(item.item.title_source, "x_text_truncation");
@@ -53,9 +55,10 @@ test("manual capture records title origin and collapses consecutive duplicate pa
   const database = env(); const repeated = `${duplicate}\n\n${duplicate}`;
   const response = await handle(ownerReq("/api/capture", textBody({ text: repeated })), database, { authFetch });
   assert.equal(response.status, 201); const { id } = await response.json();
-  const row = await database.DB.prepare("SELECT title,title_source,raw_excerpt FROM items WHERE id=?").bind(id).first();
+  const row = await database.DB.prepare("SELECT title,title_source,source_type,raw_excerpt FROM items WHERE id=?").bind(id).first();
   assert.equal(row.title, duplicate.slice(0, 160));
   assert.equal(row.title_source, "inferred");
+  assert.equal(row.source_type, "manual_text");
   assert.equal(row.raw_excerpt, duplicate);
   const article = await database.DB.prepare("SELECT paragraphs,title_source FROM articles WHERE item_id=?").bind(id).first();
   assert.equal(JSON.parse(article.paragraphs).length, 1);
@@ -84,6 +87,8 @@ test("card copy separates editorial status from content review and labels the ac
   assert.match(app, /標記為已審核/u);
   assert.match(app, /由正文推定/u);
   assert.match(app, /X 正文截取（140 字）/u);
+  assert.match(app, /X 完整原文（未改寫）/u);
+  assert.match(app, /data-x-original/u);
 });
 
 test("reader extraction distinguishes Open Graph and page title provenance", () => {

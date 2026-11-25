@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { handle } from "../cloud/src/worker.mjs";
 import { runDaily } from "../cloud/src/collector.mjs";
+import { RADAR_FETCH_HOSTS } from "../cloud/src/safe-fetch.mjs";
+import { dedup } from "../cloud/src/curation.mjs";
 import { fakeD1, accessKit, TEAM, AUD, ownerHash } from "./helpers/cloud-fakes.mjs";
 const kit = accessKit();
 const authFetch = async () => new Response(kit.jwks, { headers: { "content-type": "application/json" } });
@@ -13,7 +15,7 @@ const owner = (p, o = {}) => new Request("https://r.x" + p, { ...o, headers: { "
 const bot = (p, o = {}, tok = TOKEN) => new Request("https://r.x" + p, { ...o, headers: { authorization: `Bearer ${tok}`, ...(o.headers || {}) } });
 const RECO = { title_zh: "標題", summary: "摘要", key_points_zh: ["a"], score: 6, reco_score: 9, reco_reason: "可用於顧問提案" };
 const gem = async (u) => String(u).includes("generativelanguage") ? new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(RECO) }] } }] }))
-  : String(u).includes("algolia") ? new Response(JSON.stringify({ hits: [] })) : String(u).includes("my.feed") ? new Response(`<rss><channel><item><title>React workflow for solopreneur</title><link>https://my.feed/1</link><description>${LONG_TEXT}</description></item></channel></rss>`) : new Response("x", { status: 404 });
+  : String(u).includes("algolia") ? new Response(JSON.stringify({ hits: [] })) : String(u).includes("my.feed") ? new Response(`<rss><channel><item><title>React workflow for solopreneur</title><link>https://my.feed/1</link><description>${LONG_TEXT}</description></item></channel></rss>`, { headers: { "content-type": "application/rss+xml" } }) : new Response("x", { status: 404 });
 
 test("sources CRUD (owner), validation, dedupe", async () => {
   const env = mkEnv(); const d = { authFetch };
@@ -47,10 +49,57 @@ test("X ingest dedups by post_id, rejects bad rows, cron analyzes with reco", as
   const r = await (await handle(bot("/api/ingest/x", { method: "POST", headers: J, body: JSON.stringify({ posts }) }), env)).json();
   assert.deepEqual([r.inserted, r.duplicate, r.rejected], [1, 1, [2, 3]]);
   await handle(owner("/api/sources", { method: "POST", headers: J, body: JSON.stringify({ type: "rss", value: "https://my.feed/rss", label: "mine" }) }), env, { authFetch });
-  const run = await runDaily(env, { fetchImpl: gem }); assert.equal(run.collected, 1); assert.equal(run.analyzed, 0); // user sources default ai_eligible=0
-  const d = await (await handle(owner("/api/daily"), env, { authFetch })).json();
+  const run = await runDaily(env, { fetchImpl: gem, allowedHosts: new Set([...RADAR_FETCH_HOSTS, "my.feed"]) }); assert.equal(run.collected, 1); assert.equal(run.analyzed, 0); // user sources default ai_eligible=0
+  const d = await (await handle(owner("/api/daily?all=1"), env, { authFetch })).json();
   const x = d.items.find((i) => i.source === "x:@sama"); assert.equal(x.reco_score, null); assert.deepEqual(x.metrics, { likes: 5 });
   assert.ok(d.items.some((i) => i.source === "user:mine"));
+  const visible = await (await handle(owner("/api/daily"), env, { authFetch })).json();
+  assert.ok(visible.items.every((item) => item.curation_status !== "quarantine"));
+  const quarantine = await (await handle(owner("/api/daily?quarantine=1"), env, { authFetch })).json();
+  assert.ok(quarantine.items.every((item) => item.curation_status === "quarantine"));
+});
+
+test("X ingestion preserves complete original text separately from the bounded card excerpt", async () => {
+  const env = mkEnv(); const stamp = new Date().toISOString();
+  await env.DB.prepare("INSERT INTO sources(id,type,value,enabled,created_at,updated_at,adapter_type) VALUES('x-full','x','@fixture',1,?,?,'x')").bind(stamp, stamp).run();
+  const paragraph = "A synthetic X paragraph preserved verbatim. ".repeat(120);
+  const original = `${paragraph}\n\n${paragraph}`;
+  const response = await handle(bot("/api/ingest/x", { method: "POST", headers: J, body: JSON.stringify({ posts: [{ handle: "fixture", post_id: "987654321", text: original }] }) }), env);
+  assert.equal(response.status, 200);
+  const row = await env.DB.prepare("SELECT id,original_text,raw_excerpt,title,external_id FROM items WHERE external_id='x:987654321'").first();
+  assert.equal(row.original_text, original);
+  assert.equal(row.raw_excerpt, paragraph.trim().slice(0, 4000));
+  assert.equal(row.external_id, "x:987654321");
+  assert.equal(row.title, paragraph.replace(/\s+/gu, " ").slice(0, 140));
+  const item = await handle(owner(`/api/items/${row.id}`), env, { authFetch });
+  assert.equal((await item.json()).item.original_text, original);
+  const daily = await handle(owner("/api/daily?all=1"), env, { authFetch });
+  assert.equal("original_text" in (await daily.json()).items[0], false);
+});
+
+test("X ingestion rejects over-limit source text instead of storing a truncated original", async () => {
+  const env = mkEnv(); const stamp = new Date().toISOString();
+  await env.DB.prepare("INSERT INTO sources(id,type,value,enabled,created_at,updated_at,adapter_type) VALUES('x-limit','x','@fixture',1,?,?,'x')").bind(stamp, stamp).run();
+  const response = await handle(bot("/api/ingest/x", { method: "POST", headers: J, body: JSON.stringify({ posts: [{ handle: "fixture", post_id: "987654322", text: "x".repeat(20001) }] }) }), env);
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.deepEqual(result.rejected, [0]);
+  assert.equal(await env.DB.prepare("SELECT id FROM items WHERE external_id='x:987654322'").first(), null);
+});
+
+test("same X text under different post IDs remains stored and is exposed as a potential duplicate", async () => {
+  const env = mkEnv(); const stamp = new Date().toISOString();
+  await env.DB.prepare("INSERT INTO sources(id,type,value,enabled,created_at,updated_at,adapter_type) VALUES('x-dupes','x','@fixture',1,?,?,'x')").bind(stamp, stamp).run();
+  const text = `Synthetic same-text posts with distinct identities. ${LONG_TEXT}`;
+  const response = await handle(bot("/api/ingest/x", { method: "POST", headers: J, body: JSON.stringify({ posts: [
+    { handle: "fixture", post_id: "987654323", text }, { handle: "fixture", post_id: "987654324", text },
+  ] }) }), env);
+  assert.deepEqual([((await response.json()).inserted), (await env.DB.prepare("SELECT COUNT(*) n FROM items WHERE external_id IN ('x:987654323','x:987654324')").first()).n], [2, 2]);
+  const rows = (await env.DB.prepare("SELECT title,url,source FROM items WHERE external_id IN ('x:987654323','x:987654324') ORDER BY external_id").all()).results;
+  const cards = dedup(rows);
+  assert.equal(cards.length, 1);
+  assert.equal(cards[0].dup_count, 1);
+  assert.equal(cards[0].dup_sources[0]?.url, rows[1].url);
 });
 
 test("seeded X watchlist readable by bearer; side_income_new flag stored", async () => {

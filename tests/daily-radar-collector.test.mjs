@@ -33,7 +33,7 @@ test("local candidates use the cloud lane scorer with observed publication dates
   const feed = `<?xml version="1.0"?><rss><channel><item><title>Paid pilot pricing</title><link>https://example.com/pilot</link><guid>pilot</guid><description>Real customer pain</description><pubDate>Tue, 10 Nov 2026 00:00:00 GMT</pubDate></item></channel></rss>`;
   const items = await collectDailyRadar({ fetchImpl: async (url) => url.includes("algolia") ? { ok: true, json: async () => ({ hits: [] }) } : { ok: true, text: async () => feed }, now: "2026-11-11T00:00:00.000Z" });
   const item = items[0];
-  assert.deepEqual({ lane: item.lane, pref_score: item.pref_score, pref_reasons: item.pref_reasons, injection_suspect: item.injection_suspect },
+  assert.deepEqual({ lane: item.lane, pref_score: item.pref_score, pref_reasons: item.pref_reasons, pref_breakdown: item.pref_breakdown, curation_status: item.curation_status, curation_reason: item.curation_reason, injection_suspect: item.injection_suspect },
     scoreLane({ title: item.title, summary: item.summary, category: item.category, published_at: item.publishedAt }, { nowMs: Date.parse(item.discoveredAt) }));
   assert.equal(item.lane, "MONETIZATION_GAP");
   assert.ok(item.pref_reasons.includes("freshness_published_at"));
@@ -56,7 +56,7 @@ test("one HTTP 403 is logged while other sources provide a daily draft", async (
   const dir = await mkdtemp(join(tmpdir(), "radar-forbidden-"));
   const path = join(dir, "inbox.json");
   const script = new URL("../scripts/daily_radar_collector.mjs", import.meta.url).pathname;
-  const feed = '<rss><channel><item><title>AI one</title><link>https://example.test/1</link></item><item><title>AI two</title><link>https://example.test/2</link></item><item><title>AI three</title><link>https://example.test/3</link></item></channel></rss>';
+  const feed = '<rss><channel><item><title>Paid pilot pricing AI one</title><link>https://example.test/1</link></item><item><title>Paid pilot pricing AI two</title><link>https://example.test/2</link></item><item><title>Paid pilot pricing AI three</title><link>https://example.test/3</link></item></channel></rss>';
   const preload = `data:text/javascript,globalThis.fetch=async(url)=>url.includes('openai.com')?new Response(${JSON.stringify(feed)}):new Response(null,{status:403})`;
   try {
     const run = spawnSync(process.execPath, ["--experimental-strip-types", "--import", preload, script], { cwd: dir, env: { ...process.env, RADAR_INBOX_PATH: path }, encoding: "utf8" });
@@ -77,7 +77,7 @@ test("two candidates fail closed, leave inbox and daily untouched, and write a r
   const dir = await mkdtemp(join(tmpdir(), "radar-shortage-"));
   const path = join(dir, "inbox.json");
   const script = new URL("../scripts/daily_radar_collector.mjs", import.meta.url).pathname;
-  const feed = '<rss><channel><item><title>AI one</title><link>https://example.test/1</link></item><item><title>AI two</title><link>https://example.test/2</link></item></channel></rss>';
+  const feed = '<rss><channel><item><title>Paid pilot pricing AI one</title><link>https://example.test/1</link></item><item><title>Paid pilot pricing AI two</title><link>https://example.test/2</link></item></channel></rss>';
   const preload = `data:text/javascript,globalThis.fetch=async(url)=>url.includes('openai.com')?new Response(${JSON.stringify(feed)}):new Response(null,{status:403})`;
   try {
     const run = spawnSync(process.execPath, ["--experimental-strip-types", "--import", preload, script], { cwd: dir, env: { ...process.env, RADAR_INBOX_PATH: path }, encoding: "utf8" });

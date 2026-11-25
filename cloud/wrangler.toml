@@ -38,4 +38,8 @@ AI_DAILY_CAP = "10"
 AI_MANUAL_RESERVE_GEMINI = "5"
 AI_MANUAL_RESERVE_WORKERS = "20"
 AI_AUTO_ANALYZE_LIMIT = "5"
+AI_AUTO_ANALYZE_ENABLED = "true"
+AI_AUTO_ANALYZE_INCLUDE_TERMS = "一人公司,solopreneur,indie,低成本,變現,副業,訊息差,frontend,react,css,學習,工具,定價,workflow,consultant"
+AI_AUTO_ANALYZE_EXCLUDE_TERMS = "羊毛,web3,短劇,政治,地緣政治,情報,intelligence,politics,political,intel,數據中心,data center,data centre"
+AI_TARGET_LANGUAGE = "zh-Hant"
 # Secrets (wrangler secret put): GEMINI_API_KEY

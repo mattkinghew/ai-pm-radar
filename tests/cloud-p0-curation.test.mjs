@@ -46,14 +46,17 @@ test("kbMarkdown has valid frontmatter", () => {
 
 test("API: actions, feedback weights, mutes, curated daily, KB export", async () => {
   const env = mkEnv();
-  const feed = (u) => String(u).includes("algolia") ? new Response(JSON.stringify({ hits: [] })) : String(u).includes("openai.com") ? new Response(`<rss><channel><item><title>OpenAI ships a big new model today</title><link>https://openai.com/a?utm_source=rss</link></item><item><title>Second</title><link>https://openai.com/b</link></item></channel></rss>`)
+  const feed = (u) => String(u).includes("algolia") ? new Response(JSON.stringify({ hits: [] })) : String(u).includes("openai.com") ? new Response(`<rss><channel><item><title>OpenAI paid pilot pricing study</title><link>https://openai.com/a?utm_source=rss</link></item><item><title>Official paid pilot model pricing study</title><link>https://openai.com/b</link></item></channel></rss>`)
     : String(u).includes("theverge") ? new Response(`<rss><channel><item><title>Same story</title><link>https://www.openai.com/a/</link></item></channel></rss>`) : new Response("x", { status: 404 });
   const run = await runDaily(env, { fetchImpl: feed }); assert.equal(run.collected, 2); // verge copy deduped by url_norm
   await env.DB.prepare("INSERT INTO sources(id,type,value,enabled,created_at,updated_at) VALUES('test-spam','x','@spam',1,?,?)").bind(new Date().toISOString(), new Date().toISOString()).run();
   const posts = Array.from({ length: 6 }, (_, i) => ({ handle: "spam", post_id: String(1000 + i), text: `spam post ${i} unique ${i * 31}` }));
   await handle(new Request("https://r.x/api/ingest/x", { method: "POST", headers: { ...J, authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ posts }) }), env);
   let d = await (await call(env, "/api/daily")).json();
-  assert.equal(d.mode, "curated"); assert.equal(d.items.filter((i) => i.source === "x:@spam").length, 2); assert.ok(d.stats.quota_held >= 4);
+  assert.equal(d.mode, "curated"); assert.equal(d.items.filter((i) => i.source === "openai").length, 2);
+  const held = await (await call(env, "/api/daily?quarantine=1")).json();
+  assert.equal(held.items.length, 6); assert.equal(held.items.filter((i) => i.source === "x:@spam").length, 6);
+  assert.equal(d.items.filter((i) => i.source === "x:@spam").length, 0); // no-rule X spam stays recoverable in quarantine
   assert.equal((await (await call(env, "/api/daily?all=1")).json()).items.length, 8);
   const [a, b] = d.items.filter((i) => i.source === "openai");
   assert.equal((await post(env, `/api/items/${a.id}/action`, { action: "not_interested" })).status, 400);

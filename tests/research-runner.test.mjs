@@ -180,6 +180,71 @@ test("a body-fetch failure is isolated and the following material still reaches 
   assert.equal(result.state.materials.find((material) => material.material_id === "b-good")?.status, "draft");
 });
 
+test("five synthetic feeds isolate timeout and parse failures, retain redirects and unknown metadata, and rerun without duplicate fetches", async (t) => {
+  const runtimeDir = makeRuntime(t);
+  const subscriptions = ["a", "b", "c", "d", "e", "timeout", "invalid"].map((suffix) => ({
+    id: `feed-${suffix}`, name: `Synthetic ${suffix}`, feed_url: `https://feeds.example/${suffix}.xml`, expert_name: "",
+    reason: "Synthetic collection fixture", topic_tags: [], priority: "medium", enabled: true,
+    last_attempted_at: null, last_successful_at: null, etag: null, last_modified: null, recent_runs: [],
+  }));
+  const makeItem = (sourceId, id, articleUrl, overrides = {}) => feedItem(id, {
+    feed_url: `https://feeds.example/${sourceId}.xml`, source_id: `feed-${sourceId}`, article_url: articleUrl,
+    source_refs: [{ source_id: `feed-${sourceId}`, feed_url: `https://feeds.example/${sourceId}.xml`, item_id: id }],
+    ...overrides,
+  });
+  const shared = makeItem("a", "shared", "https://articles.example/shared");
+  const feeds = new Map([
+    ["a", [shared]],
+    ["b", [makeItem("b", "shared-copy", "https://articles.example/shared")]],
+    ["c", [makeItem("c", "redirected", "https://articles.example/redirected")]],
+    ["d", [makeItem("d", "metadata-missing", "https://articles.example/metadata-missing", { title: "Feed title fallback", published_at: null, creator: null })]],
+    ["e", [makeItem("e", "fifth", "https://articles.example/fifth")]],
+  ]);
+  let bodyFetches = 0;
+  const runtimeConfig = config(subscriptions);
+  runtimeConfig.analysis_enabled = false;
+  await writeRuntimeConfig(runtimeConfig, runtimeDir);
+  const services = {
+    fetchPublicFeed: async (url) => {
+      const key = url.split("/").at(-1).replace(".xml", "");
+      if (key === "timeout") throw Object.assign(new Error("Synthetic timeout"), { code: "timeout" });
+      if (key === "invalid") throw Object.assign(new Error("Synthetic invalid feed"), { code: "feed_parse_error" });
+      return { items: feeds.get(key), etag: null, lastModified: null, not_modified: false };
+    },
+    fetchPublicArticle: async (url) => {
+      bodyFetches += 1;
+      return {
+        originalUrl: url,
+        finalUrl: url.endsWith("/redirected") ? "https://publisher.example/final-story" : url,
+        capturedAt: new Date().toISOString(),
+        title: url.endsWith("/metadata-missing") ? null : "Synthetic article title",
+        creator: null,
+        publishedAt: null,
+        completeness: "full",
+        body: BODY,
+      };
+    },
+    requestAIAnalysis: async () => { throw new Error("Analysis is disabled in this fixture"); },
+  };
+  const first = await runResearch({ runtimeDir, services });
+  assert.equal(first.run.feeds_succeeded, 5);
+  assert.equal(first.run.new_items, 4);
+  assert.equal(first.run.duplicates, 1);
+  assert.deepEqual(first.run.errors.map((error) => error.code).sort(), ["feed_parse_error", "timeout"]);
+  assert.equal(bodyFetches, 4);
+  const redirected = first.state.materials.find((material) => material.material_id === "redirected").source_record;
+  assert.equal(redirected.source_url_original, "https://articles.example/redirected");
+  assert.equal(redirected.source_url_final, "https://publisher.example/final-story");
+  const metadataMissing = first.state.materials.find((material) => material.material_id === "metadata-missing").source_record;
+  assert.equal(metadataMissing.creator, null);
+  assert.equal(metadataMissing.published_at, null);
+
+  const second = await runResearch({ runtimeDir, services });
+  assert.equal(second.run.new_items, 0);
+  assert.equal(bodyFetches, 4, "a rerun must not fetch duplicate article bodies again");
+  assert.equal(second.state.materials.length, 4);
+});
+
 test("a URL-less summary stays manual-input only and is never sent to the model as full text", async (t) => {
   const runtimeDir = makeRuntime(t);
   const calls = { count: 0 };
@@ -198,6 +263,85 @@ test("a URL-less summary stays manual-input only and is never sent to the model 
   assert.equal(result.run.failures, 0);
   assert.equal(result.state.daily.needs_manual_input, 1);
   assert.equal(calls.count, 0);
+});
+
+test("provider failure preserves captured source and evidence state without auto-approval or retry", async (t) => {
+  const runtimeDir = makeRuntime(t);
+  const item = feedItem("provider-unavailable");
+  let attempts = 0;
+  await writeRuntimeConfig(config(), runtimeDir);
+  const services = {
+    fetchPublicFeed: feedResult([item]),
+    fetchPublicArticle: fetchedBody(item.article_url),
+    requestAIAnalysis: async () => {
+      attempts += 1;
+      throw Object.assign(new Error("Synthetic provider unavailable"), { code: "provider_service_unavailable" });
+    },
+  };
+  const first = await runResearch({ runtimeDir, services });
+  const failed = first.state.materials.find((material) => material.material_id === item.id);
+  assert.equal(failed.status, "failed");
+  assert.equal(failed.source_record.raw_text, BODY);
+  assert.equal(failed.source_record.review_status, "needs_review");
+  assert.equal(failed.source_record.approval_status, "not_approved");
+  assert.equal(failed.source_record.analysis.status, "failed");
+  assert.equal(first.run.errors[0]?.code, "provider_service_unavailable");
+
+  const second = await runResearch({ runtimeDir, services });
+  assert.equal(attempts, 1, "a failed analysis requires explicit retry");
+  assert.equal(second.state.materials.find((material) => material.material_id === item.id)?.source_record.raw_text, BODY);
+});
+
+test("three simulated HKT days retain success, partial collection and provider failure history", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-11-18T00:00:00.000Z") });
+  const runtimeDir = makeRuntime(t);
+  const dayOne = feedItem("day-one");
+  const successCalls = { count: 0 };
+  await writeRuntimeConfig(config(), runtimeDir);
+  const first = await runResearch({ runtimeDir, services: {
+    fetchPublicFeed: feedResult([dayOne]),
+    fetchPublicArticle: fetchedBody(dayOne.article_url),
+    requestAIAnalysis: aiService(successCalls),
+  } });
+  assert.equal(first.run.status, "completed");
+  assert.equal(first.state.materials.find((material) => material.material_id === dayOne.id)?.status, "draft");
+
+  t.mock.timers.setTime(new Date("2026-11-19T00:00:00.000Z").getTime());
+  const goodSubscription = { ...config().subscriptions[0], id: "day-two-good", feed_url: "https://example.com/day-two.xml" };
+  const timeoutSubscription = { ...goodSubscription, id: "day-two-timeout", feed_url: "https://example.com/timeout.xml" };
+  const dayTwoConfig = config([goodSubscription, timeoutSubscription]);
+  dayTwoConfig.analysis_enabled = false;
+  await writeRuntimeConfig(dayTwoConfig, runtimeDir);
+  const dayTwoItem = feedItem("day-two", { feed_url: goodSubscription.feed_url, source_id: goodSubscription.id });
+  const second = await runResearch({ runtimeDir, services: {
+    fetchPublicFeed: async (url) => {
+      if (url === timeoutSubscription.feed_url) throw Object.assign(new Error("Synthetic Day 2 timeout"), { code: "timeout" });
+      return { items: [dayTwoItem], etag: null, lastModified: null, not_modified: false };
+    },
+    fetchPublicArticle: fetchedBody(dayTwoItem.article_url),
+    requestAIAnalysis: async () => { throw new Error("Analysis disabled for Day 2"); },
+  } });
+  assert.equal(second.run.status, "partial");
+  assert.equal(second.state.materials.find((material) => material.material_id === dayTwoItem.id)?.status, "captured");
+
+  t.mock.timers.setTime(new Date("2026-11-20T00:00:00.000Z").getTime());
+  dayTwoConfig.collection_enabled = false;
+  dayTwoConfig.analysis_enabled = true;
+  await writeRuntimeConfig(dayTwoConfig, runtimeDir);
+  const third = await runResearch({ runtimeDir, services: {
+    fetchPublicFeed: async () => { throw new Error("Collection disabled for Day 3"); },
+    fetchPublicArticle: async () => { throw new Error("Captured text must be reused"); },
+    requestAIAnalysis: async () => { throw Object.assign(new Error("Synthetic provider unavailable"), { code: "provider_service_unavailable" }); },
+  } });
+  assert.equal(third.run.status, "failed");
+  const retained = third.state.materials.find((material) => material.material_id === dayTwoItem.id);
+  assert.equal(retained.status, "failed");
+  assert.equal(retained.source_record.raw_text, BODY);
+  assert.equal(retained.source_record.review_status, "needs_review");
+  assert.equal(retained.source_record.approval_status, "not_approved");
+  assert.deepEqual(third.state.runs.slice(0, 3).map((run) => [run.date, run.status]), [
+    ["2026-11-20", "failed"], ["2026-11-19", "partial"], ["2026-11-18", "completed"],
+  ]);
 });
 
 test("an interrupted in-flight material is preserved as failed and requires explicit retry", async (t) => {

@@ -58,13 +58,34 @@ export function scoreLane(item, { sourceWeight = 0, nowMs = Date.now() } = {}) {
   const lane = laneCandidates.length ? laneCandidates.sort((a, b) => (b.terms.filter((t) => text.includes(foldText(t))).length - a.terms.filter((t) => text.includes(foldText(t))).length) || b.weight - a.weight || LANES.indexOf(a.lane) - LANES.indexOf(b.lane))[0].lane : item.lane || legacyLane || "OTHER";
   let score = matched.reduce((sum, r) => sum + r.weight, 0) + Math.max(-2, Math.min(2, Number(sourceWeight) || 0)) * 5;
   const reasons = matched.map((r) => r.id);
+  const relevanceRules = matched.filter((r) => r.lane);
+  const actionRules = matched.filter((r) => ["paid_pilot", "apply_now", "content_workflow"].includes(r.id));
+  const noiseRules = matched.filter((r) => ["hype_only", "copyright_reupload", "unverified_incident"].includes(r.id));
+  const dimensions = {
+    relevance: relevanceRules.length
+      ? { status: "observed", score: Math.min(100, relevanceRules.reduce((n, r) => n + Math.max(0, r.weight), 0) * 4), evidence: relevanceRules.map((r) => r.id) }
+      : { status: "unknown", reason: "no_relevance_rule_match", evidence: [] },
+    novelty: { status: "unknown", reason: "no_corpus_wide_novelty_check", evidence: [] },
+    actionability: actionRules.length
+      ? { status: "observed", score: Math.max(...actionRules.map((r) => ({ paid_pilot: 100, apply_now: 70, content_workflow: 60 })[r.id])), evidence: actionRules.map((r) => r.id) }
+      : { status: "unknown", reason: "no_actionability_rule_match", evidence: [] },
+    promo_noise: noiseRules.length
+      ? { status: "flagged", score: Math.min(100, noiseRules.length * 50), evidence: noiseRules.map((r) => r.id) }
+      : { status: "unknown", reason: "no_noise_classifier_signal", evidence: [] },
+  };
+  const suspect = injectionSuspect(text);
+  if (suspect) dimensions.promo_noise = { status: "flagged", score: 100, evidence: [...dimensions.promo_noise.evidence, "injection_suspect"] };
+  const observedDimensions = Object.values(dimensions).filter((dimension) => dimension.status !== "unknown").length;
+  const relevanceLow = dimensions.relevance.status === "observed" && dimensions.relevance.score < 20;
+  const curation_status = dimensions.relevance.status === "unknown" || relevanceLow || suspect ? "quarantine" : "main";
+  const curation_reason = suspect ? "injection_suspect" : dimensions.relevance.status === "unknown" ? "relevance_unknown" : relevanceLow ? "low_relevance_signal" : null;
   const published = item.published_at ? Date.parse(item.published_at) : NaN;
   if (Number.isFinite(published)) {
     const ageDays = Math.max(0, (nowMs - published) / 86400000);
     const freshness = Math.round(Math.max(-10, 10 - ageDays)); score += freshness; reasons.push("freshness_published_at");
   } else reasons.push("freshness_unknown");
   if (Number(sourceWeight)) reasons.push("source_weight");
-  return { lane, pref_score: Math.max(-100, Math.min(100, score)), pref_reasons: reasons, injection_suspect: injectionSuspect(text) };
+  return { lane, pref_score: Math.max(-100, Math.min(100, score)), pref_reasons: reasons, pref_breakdown: { version: 1, dimensions, observed_dimensions: observedDimensions, dimension_count: 4, confidence_basis: "observed_signal_coverage_not_probability" }, curation_status, curation_reason, injection_suspect: suspect };
 }
 
 export function normalizeUrl(raw) {

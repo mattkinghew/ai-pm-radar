@@ -92,7 +92,7 @@ test("fixture audit finds four topics beyond the example-author watchlist withou
       return new Response(`<rss><channel><item><title>${title}</title><link>${itemUrl}</link><description>Synthetic fixture only</description></item></channel></rss>`, { headers: { "content-type": "application/rss+xml" } });
     }
     if (target.startsWith("https://api.github.com/search/repositories?")) return Response.json({ items: [{ full_name: "synthetic/ai", description: "Open source AI tool", stargazers_count: 1, language: "JS", pushed_at: "2026-11-19", html_url: "https://github.com/synthetic/ai" }] });
-    if (target.includes("youtube.com/feeds/videos.xml")) return new Response(`<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"><entry><title>Synthetic workflow video</title><link href="https://youtube.example/video"/><published>2026-11-19</published><summary>Workflow implementation</summary></entry></feed>`);
+    if (target.includes("youtube.com/feeds/videos.xml")) return new Response(`<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"><entry><title>Synthetic workflow video</title><link href="https://youtube.example/video"/><published>2026-11-19</published><summary>Workflow implementation</summary></entry></feed>`, { headers: { "content-type": "application/atom+xml" } });
     if (FEEDS.some((feed) => feed.url === target)) return new Response("<rss><channel/></rss>", { headers: { "content-type": "application/rss+xml" } });
     if (target === HN_URL) return Response.json({ hits: [] });
     throw new Error(`unexpected_fixture_url:${target}`);
