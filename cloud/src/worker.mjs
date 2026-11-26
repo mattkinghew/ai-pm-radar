@@ -9,6 +9,27 @@ import { canonicalSourceValue } from "./source-import.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
+// Approval and quarantine are independent gates; private KB content is never selected.
+const PUBLIC_ITEMS = `FROM items i JOIN kb_entries k ON k.item_id=i.id
+  WHERE i.kind='daily' AND i.status='approved' AND i.curation_status IN ('main','released')
+  AND i.injection_suspect=0 AND i.dismissed_reason IS NULL AND k.origin='approved' AND k.kb_type='item'`;
+const publicStrings = (value) => { try { const a = JSON.parse(value); return Array.isArray(a) ? a.filter((v) => typeof v === "string") : []; } catch { return []; } };
+async function publicShowcase(env, url) {
+  const lane = url.searchParams.get("lane");
+  if (lane !== null && !LANES.includes(lane)) return json({ error: "bad_lane" }, 400);
+  try {
+    const [rows, stats] = await Promise.all([
+      env.DB.prepare(`SELECT COALESCE(i.title_zh,i.title) AS title,i.url,i.source,i.lane,i.category,i.summary,i.key_points,k.tags,i.score,i.published_at
+        ${PUBLIC_ITEMS}${lane ? " AND i.lane=?" : ""} ORDER BY i.published_at DESC,i.id LIMIT 30`).bind(...(lane ? [lane] : [])).all(),
+      env.DB.prepare(`SELECT COUNT(*) AS approved_items,COUNT(DISTINCT i.source) AS sources,COUNT(DISTINCT i.lane) AS lanes,MAX(i.published_at) AS latest_published_at ${PUBLIC_ITEMS}`).first(),
+    ]);
+    const items = rows.results.map((r) => ({ title: r.title, url: r.url, source: r.source, lane: r.lane, category: r.category,
+      summary: r.summary, key_points: publicStrings(r.key_points), tags: publicStrings(r.tags), score: r.score, published_at: r.published_at }));
+    return new Response(JSON.stringify({ items, stats }), { headers: { "content-type": "application/json; charset=utf-8", ...SEC, "cache-control": "public, max-age=300" } });
+  } catch {
+    return json({ error: "showcase_unavailable" }, 503);
+  }
+}
 const ROW = "id,kind,status,title,title_source,url,source,source_type,category,summary,key_points,score,ai_provider,ai_model,analysis_basis,analysis_source_type,analysis_status,analysis_error_code,title_zh,title_original,summary_en,key_points_en,raw_excerpt,run_date,created_at,updated_at,reco_score,reco_reason,metrics,side_income_new,side_income_reason,score_reason,starred,read_later,dismissed_reason,lane,pref_score,pref_reasons,pref_breakdown,curation_status,curation_reason,published_at,claim_status,evidence_tier,review_status,injection_suspect,action_14d,(SELECT tags FROM kb_entries WHERE item_id=items.id) AS tags";
 const DETAIL_ROW = `${ROW},original_text`;
 const pj = (v) => { try { return v ? JSON.parse(v) : []; } catch { return []; } };
@@ -97,6 +118,13 @@ function authFetch(env) {
 
 export async function handle(request, env, deps = {}) {
   const url = new URL(request.url);
+  if (url.pathname === "/api/public/showcase") {
+    if (request.method === "GET") return publicShowcase(env, url);
+    const response = json({ error: "method_not_allowed" }, 405); response.headers.set("allow", "GET"); return response;
+  }
+  if (request.method === "GET" && ["/showcase", "/showcase.js", "/showcase.css"].includes(url.pathname)) {
+    return env.ASSETS ? env.ASSETS.fetch(request) : new Response("Not found", { status: 404, headers: SEC });
+  }
   if (request.headers.get("authorization")) {
     // Machine path: only ingest + read sources; never falls through to owner routes.
     if (!BEARER_ROUTES(url, request.method) || !(await bearerOk(request, env))) return json({ error: "unauthorized" }, 401);

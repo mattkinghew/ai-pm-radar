@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AI PM Radar 公開精選：從來源訊號到人工審批，閱讀具來源的 AI 產品簡報。">
+  <title>AI PM Radar — Public Showcase</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/showcase.css">
+  <script src="/showcase.js" type="module"></script>
+</head>
+<body>
+  <a class="skip" href="#briefs">跳至精選簡報</a>
+  <header class="masthead wrap">
+    <a class="brand" href="/showcase">AI PM <span>RADAR</span></a>
+    <span class="edition">PUBLIC SHOWCASE / 公開精選</span>
+    <a class="owner" href="/">Owner Console <span aria-hidden="true">→</span></a>
+  </header>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow">SIGNALS → CONTEXT → DECISIONS</p>
+        <h1 id="hero-title">讀懂 AI 訊號。<br><span>帶回產品決策。</span></h1>
+        <p class="intro">為 AI 產品工作者整理的公開簡報。從來源出發，以摘要、重點與人工審批，留下值得追蹤的訊號。</p>
+      </div>
+      <aside class="process" aria-label="編輯流程">
+        <p class="eyebrow">THE EDITORIAL LOOP</p>
+        <ol><li><span>01</span> 收集來源訊號</li><li><span>02</span> 整理摘要與脈絡</li><li><span>03</span> 人工審批後展示</li></ol>
+        <p>分數代表編輯參考，並非事實核實。<br>閱讀原文，保留自己的判斷。</p>
+      </aside>
+    </section>
+    <section class="telemetry" aria-label="公開資料統計">
+      <div><strong id="stat-items">—</strong><span>已批准簡報</span></div>
+      <div><strong id="stat-sources">—</strong><span>公開來源</span></div>
+      <div><strong id="stat-lanes">—</strong><span>研究方向</span></div>
+      <p id="freshness">正在讀取公開資料…</p>
+    </section>
+    <section id="briefs" aria-labelledby="briefs-title">
+      <div class="section-heading"><h2 id="briefs-title">精選簡報</h2><span>CURATED BRIEFS / 最多 30 筆</span></div>
+      <div id="lanes" class="filters" role="group" aria-label="依研究方向篩選"></div>
+      <p id="status" role="status" aria-live="polite">正在載入精選簡報…</p>
+      <div id="cards" class="cards" aria-busy="true"></div>
+      <noscript><p>請啟用 JavaScript 以讀取公開精選簡報。</p></noscript>
+    </section>
+  </main>
+  <footer class="wrap"><strong>AI PM RADAR</strong><p>唯讀公開展示 · 人工審批 · 附原始來源<br>內容供學習與產品研究參考；私人筆記與草稿不在此展示。</p><a href="#hero-title">回到頂部 ↑</a></footer>
+</body>
+</html>
