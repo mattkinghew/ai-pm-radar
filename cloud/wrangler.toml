@@ -49,4 +49,9 @@ AI_TARGET_LANGUAGE = "zh-Hant"
 # OPENAI_COMPAT_MODEL and a positive OPENAI_COMPAT_DAILY_CAP. Keep the API key in
 # a Wrangler secret named OPENAI_COMPAT_API_KEY; keyless HTTPS routers may omit it.
 # Unset task routes retain the existing Gemini / Workers AI behavior.
+AI_TASK_PROVIDER_TRANSLATE = "openai-compatible"
+AI_TASK_PROVIDER_READER_SUMMARY = "openai-compatible"
+OPENAI_COMPAT_BASE_URL = "https://openrouter.ai/api/v1"
+OPENAI_COMPAT_MODEL = "openrouter/free"
+OPENAI_COMPAT_DAILY_CAP = "50"
 # Secrets (wrangler secret put): GEMINI_API_KEY
