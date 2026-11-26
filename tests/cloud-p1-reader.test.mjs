@@ -194,6 +194,35 @@ test("reader: fetch+cache, chunked translation, summary cached, highlights, quot
   r = await call(env, calls, `/api/items/${id}/reader`); assert.equal((await r.json()).highlights.length, 1);
 });
 
+test("reader translate and summary use configured compatible pool without Gemini calls", async () => {
+  const env = mkEnv();
+  Object.assign(env, { AI_TASK_PROVIDER_TRANSLATE: "openai-compatible", AI_TASK_PROVIDER_READER_SUMMARY: "openai-compatible", OPENAI_COMPAT_BASE_URL: "https://router.example/v1", OPENAI_COMPAT_MODEL: "fixture/free", OPENAI_COMPAT_DAILY_CAP: "3" });
+  const captured = await handle(req("/api/capture", { method: "POST", headers: J, body: JSON.stringify({ title: "Synthetic English", text: LONG.repeat(6) }) }), env, { authFetch });
+  const { id } = await captured.json();
+  let calls = 0;
+  const fetchImpl = async (url, init) => {
+    assert.equal(String(url), "https://router.example/v1/chat/completions"); calls++;
+    const payload = JSON.parse(init.body);
+    const translation = payload.messages[0].content.startsWith("你是專業科技譯者");
+    const output = translation ? { paragraphs: JSON.parse(payload.messages[1].content).paragraphs.map(() => "合成譯文") }
+      : { title_zh: "合成標題", tldr: "合成摘要", key_points: ["一", "二", "三"], why_ai_pm: "產品關聯", why_side_income: "業務關聯", actions: [] };
+    return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(output) }, finish_reason: "stop" }] }));
+  };
+  const translate = await handle(req(`/api/items/${id}/reader/translate`, { method: "POST" }), env, { authFetch, fetchImpl });
+  assert.equal(translate.status, 200);
+  assert.equal((await translate.json()).article.translation_provider, "openai-compatible");
+  const summary = await handle(req(`/api/items/${id}/reader/summary`, { method: "POST" }), env, { authFetch, fetchImpl });
+  assert.equal(summary.status, 200);
+  const article = (await summary.json()).article;
+  assert.equal(article.summary.provider, "openai-compatible");
+  assert.equal(article.summary.tldr, "合成摘要");
+  assert.equal(article.summary.model, "fixture/free");
+  assert.equal(calls, 2);
+  const quota = await env.DB.prepare("SELECT provider, calls FROM ai_usage_provider WHERE provider='openai-compatible'").first();
+  assert.equal(quota.calls, 2);
+  assert.equal((await env.DB.prepare("SELECT calls FROM ai_usage_provider WHERE provider='gemini'").first()), null);
+});
+
 test("selected manual English body persists separately from excerpt, summary and translation", async () => {
   const env = mkEnv(), calls = { ai: 0 }, text = LONG.repeat(6);
   const captured = await post(env, calls, "/api/capture", { title: "Manual research", text, url: "https://news.example.com/manual", source_language: "en" });

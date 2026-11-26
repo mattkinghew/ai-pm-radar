@@ -175,7 +175,7 @@ export async function handleP1(request, env, deps, url, m, db, now) {
       let done = a.translated_chunks, provider = a.ai_provider, translationModel = a.translation_model || null, err = null;
       for (let k = 0; k < PER_CALL && done < chunks.length; k++) {
         const ch = chunks[done];
-        try { const r = await generate(env, TRANSLATE_PROMPT, JSON.stringify({ paragraphs: ch.map((x) => x.text) }), parseTranslation(ch.length), { fetchImpl, maxOut: 3000 }); tr.push(...r.paragraphs); provider = r.provider; translationModel = r.model || null; done++; }
+        try { const r = await generate(env, TRANSLATE_PROMPT, JSON.stringify({ paragraphs: ch.map((x) => x.text) }), parseTranslation(ch.length), { fetchImpl, maxOut: 3000, task: "translate" }); tr.push(...r.paragraphs); provider = r.provider; translationModel = r.model || null; done++; }
         catch (e) { err = e; break; }
         const metadata = JSON.stringify({ ...pj(item.metrics, {}), translation_provider: provider, translation_model: translationModel || null, target_language: targetLanguageFor(env) });
         const [itemWrite, articleWrite] = await db.batch([
@@ -198,7 +198,7 @@ export async function handleP1(request, env, deps, url, m, db, now) {
       if (a.status !== "ok") return json({ error: "no_full_text", code: "no_full_text", hint: "未擷取到可核對正文；RSS 摘錄不能當作全文做 AI 總結" }, 422);
       const text = pj(a.paragraphs, []).map((x) => x.text).join("\n\n");
       if (text.length < 200) return json({ error: "insufficient_content", code: "insufficient_content", hint: "內容太短，AI 未能總結；請撳原文閱讀" }, 422);
-      try { const s = await generate(env, READER_SUMMARY_PROMPT, `${a.title || item.title}\n${item.url}\n\n${text.slice(0, 11000)}`, parseReaderSummary, { fetchImpl });
+      try { const s = await generate(env, READER_SUMMARY_PROMPT, `${a.title || item.title}\n${item.url}\n\n${text.slice(0, 11000)}`, parseReaderSummary, { fetchImpl, task: "reader_summary" });
         const enrichedSummary = { ...s, provider: s.provider, model: s.model || null, source_type: sourceTypeForArticle(a, item), content_basis: "full_text", partial: text.length > 11000, from_excerpt: false };
         const changed = await db.prepare("UPDATE articles SET summary=?, ai_provider=?, ai_model=?,content_basis='full_text',error_code=NULL,updated_at=? WHERE item_id=? AND updated_at IS ? AND paragraphs IS ? AND summary IS ? AND EXISTS(SELECT 1 FROM items WHERE id=? AND metrics IS ? AND title IS ? AND url IS ? AND raw_excerpt IS ? AND updated_at IS ?)")
           .bind(JSON.stringify(enrichedSummary), s.provider, s.model || null, now, item.id, a.updated_at, a.paragraphs, a.summary, item.id, item.metrics, item.title, item.url, item.raw_excerpt, item.updated_at).run();

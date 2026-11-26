@@ -340,7 +340,7 @@ export async function handle(request, env, deps = {}) {
     const it = await db.prepare("SELECT id,kind,source,source_type,title,url,summary,raw_excerpt,updated_at,ai_provider FROM items WHERE id=?").bind(one[1]).first();
     if (!it) return json({ error: "not_found" }, 404);
     const text = [it.title, it.url, it.raw_excerpt || it.summary || ""].filter(Boolean).join("\n");
-    let ai; try { ai = await summarize(env, text, { fetchImpl: deps.fetchImpl ?? fetch }); } catch (e) { await storeAnalysisFailure(db, it.id, it.updated_at, e); return aiErr(e); }
+    let ai; try { ai = await summarize(env, text, { fetchImpl: deps.fetchImpl ?? fetch, task: "translate" }); } catch (e) { await storeAnalysisFailure(db, it.id, it.updated_at, e); return aiErr(e); }
     ai.content_basis = "from_excerpt"; ai.source_type = sourceKind(it);
     const changed = await db.prepare(AI_UPDATE + " AND title IS ? AND raw_excerpt IS ? AND updated_at IS ? AND ai_provider IS ?")
       .bind(...aiBind(ai, ai.title_original, now, it.id), it.title, it.raw_excerpt, it.updated_at, it.ai_provider).run();

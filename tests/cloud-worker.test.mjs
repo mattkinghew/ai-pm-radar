@@ -25,6 +25,48 @@ test("AI failures map to stable actionable classes without carrying provider res
   assert.equal(targetLanguageFor({}), "zh-Hant");
   assert.equal(targetLanguageFor({ AI_TARGET_LANGUAGE: "en" }), "en");
 });
+
+test("configured translate task uses OpenAI-compatible chat completion and its own quota", async () => {
+  const env = mkEnv({ AI_TASK_PROVIDER_TRANSLATE: "openai-compatible", OPENAI_COMPAT_BASE_URL: "https://router.example/v1/", OPENAI_COMPAT_MODEL: "fixture/free", OPENAI_COMPAT_API_KEY: "fixture-secret", OPENAI_COMPAT_DAILY_CAP: "1" });
+  const calls = [];
+  const fetchImpl = async (url, init) => { calls.push({ url, init }); return new Response(JSON.stringify({ choices: [{ message: { content: '{"paragraphs":["譯文"]}' }, finish_reason: "stop" }] })); };
+  const r = await generate(env, "Translate", "source", (value) => value, { task: "translate", fetchImpl });
+  assert.equal(r.provider, "openai-compatible"); assert.equal(r.model, "fixture/free"); assert.deepEqual(r.paragraphs, ["譯文"]);
+  assert.equal(calls[0].url, "https://router.example/v1/chat/completions");
+  assert.equal(calls[0].init.headers.authorization, "Bearer fixture-secret");
+  assert.equal(JSON.parse(calls[0].init.body).model, "fixture/free");
+  assert.equal((await usage(env)).gemini.used, 0);
+  await assert.rejects(generate(env, "Translate", "source", (value) => value, { task: "translate", fetchImpl }), /ai_daily_cap_reached/u);
+  assert.equal(calls.length, 1);
+});
+
+test("OpenAI-compatible task fails closed on bad config, HTTP failure, and malformed response", async () => {
+  const base = { AI_TASK_PROVIDER_READER_SUMMARY: "openai-compatible", OPENAI_COMPAT_BASE_URL: "https://router.example/v1", OPENAI_COMPAT_MODEL: "fixture/free", OPENAI_COMPAT_DAILY_CAP: "2" };
+  const run = (env, fetchImpl) => generate(env, "Summarize", "source", (value) => value, { task: "reader_summary", fetchImpl });
+  await assert.rejects(run(mkEnv({ ...base, OPENAI_COMPAT_BASE_URL: "http://router.example/v1" }), async () => { throw new Error("sent"); }), /openai_compat_config_invalid/u);
+  const env = mkEnv(base);
+  await assert.rejects(run(env, async () => new Response("private-provider-body", { status: 429 })), /openai_compat_http_429/u);
+  await assert.rejects(run(env, async () => new Response(JSON.stringify({ choices: [{ message: { content: "not json" } }] }))), /ai_bad_output/u);
+  assert.equal((await usage(env)).gemini.used, 0);
+  assert.equal((await usage(env)).openaiCompatible.used, 0);
+  assert.equal(classifyAiFailure(Object.assign(new Error("openai_compat_http_429"), { aiProvider: "openai-compatible" })).status, 429);
+  assert.equal(classifyAiFailure(new Error("openai_compat_config_invalid")).provider, "openai-compatible");
+});
+
+test("configured item translate uses OpenAI-compatible without changing human approval", async () => {
+  const env = mkEnv({ AI_TASK_PROVIDER_TRANSLATE: "openai-compatible", OPENAI_COMPAT_BASE_URL: "https://router.example/v1/chat/completions/", OPENAI_COMPAT_MODEL: "fixture/free", OPENAI_COMPAT_DAILY_CAP: "1" });
+  const id = crypto.randomUUID(), now = new Date().toISOString();
+  await env.DB.prepare("INSERT INTO items(id,kind,status,title,url,raw_excerpt,created_at,updated_at) VALUES(?, 'library', 'draft', 'English title', 'https://example.test/1', ?, ?, ?)").bind(id, LONG_TEXT, now, now).run();
+  let urlCalled;
+  const fetchImpl = async (url, init) => { urlCalled = url; assert.equal(init.headers.authorization, undefined); return new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(BI) }, finish_reason: "stop" }] })); };
+  const response = await handle(req(`/api/items/${id}/translate`, { method: "POST" }), env, { authFetch, fetchImpl });
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(urlCalled, "https://router.example/v1/chat/completions");
+  assert.equal(body.item.ai_provider, "openai-compatible");
+  assert.equal(body.item.status, "draft");
+  assert.equal((await usage(env)).gemini.used, 0);
+});
 async function captureThenRead(env, body, deps) {
   const cap = await handle(req("/api/capture", body), env, deps); if (cap.status !== 201) return cap;
   const { id } = await cap.json(); return handle(req(`/api/items/${id}/deep-read`, { method: "POST" }), env, deps);
