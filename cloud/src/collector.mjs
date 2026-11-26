@@ -2,6 +2,7 @@ import { XMLParser } from "fast-xml-parser";
 import { summarize, hktDay, reserveAutoItem, classifyAiFailure } from "./ai.mjs";
 import { normalizeUrl, scoreLane, LANES, collapseRepeatedParagraphs } from "./curation.mjs";
 import { fetchRestricted, RADAR_FETCH_HOSTS } from "./safe-fetch.mjs";
+import { resolveRsshubUrl } from "./source-import.mjs";
 
 export const FEEDS = [
   { id: "openai", category: "AI_TECH_NEWS", url: "https://openai.com/news/rss.xml" },
@@ -63,7 +64,7 @@ async function conditionalFetch(fetchImpl, url, key, db, init = {}, allowedHosts
 }
 async function mapLimit(values, limit, task) {
   const out = new Array(values.length); let next = 0;
-  await Promise.all(Array.from({ length: Math.min(limit, values.length) }, async () => { while (next < values.length) { const i = next++; try { out[i] = await task(values[i], i); } catch (error) { out[i] = { error: String(error?.message || "source_error").slice(0, 120) }; } } }));
+  await Promise.all(Array.from({ length: Math.min(limit, values.length) }, async () => { while (next < values.length) { const i = next++; try { out[i] = await task(values[i], i); } catch (error) { out[i] = { error: String(error?.message || "source_error").slice(0, 120), ...(error?.hint ? { hint: String(error.hint).slice(0, 240) } : {}) }; } } }));
   return out;
 }
 function sourceMatches(text, source) {
@@ -72,12 +73,21 @@ function sourceMatches(text, source) {
   const folded = String(text).toLocaleLowerCase();
   return (!includes.length || includes.some((k) => folded.includes(String(k).toLocaleLowerCase()))) && !excludes.some((k) => folded.includes(String(k).toLocaleLowerCase()));
 }
-export async function collect(fetchImpl = fetch, extra = [], { githubToken = "", onError = () => {}, db = null, allowedHosts = RADAR_FETCH_HOSTS } = {}) {
+export async function collect(fetchImpl = fetch, extra = [], { githubToken = "", onError = () => {}, db = null, allowedHosts = RADAR_FETCH_HOSTS, rsshubBaseUrl = "" } = {}) {
   // Built-in and custom sources share the six-request concurrency bound. New adapter calls are capped at 30/run.
   const standard = [...FEEDS.map((f) => ({ ...f, type: "rss", ai_eligible: 1, weight: 0, cacheKey: `builtin:${f.id}` })), ...extra.filter((s) => s.type === "rss").map((s) => ({ ...s, id: `user:${s.label || s.id}`, url: s.value, category: s.lane_default || "OTHER", cacheKey: `source:${s.id}` }))];
   const adapters = extra.filter((s) => s.type !== "rss" && s.type !== "x").slice(0, 30);
   const jobs = [
-    ...standard.map((feed) => async () => { const r = await conditionalFetch(fetchImpl, feed.url, feed.cacheKey, db, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }, allowedHosts); if (r.status === 304) return []; if (!r.ok) throw new Error(`http_${r.status}`); return parseFeed(await r.text(), feed); }),
+    ...standard.map((feed) => async () => {
+      const rsshub = String(feed.value || "").toLowerCase().startsWith("rsshub://") ? resolveRsshubUrl(feed.value, { RSSHUB_BASE_URL: rsshubBaseUrl }) : null;
+      if (rsshub?.error) throw Object.assign(new Error(rsshub.error), { hint: rsshub.hint });
+      const url = rsshub?.url || feed.url;
+      const hosts = rsshub?.hostname ? new Set([...allowedHosts, rsshub.hostname]) : allowedHosts;
+      const r = await conditionalFetch(fetchImpl, url, feed.cacheKey, db, { headers: { "user-agent": "ai-pm-radar-cloud/1" } }, hosts);
+      if (r.status === 304) return [];
+      if (!r.ok) throw new Error(`http_${r.status}`);
+      return parseFeed(await r.text(), feed);
+    }),
     ...adapters.map((s) => async () => {
       const headers = { "user-agent": "ai-pm-radar-cloud/1", accept: "application/vnd.github+json" };
       if (githubToken && s.type.startsWith("github_")) headers.authorization = `Bearer ${githubToken}`;
@@ -103,8 +113,8 @@ export async function collect(fetchImpl = fetch, extra = [], { githubToken = "",
     }),
     async () => { const r = await conditionalFetch(fetchImpl, HN_URL, "builtin:hn", db, { headers: { "user-agent": "ai-pm-radar-cloud/1" }, allowedMime: ["application/json"] }, allowedHosts); if (r.status === 304) return []; if (!r.ok) throw new Error(`http_${r.status}`); return ((await r.json()).hits ?? []).slice(0, 10).filter((h) => h.title).map((h) => ({ title: decodeEntities(h.title), title_source: "page", url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`, excerpt: h.title, source: "hn", category: "AI_TECH_NEWS" })); },
   ];
-  const results = await mapLimit(jobs, 6, async (job, index) => { const result = await job(); if (result?.error) onError({ index, error: result.error }); return result; });
-  return results.flatMap((r, index) => { if (r?.error) { const src = index >= standard.length && index < standard.length + adapters.length ? adapters[index - standard.length] : standard[index]; onError({ source: src?.label || src?.id || "hn", error: r.error }); return []; }
+  const results = await mapLimit(jobs, 6, async (job) => await job());
+  return results.flatMap((r, index) => { if (r?.error) { const src = index >= standard.length && index < standard.length + adapters.length ? adapters[index - standard.length] : standard[index]; onError({ source: src?.label || src?.id || "hn", error: r.error, ...(r.hint ? { hint: r.hint } : {}) }); return []; }
     const src = index < standard.length ? standard[index] : index < standard.length + adapters.length ? adapters[index - standard.length] : null;
     return (Array.isArray(r) ? r : []).filter((it) => !src || sourceMatches(`${it.title} ${it.excerpt}`, src)).map((it) => ({ ...it, source_type: it.source_type || src?.type || "api", source_weight: src?.weight || 0, lane: it.lane || src?.lane_default || undefined, ai_eligible: src ? Number(src.ai_eligible || 0) : 1 })); });
 }
@@ -118,7 +128,7 @@ export async function runDaily(env, { fetchImpl = fetch, nowMs = Date.now(), all
   const sourceErrors = [];
   const sources = await userFeeds(env.DB);
   const counts = new Map(((await env.DB.prepare("SELECT source,COUNT(*) count FROM items WHERE run_date=? GROUP BY source").bind(day).all()).results || []).map((r) => [r.source, Number(r.count)]));
-  const items = await collect(fetchImpl, sources, { githubToken: env.GITHUB_TOKEN || "", onError: (e) => sourceErrors.push(e), db: env.DB, allowedHosts });
+  const items = await collect(fetchImpl, sources, { githubToken: env.GITHUB_TOKEN || "", onError: (e) => sourceErrors.push(e), db: env.DB, allowedHosts, rsshubBaseUrl: env.RSSHUB_BASE_URL || "" });
   let collected = 0, analyzed = 0, error = null, analysis = { status: "skipped", reason: "analysis_disabled", skipped: [], failures: [] };
   for (const it of items) {
     const sourceSetting = sources.find((s) => it.source === s.label || it.source === s.value || it.source === `user:${s.label || s.id}`);

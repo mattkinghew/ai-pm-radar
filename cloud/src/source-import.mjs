@@ -5,6 +5,36 @@ const TYPES = new Set(["rss", "x", "github_search", "github_releases", "youtube_
 const MAX_BYTES = 1_000_000;
 const MAX_ROWS = 100;
 
+function rsshubInput(value) {
+  const match = String(value || "").trim().match(/^rsshub:\/\/([\s\S]*)$/iu);
+  if (!match) return { recognized: false };
+  const route = match[1].replace(/^\/+|\/+$/gu, "");
+  if (!route || /[\s\u0000-\u001f\u007f?#@\\]/u.test(route) || !/^[A-Za-z0-9._~!$&'()+,;=%\-/]+$/u.test(route)) return { recognized: true, error: "invalid_rsshub_route" };
+  const segments = route.split("/");
+  try {
+    if (segments.some((segment) => {
+      const decoded = decodeURIComponent(segment);
+      return decoded === "." || decoded === ".." || decoded.includes("/") || decoded.includes("\\") || /[\s\u0000-\u001f\u007f]/u.test(decoded);
+    })) return { recognized: true, error: "invalid_rsshub_route" };
+  } catch { return { recognized: true, error: "invalid_rsshub_route" }; }
+  return { recognized: true, route, value: `rsshub://${route}` };
+}
+
+export const normalizeRsshubSource = rsshubInput;
+
+export function resolveRsshubUrl(value, env = {}) {
+  const source = rsshubInput(value);
+  if (!source.recognized || source.error) return { error: source.error || "invalid_rsshub_route", hint: "RSSHub 路由格式無效，請檢查路由內容。" };
+  const rawBase = String(env?.RSSHUB_BASE_URL || "").trim();
+  if (!rawBase) return { error: "rsshub_base_url_not_configured", hint: "請先設定 RSSHUB_BASE_URL，才能讀取 rsshub:// 來源。" };
+  const safeBase = safeFetchUrl(rawBase);
+  if (!safeBase) return { error: "rsshub_base_url_invalid", hint: "RSSHUB_BASE_URL 必須是安全的 HTTPS 網址，且不可包含帳密、非標準連接埠或內網位址。" };
+  const base = new URL(safeBase);
+  if (base.protocol !== "https:" || base.search || base.hash) return { error: "rsshub_base_url_invalid", hint: "RSSHUB_BASE_URL 必須是沒有查詢參數或片段的 HTTPS 網址。" };
+  base.pathname = `${base.pathname.replace(/\/+$/u, "")}/`;
+  return { url: new URL(source.route, base).toString(), hostname: base.hostname.toLowerCase() };
+}
+
 const xmlText = (value) => String(value || "").replace(/&#(\d+);/gu, (_, n) => String.fromCodePoint(Math.min(0x10ffff, Number(n))))
   .replace(/&#x([\da-f]+);/giu, (_, n) => String.fromCodePoint(Math.min(0x10ffff, Number.parseInt(n, 16))))
   .replace(/&(amp|quot|apos|lt|gt);/giu, (_, name) => ({ amp: "&", quot: '"', apos: "'", lt: "<", gt: ">" })[name.toLowerCase()]);
@@ -41,7 +71,9 @@ function opmlRows(text) {
     for (const a of match[1].matchAll(/([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/gu)) attrs[a[1].toLowerCase()] = xmlText(a[2] ?? a[3]);
     const url = attrs.xmlurl || attrs.url;
     if (url) {
-      const source = parseSourceLines(url)[0] || { type: null, value: url, status: "needs_map", error: "needs_map" };
+      const rsshub = rsshubInput(url);
+      const source = rsshub.recognized ? { type: "rss", value: rsshub.value || url, status: rsshub.error ? "invalid" : "pending", error: rsshub.error }
+        : parseSourceLines(url)[0] || { type: null, value: url, status: "needs_map", error: "needs_map" };
       rows.push({ type: source.type, value: source.value || url, status: source.status, error: source.error, label: (attrs.title || attrs.text || "").slice(0, 160), category: (attrs.category || "").slice(0, 160), line: rows.length + 1 });
     }
     if (rows.length > MAX_ROWS) return { error: "import_too_many_rows", rows: [] };
@@ -71,7 +103,10 @@ function csvRows(text, mapping) {
     let value = type === "x" ? (handle ? (handle.startsWith("@") ? handle : `@${handle}`) : url) : url || handle;
     let inferred = null;
     if (!type) {
-      inferred = handle ? { type: "x", value: handle.startsWith("@") ? handle : `@${handle}`, status: "pending" } : parseSourceLines(value)[0];
+      const rsshub = rsshubInput(value);
+      inferred = handle ? { type: "x", value: handle.startsWith("@") ? handle : `@${handle}`, status: "pending" }
+        : rsshub.recognized ? { type: "rss", value: rsshub.value || value, status: rsshub.error ? "invalid" : "pending", error: rsshub.error }
+          : parseSourceLines(value)[0];
       type = inferred?.type || "";
       value = inferred?.value || value;
     }
@@ -83,7 +118,7 @@ function csvRows(text, mapping) {
 
 export function canonicalSourceValue(type, value) {
   const raw = String(value || "").trim();
-  if (type === "rss") return normalizeUrl(raw) || raw.toLowerCase();
+  if (type === "rss") { const rsshub = rsshubInput(raw); return rsshub.recognized ? (rsshub.value || raw.toLowerCase()) : normalizeUrl(raw) || raw.toLowerCase(); }
   if (type === "x") return raw.replace(/^@/u, "").toLowerCase();
   if (type === "github_releases") return raw.replace(/^https?:\/\/(?:www\.)?github\.com\//iu, "").replace(/\/releases\/?$/iu, "").replace(/\/$/u, "").replace(/\.git$/iu, "").toLowerCase();
   return raw.toLocaleLowerCase().replace(/\s+/gu, " ");
@@ -97,7 +132,11 @@ export function validateSourceImportRow(row) {
   let error = null;
   if (!TYPES.has(type)) error = "unsupported_adapter_type";
   else if (!value || value.length > 2048) error = "source_value_required_or_too_long";
-  else if (type === "rss" && (!/^https:\/\//iu.test(value) || !safeFetchUrl(value))) error = "unsafe_or_invalid_url";
+  else if (type === "rss") {
+    const rsshub = rsshubInput(value);
+    if (rsshub.recognized) { if (rsshub.error) error = rsshub.error; else value = rsshub.value; }
+    else if (!/^https:\/\//iu.test(value) || !safeFetchUrl(value)) error = "unsafe_or_invalid_url";
+  }
   else if (type === "x") {
     const fromUrl = value.match(/^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/?$/iu)?.[1];
     value = `@${fromUrl || value.replace(/^@/u, "")}`;
@@ -130,7 +169,11 @@ export function parseSourceImport({ format, content, mapping } = {}) {
   else if (format === "text") {
     const inputRows = text.split(/\r?\n/u).filter((line) => line.trim() && !line.trim().startsWith("#"));
     if (inputRows.length > MAX_ROWS) return { error: "import_too_many_rows", rows: [] };
-    parsed = { rows: parseSourceLines(text).map((r) => ({ type: r.type, value: r.value, label: "", category: "", line: r.line, error: r.error, status: r.status })) };
+    parsed = { rows: parseSourceLines(text).map((r) => {
+      const rsshub = rsshubInput(r.line);
+      return rsshub.recognized ? { type: "rss", value: rsshub.value || r.line, label: "", category: "", line: r.line, error: rsshub.error, status: rsshub.error ? "invalid" : "pending" }
+        : { type: r.type, value: r.value, label: "", category: "", line: r.line, error: r.error, status: r.status };
+    }) };
   }
   else return { error: "unsupported_import_format", rows: [] };
   if (parsed.error || parsed.mapping_required) return { ...parsed, rows: parsed.rows || [] };

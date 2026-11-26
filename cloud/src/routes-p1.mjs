@@ -1,6 +1,6 @@
 // P1 routes: reader view (full text, chunked translation, AI summary), highlights, bulk sources, bulk notes, KB search/synthesis.
 import { generate, classifyAiFailure, targetLanguageFor } from "./ai.mjs";
-import { canonicalSourceValue, parseSourceImport, validateSourceImportRow } from "./source-import.mjs";
+import { canonicalSourceValue, normalizeRsshubSource, parseSourceImport, resolveRsshubUrl, validateSourceImportRow } from "./source-import.mjs";
 import { safeFetchUrl, extractArticle, chunkParagraphs, TRANSLATE_PROMPT, parseTranslation, READER_SUMMARY_PROMPT, parseReaderSummary,
   SYNTH_PROMPT, parseSynthesis, synthesisMarkdown, parseSourceLines, looksLikeFeed, discoverFeed, parseNotes } from "./reader.mjs";
 import { fetchRestricted, RADAR_FETCH_HOSTS } from "./safe-fetch.mjs";
@@ -333,7 +333,10 @@ export async function handleP1(request, env, deps, url, m, db, now) {
   }
 
   if (p === "/api/sources/bulk" && m === "POST") {
-    const b = await request.json().catch(() => ({})); const rows = parseSourceLines(b?.text);
+    const b = await request.json().catch(() => ({})); const rows = parseSourceLines(b?.text).map((row) => {
+      const rsshub = normalizeRsshubSource(row.line);
+      return rsshub.recognized ? { ...row, type: "rss", value: rsshub.value || row.line, status: rsshub.error ? "invalid" : "pending", error: rsshub.error } : row;
+    });
     if (!rows.length) return json({ error: "empty", hint: "每行一個 https 網址或 @handle" }, 400);
     const existingRows = (await db.prepare("SELECT type,adapter_type,value,canonical_value FROM sources").all()).results;
     const existing = new Set(existingRows.flatMap((r) => { const type = r.type === "x" || r.adapter_type === "x" ? "x" : r.adapter_type || r.type; return [`${type}:${canonicalSourceValue(type, r.value)}`, r.canonical_value ? `${type}:${r.canonical_value}` : ""]; }));
@@ -342,14 +345,18 @@ export async function handleP1(request, env, deps, url, m, db, now) {
       if (r.status !== "pending") continue;
       if (r.type === "rss" && checks < 25) { // validate feed; auto-discover from HTML pages
         checks++;
-        const t = safeFetchUrl(r.value);
+        const rsshub = normalizeRsshubSource(r.value);
+        const resolved = rsshub.recognized ? resolveRsshubUrl(r.value, env) : null;
+        if (resolved?.error) { r.status = "not_feed"; r.error = resolved.error; r.hint = resolved.hint; continue; }
+        const t = resolved?.url || safeFetchUrl(r.value);
         if (!t) { r.status = "invalid"; r.error = "網址不允許"; continue; }
-        const fetched = await fetchRestricted(fetchImpl, t, { allowedHosts: RADAR_FETCH_HOSTS, allowedMime: ["text/html", "application/xhtml+xml", "application/rss+xml", "application/atom+xml", "application/xml", "text/xml", "text/plain"], maxBytes: 1_000_000, timeoutMs: 8000, headers: { "user-agent": "ai-pm-radar-cloud/1" } });
+        const hosts = resolved?.hostname ? new Set([...RADAR_FETCH_HOSTS, resolved.hostname]) : RADAR_FETCH_HOSTS;
+        const fetched = await fetchRestricted(fetchImpl, t, { allowedHosts: hosts, allowedMime: ["text/html", "application/xhtml+xml", "application/rss+xml", "application/atom+xml", "application/xml", "text/xml", "text/plain"], maxBytes: 1_000_000, timeoutMs: 8000, headers: { "user-agent": "ai-pm-radar-cloud/1" } });
         if (fetched.error) { r.status = "not_feed"; r.error = fetched.error === "unsupported_host" ? "此網域未在安全擷取 allowlist；請手動加入已核對的 RSS feed" : fetched.error === "unsafe_redirect" ? "重新導向目的地不在安全 allowlist" : fetched.error === "timeout" ? "連線逾時" : fetched.error === "unsupported_content_type" ? "回應不是允許的 HTML／RSS 格式" : fetched.error; continue; }
         const res = fetched.response, body = res.status === 304 ? "" : await res.text();
         if (res.status === 304) { r.status = "not_feed"; r.error = "來源沒有提供可驗證的新內容"; continue; }
         if (looksLikeFeed(body)) { /* ok */ }
-        else if (res.ok && discoverFeed(body, fetched.url) && RADAR_FETCH_HOSTS.has(new URL(discoverFeed(body, fetched.url)).hostname.toLowerCase())) { r.discovered_from = r.value; r.value = discoverFeed(body, fetched.url); }
+        else if (res.ok && discoverFeed(body, fetched.url) && hosts.has(new URL(discoverFeed(body, fetched.url)).hostname.toLowerCase())) { r.discovered_from = r.value; r.value = discoverFeed(body, fetched.url); }
         else { r.status = "not_feed"; r.error = res.ok ? "唔係 RSS/Atom，亦搵唔到安全 allowlist 內的 feed 連結" : `HTTP ${res.status}`; continue; }
       }
       const key = `${r.type}:${canonicalSourceValue(r.type, r.value)}`;

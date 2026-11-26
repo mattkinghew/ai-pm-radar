@@ -42,6 +42,8 @@ AI_AUTO_ANALYZE_ENABLED = "true"
 AI_AUTO_ANALYZE_INCLUDE_TERMS = "一人公司,solopreneur,indie,低成本,變現,副業,訊息差,frontend,react,css,學習,工具,定價,workflow,consultant"
 AI_AUTO_ANALYZE_EXCLUDE_TERMS = "羊毛,web3,短劇,政治,地緣政治,情報,intelligence,politics,political,intel,數據中心,data center,data centre"
 AI_TARGET_LANGUAGE = "zh-Hant"
+# Optional self-hosted RSSHub base; rsshub:// sources stay disabled until this is configured.
+# RSSHUB_BASE_URL = "https://rsshub.example.com"
 # Optional task routing: set AI_TASK_PROVIDER_TRANSLATE and/or AI_TASK_PROVIDER_READER_SUMMARY
 # to "openai-compatible" only after setting OPENAI_COMPAT_BASE_URL (HTTPS),
 # OPENAI_COMPAT_MODEL and a positive OPENAI_COMPAT_DAILY_CAP. Keep the API key in
