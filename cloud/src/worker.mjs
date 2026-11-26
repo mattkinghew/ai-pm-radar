@@ -6,13 +6,11 @@ import { handleP1, KB_COLS, kbShape as kbShapeP1 } from "./routes-p1.mjs";
 import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath, scoreLane, LANES, injectionSuspect, feedbackOverlay, normalizeTrainTerm, collapseRepeatedParagraphs } from "./curation.mjs";
 import { chunkParagraphs } from "./reader.mjs";
 import { canonicalSourceValue } from "./source-import.mjs";
+import { dailyDigest, PUBLISHABLE_ITEMS } from "./digest.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
-// Approval and quarantine are independent gates; private KB content is never selected.
-const PUBLIC_ITEMS = `FROM items i JOIN kb_entries k ON k.item_id=i.id
-  WHERE i.kind='daily' AND i.status='approved' AND i.curation_status IN ('main','released')
-  AND i.injection_suspect=0 AND i.dismissed_reason IS NULL AND k.origin='approved' AND k.kb_type='item'`;
+const PUBLIC_ITEMS = PUBLISHABLE_ITEMS;
 const publicStrings = (value) => { try { const a = JSON.parse(value); return Array.isArray(a) ? a.filter((v) => typeof v === "string") : []; } catch { return []; } };
 async function publicShowcase(env, url) {
   const lane = url.searchParams.get("lane");
@@ -135,6 +133,13 @@ export async function handle(request, env, deps = {}) {
   if (!owner) return url.pathname.startsWith("/api/") ? json({ error: "unauthorized" }, 401) : new Response("Unauthorized", { status: 401, headers: SEC });
   if (!url.pathname.startsWith("/api/")) return env.ASSETS ? env.ASSETS.fetch(request) : new Response("Not found", { status: 404 });
   const db = env.DB; const now = new Date().toISOString(); const m = request.method;
+  if (url.pathname === "/api/digest") {
+    if (m !== "GET") { const response = json({ error: "method_not_allowed" }, 405); response.headers.set("allow", "GET"); return response; }
+    if (!url.searchParams.has("days") || url.searchParams.has("window")) {
+      try { const digest = await dailyDigest(db, url, deps.nowMs); return json(digest, digest.error ? 400 : 200); }
+      catch { return json({ error: "digest_unavailable" }, 503); }
+    }
+  }
   const p1 = await handleP1(request, env, deps, url, m, db, now); if (p1) return p1;
 
   if (url.pathname === "/api/items/batch-summarize" && m === "POST") {
@@ -207,10 +212,10 @@ export async function handle(request, env, deps = {}) {
   if (url.pathname === "/api/digest" && m === "GET") {
     const days = Number(url.searchParams.get("days") || 7); if (!Number.isInteger(days) || days < 1 || days > 30) return json({ error: "bad_days" }, 400);
     const since = new Date(Date.now() - days * 86400000).toISOString();
-    const rows = await trained(db, (await db.prepare(`SELECT ${ROW} FROM items WHERE created_at>=?`).bind(since).all()).results);
+    const rows = await trained(db, (await db.prepare(`SELECT ${ROW} FROM items WHERE created_at>=? AND id IN (SELECT i.id ${PUBLISHABLE_ITEMS})`).bind(since).all()).results);
     const mutes = (await db.prepare("SELECT kind,value FROM mutes").all()).results;
     const visible = rows.filter((it) => it.curation_status !== "quarantine" && !it.dismissed_reason && !isMuted(it, mutes)).sort(byPreference);
-    return json({ days, ai_calls: 0, lanes: Object.fromEntries(LANES.map((lane) => [lane, visible.filter((it) => it.lane === lane).slice(0, 3)])) });
+    return json({ days, ai_calls: 0, lanes: Object.fromEntries(LANES.map((lane) => [lane, visible.filter((it) => it.lane === lane).slice(0, 3).map((it) => ({ id: it.id, title: it.title_zh || it.title, url: it.url, source: it.source, lane: it.lane, score: it.score, summary: it.summary, key_points: it.key_points, tags: it.tags, published_at: it.published_at, train_reasons: it.train_reasons }))])) });
   }
   if (url.pathname === "/api/trainer" && m === "GET") return json({ weights: (await db.prepare("SELECT key,weight,pos,neg,updated_at FROM feedback_weights ORDER BY key").all()).results });
   if (url.pathname === "/api/trainer" && m === "POST") {

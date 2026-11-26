@@ -160,9 +160,17 @@ test("RSS, YouTube Atom, and GitHub adapters persist validators and honor 304", 
   assert.equal(db.raw.prepare("SELECT etag,last_modified FROM source_http_cache WHERE source_key='source:release'").get().etag, null);
 });
 
+// Digest ranking fixtures must pass the independent publication gate.
+function approveDigestFixtures(e) {
+  e.DB.raw.exec("UPDATE items SET kind='daily',status='approved'");
+  e.DB.raw.exec(`INSERT INTO kb_entries(id,item_id,title,origin,kb_type,created_at,updated_at)
+    SELECT 'approved-' || id,id,title,'approved','item',created_at,updated_at FROM items`);
+}
+
 test("action digest is deterministic and reports zero AI calls", async () => {
   const e = env();
   await handle(req("/api/inbox/import", [{ title: "Pricing interview", value: "Paid pilot; willingness to pay; pricing discussion. Synthetic body." }]), e, { authFetch });
+  approveDigestFixtures(e);
   const r = await handle(req("/api/digest?days=7"), e, { authFetch }); const d = await r.json();
   assert.equal(d.ai_calls, 0); assert.equal(d.lanes.MONETIZATION_GAP.length, 1);
 });
@@ -177,6 +185,7 @@ test("digest and daily use trained weights without changing stored lane scores",
     [ids[3], "Quasar pricing", "source-d", "D", 0, now],
   ];
   for (const [id, title, source, category, pref, created] of rows) e.DB.raw.prepare("INSERT INTO items(id,kind,status,title,source,category,run_date,created_at,updated_at,lane,pref_score) VALUES(?,'daily','draft',?,?,?,?,?,?,'MONETIZATION_GAP',?)").run(id, title, source, category, day, created, now, pref);
+  approveDigestFixtures(e);
   const call = async (path, body) => handle(req(path, body), e, { authFetch, fetchImpl: async () => { throw new Error("AI called"); } });
   const digest = async () => (await (await call("/api/digest?days=7")).json());
   const lane = async () => (await digest()).lanes.MONETIZATION_GAP;
@@ -196,6 +205,7 @@ test("keyword thumb demotes the matching item on the next digest and home load",
   const e = env(); const now = new Date().toISOString(), day = now.slice(0, 10);
   const first = crypto.randomUUID(), second = crypto.randomUUID();
   for (const [id, title, age] of [[first, "Orbit pilot", 0], [second, "Comet pilot", 1000]]) e.DB.raw.prepare("INSERT INTO items(id,kind,status,title,source,run_date,created_at,updated_at,lane,pref_score) VALUES(?,'daily','draft',?,?,?,?,?,'MONETIZATION_GAP',0)").run(id, title, id, day, new Date(Date.now() - age).toISOString(), now);
+  approveDigestFixtures(e);
   const call = async (path, body, token = kit.token()) => handle(new Request(`https://radar.example${path}`, { method: body ? "POST" : "GET", headers: { ...(token ? { "Cf-Access-Jwt-Assertion": token } : {}), ...(body ? { "content-type": "application/json" } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) }), e, { authFetch, fetchImpl: async () => { throw new Error("AI called"); } });
   const ranked = async () => (await (await call("/api/digest?days=7")).json()).lanes.MONETIZATION_GAP;
   assert.equal((await ranked())[0].id, first);

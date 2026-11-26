@@ -1,4 +1,5 @@
 import { cleanThreadsExport } from "./threads-import.mjs";
+import { formatDigestMarkdown } from "./digest-markdown.mjs";
 
 const view = document.getElementById("view");
 const dec = (s) => { const t = document.createElement("textarea"); t.innerHTML = String(s ?? ""); return t.value; };
@@ -56,17 +57,53 @@ const card = (it, i = 9) => `<article id="i-${it.id}" class="card ${size(it, i)}
 const list = (items) => items.length ? `<div class="grid">${items.map(card).join("")}</div>` : "<p class='meta'>暫時冇內容</p>";
 const batchSummaryToolbar = (items) => items.some((it) => it.kind === "daily" && it.status === "draft" && (!it.ai_provider || it.ai_provider === "extractive") && String(it.raw_excerpt || "").length >= 200)
   ? `<details class="panel"><summary>批次 AI 摘要（需明確確認預算）</summary><p class="meta">只處理下方已勾選的待審核素材。分析不代表已審核／批准；正文摘錄會傳送到目前設定的模型供應商。</p><label>最多素材數<input id="batch-max-items" type="number" min="1" max="10" value="1"></label><label>最多模型呼叫數<input id="batch-max-calls" type="number" min="1" max="20" value="1"></label><label><input id="batch-confirm" type="checkbox"> 我確認以上素材數及模型呼叫上限，並同意傳送所選摘錄。</label><button id="batch-summarize">對所選素材執行 AI 摘要</button><p id="batch-summarize-status" role="status"></p></details>` : "";
+let viewRevision = 0, digestWindow = "daily", digestLane = "";
+const DIGEST_LANES = ["AI_LEARNING_PATH", "MONETIZATION_GAP", "TECH_NEWS", "GITHUB_PROJECT", "APPLY_NOW", "FREE_RESOURCE", "AGENT_GOVERNANCE", "CONTENT_WORKFLOW", "OTHER"];
+const digestLink = (item) => {
+  const title = esc(item.title || "未命名訊號");
+  try { const url = new URL(item.url); if (["http:", "https:"].includes(url.protocol) && !url.username && !url.password) return `<a href="${esc(url.href)}" target="_blank" rel="noopener noreferrer">${title}</a>`; } catch { /* No valid source URL. */ }
+  return title;
+};
+async function showDigest(revision) {
+  view.innerHTML = '<p role="status">晨報載入中…</p>';
+  const d = await api(`/api/digest?window=${digestWindow}${digestLane ? `&lane=${encodeURIComponent(digestLane)}` : ""}`);
+  if (revision !== viewRevision) return;
+  const markdown = formatDigestMarkdown(d);
+  view.innerHTML = `<section class="digest" aria-label="今日晨報">
+    <div class="digest-heading"><div><p class="dateline">${esc(d.date_label)} · HKT</p><h2>${d.window === "weekly" ? "近 7 日週報" : "今日晨報"}</h2><p>${d.total_items} 則訊號 · ${d.lanes.length} 個 Research Lane</p></div>
+      <button class="digest-copy" id="digest-copy">一鍵複製 Markdown</button></div>
+    <div class="digest-toolbar"><div class="filters" aria-label="晨報時間範圍"><button data-digest-window="daily" aria-pressed="${digestWindow === "daily"}" class="${digestWindow === "daily" ? "on" : ""}">今日晨報</button><button data-digest-window="weekly" aria-pressed="${digestWindow === "weekly"}" class="${digestWindow === "weekly" ? "on" : ""}">近 7 日週報</button></div>
+      <label>Research Lane<select id="digest-lane"><option value="">全部 Lane</option>${DIGEST_LANES.map((lane) => `<option ${digestLane === lane ? "selected" : ""}>${lane}</option>`).join("")}</select></label></div>
+    <p id="digest-copy-status" role="status" aria-live="polite"></p>
+    ${d.fallback_used ? '<p class="digest-notice">今日暫無已批准訊號；顯示最近可用晨報，日期如上。</p>' : ""}
+    <details class="digest-preview"><summary>預覽 Markdown</summary><textarea id="digest-markdown" rows="12" readonly aria-label="Markdown 完整預覽"></textarea></details>
+    ${d.total_items ? `<section class="digest-highlights"><h3>Top 3 重點快覽</h3><ol>${d.top_highlights.map((item) => `<li><span class="digest-score">${esc(item.score ?? "–")}</span><div>${digestLink(item)}<p>${esc(item.summary || item.key_points[0] || "暫無摘要")}</p></div></li>`).join("")}</ol></section>
+    <div class="digest-lanes">${d.lanes.map((group) => `<section class="digest-lane"><h3>${esc(group.lane)} <span>${group.count} 則</span></h3>${group.items.map((item) => `<article><div class="digest-item-heading"><h4>${digestLink(item)}</h4><span class="digest-score">${esc(item.score ?? "–")}</span></div><p class="meta">${esc(item.source || "來源未提供")}</p><p>${esc(item.summary || "暫無摘要")}</p>${ul(item.key_points)}</article>`).join("")}</section>`).join("")}</div>` : '<p class="empty">暫無已批准的可分享訊號。</p>'}</section>`;
+  const preview = document.getElementById("digest-markdown"); preview.value = markdown;
+  document.getElementById("digest-lane").onchange = (event) => { digestLane = event.target.value; show("digest"); };
+  document.getElementById("digest-copy").onclick = async (event) => {
+    const button = event.currentTarget, status = document.getElementById("digest-copy-status");
+    try {
+      try { await navigator.clipboard.writeText(markdown); }
+      catch {
+        const drawer = preview.closest("details"), wasOpen = drawer.open; drawer.open = true;
+        preview.focus(); preview.select(); preview.setSelectionRange(0, markdown.length);
+        const copied = document.execCommand("copy");
+        if (!copied) throw new Error("copy_failed");
+        drawer.open = wasOpen; button.focus();
+      }
+      button.textContent = "已複製 Markdown ✓"; status.textContent = "Markdown 已複製，可貼到社群或筆記。";
+    } catch { preview.closest("details").open = true; preview.focus(); preview.select(); status.textContent = "無法自動複製；請在預覽中長按或全選複製。"; }
+  };
+}
 async function show(tab) {
+  const revision = ++viewRevision;
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === tab));
   try {
+    if (tab === "digest") return await showDigest(revision);
     if (tab === "capture") { view.innerHTML = ""; view.append(document.getElementById("capture-tpl").content.cloneNode(true)); return bindCapture(); }
     if (tab === "sources") { view.innerHTML = ""; view.append(document.getElementById("sources-tpl").content.cloneNode(true)); return bindSources(); }
     if (tab === "daily") {
-      if (localStorage.getItem("radar-digest") === "1") {
-        const [d, trained] = await Promise.all([api("/api/digest?days=7"), api("/api/trainer")]);
-        view.innerHTML = `<button data-digest="0">返回今日</button><p class="meta">近 ${d.days} 日精選 · AI 呼叫 ${d.ai_calls}</p><details><summary>已訓練權重（${trained.weights.length}）</summary><ul>${trained.weights.map((w) => `<li>${esc(w.key)} ${w.weight >= 0 ? "+" : ""}${esc(w.weight)}</li>`).join("")}</ul></details>${Object.entries(d.lanes).filter(([, rows]) => rows.length).map(([name, rows]) => `<section><h2>${esc(name)}</h2>${list(rows)}</section>`).join("")}`;
-        return;
-      }
       const lane = localStorage.getItem("radar-lane") || "ALL";
       const d = await api(`/api/daily${lane === "QUARANTINE" ? "?quarantine=1" : lane === "ARCHIVE" ? "?archive=1" : lane === "ALL" ? "" : `?lane=${encodeURIComponent(lane)}`}`);
       const laneNames = ["ALL", "AI_LEARNING_PATH", "MONETIZATION_GAP", "TECH_NEWS", "GITHUB_PROJECT", "APPLY_NOW", "FREE_RESOURCE", "AGENT_GOVERNANCE", "CONTENT_WORKFLOW", "OTHER", "ARCHIVE", "QUARANTINE"];
@@ -219,7 +256,8 @@ view.addEventListener("click", async (ev) => {
     try { const result = await postJ("/api/items/batch-summarize", { ids, confirm: true, budget: { max_items: maxItems, max_calls: maxCalls } }); const summary = `完成 ${result.results.filter((r) => r.status === "completed").length} 筆；失敗 ${result.results.filter((r) => r.status === "failed").length}；略過 ${result.results.filter((r) => r.status === "skipped").length}；模型呼叫 ${result.model_calls}/${result.budget.max_calls}${result.remaining_ids.length ? `；預算停止，尚有 ${result.remaining_ids.length} 筆未處理` : ""}。分析仍需人工核對。`; await show("daily"); const freshStatus = document.getElementById("batch-summarize-status"); if (freshStatus) freshStatus.textContent = summary; }
     catch (error) { status.textContent = `批次分析未完成：${msgOf(error)}；草稿已保留。`; batchSummary.disabled = false; } return;
   }
-  const digest = ev.target.closest("[data-digest]"); if (digest) { localStorage.setItem("radar-digest", digest.dataset.digest); return show("daily"); }
+  const digestWindowButton = ev.target.closest("[data-digest-window]"); if (digestWindowButton) { digestWindow = digestWindowButton.dataset.digestWindow; return show("digest"); }
+  const digest = ev.target.closest("[data-digest]"); if (digest) { digestWindow = "weekly"; return show("digest"); }
   const thumb = ev.target.closest("[data-train]"); if (thumb) { thumb.disabled = true; try { await train(thumb.dataset.id, "title", thumb.dataset.term, thumb.dataset.train); await show(cur()); } catch (e) { thumb.disabled = false; alert(msgOf(e)); } return; }
   const laneTab = ev.target.closest("[data-lane]"); if (laneTab) { localStorage.setItem("radar-lane", laneTab.dataset.lane); return show("daily"); }
   const mb = ev.target.closest("[data-more]"); if (mb) { const m = mb.nextElementSibling; const show = m.hidden; closeMenus(m); m.hidden = !show; mb.setAttribute("aria-expanded", String(show)); if (show) m.querySelector("button,select")?.focus(); return; } const r = ev.target.closest("[data-reco]"); if (r) { localStorage.setItem("radar-reco", r.dataset.reco); return show("daily"); }
@@ -419,7 +457,7 @@ ${d.added != null ? `<p class="ok">✓ 已新增 ${d.added} 個訊息源</p>` : 
 let bindSourcesRefresh = null;
 
 // ---------- P1: Keyboard shortcuts ----------
-const HELP = [["j / k", "下一張／上一張卡"], ["o 或 Enter", "閱讀全文"], ["s", "收藏"], ["l", "稍後讀"], ["t / m", "閱讀時：翻譯／AI 總結"], ["/", "搜尋知識庫"], ["1–6", "切換分頁"], ["Esc", "關閉"], ["?", "顯示快捷鍵"]];
+const HELP = [["j / k", "下一張／上一張卡"], ["o 或 Enter", "閱讀全文"], ["s", "收藏"], ["l", "稍後讀"], ["t / m", "閱讀時：翻譯／AI 總結"], ["/", "搜尋知識庫"], ["1–7", "切換分頁"], ["Esc", "關閉"], ["?", "顯示快捷鍵"]];
 const help = document.createElement("div"); help.id = "kbd-help"; help.hidden = true; help.setAttribute("role", "dialog"); help.setAttribute("aria-label", "快捷鍵");
 help.innerHTML = `<div class="panel"><h3>快捷鍵</h3><dl>${HELP.map(([k, v]) => `<dt><kbd>${k}</kbd></dt><dd>${v}</dd>`).join("")}</dl><button data-helpclose>關閉</button></div>`; document.body.append(help);
 help.addEventListener("click", (ev) => { if (ev.target === help || ev.target.closest("[data-helpclose]")) help.hidden = true; });
@@ -430,7 +468,7 @@ document.addEventListener("keydown", (ev) => {
   if (ev.key === "Escape") { if (!help.hidden) help.hidden = true; else if (R) closeReader(); return; }
   if (ev.key === "?") { help.hidden = !help.hidden; return; }
   if (R) { if (ev.key === "t") rAI("tr"); else if (ev.key === "m" && !R.article.summary) rAI("sum"); return; }
-  const tabs = [...document.querySelectorAll("nav button")]; if (/^[1-6]$/.test(ev.key)) { tabs[+ev.key - 1]?.click(); return; }
+  const tabs = [...document.querySelectorAll("nav button")]; if (/^[1-7]$/.test(ev.key)) { tabs[+ev.key - 1]?.click(); return; }
   if (ev.key === "/") { const q = view.querySelector("#kb-search input"); if (q) { ev.preventDefault(); q.focus(); } else { ev.preventDefault(); tabs.find((b) => b.dataset.tab === "kb").click(); setTimeout(() => view.querySelector("#kb-search input")?.focus(), 300); } return; }
   const cs = cards(); if (!cs.length) return;
   if (ev.key === "j" || ev.key === "k") { focusIdx = Math.max(0, Math.min(cs.length - 1, (cs.indexOf(document.activeElement.closest?.(".card")) + 1 || focusIdx + 1) - 1 + (ev.key === "j" ? 1 : -1)));
