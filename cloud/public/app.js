@@ -1,3 +1,5 @@
+import { cleanThreadsExport } from "./threads-import.mjs";
+
 const view = document.getElementById("view");
 const dec = (s) => { const t = document.createElement("textarea"); t.innerHTML = String(s ?? ""); return t.value; };
 const esc = (s) => dec(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -309,6 +311,7 @@ view.addEventListener("click", (ev) => { const r = ev.target.closest("[data-read
 // ---------- P1: Knowledge base (search, tags, bulk import, 整理) ----------
 const KBT = { item: "文章", note: "筆記", synthesis: "整理" };
 let KBQ = { q: "", tag: "", type: "" }; const KBSEL = new Set(); let KBNEW = null;
+let KBTHREADS = null, KBTHREADS_MESSAGE = "", KBTHREADS_RUN = null, KBTHREADS_FILENAME = "", KBTHREADS_STARTED = false;
 const md2html = (md) => esc(md).split(/\n/).map((l) => /^## /.test(l) ? `<h4>${l.slice(3)}</h4>` : /^### /.test(l) ? `<h5>${l.slice(4)}</h5>` : /^- /.test(l) ? `<li>${l.slice(2).replace(/^\[ \] /, "☐ ")}</li>` : /^\d+\. /.test(l) ? `<li class="num">${l.replace(/^\d+\. /, "")}</li>` : l.trim() ? `<p>${l}</p>` : "").join("");
 const kbCard = (e) => `<article class="card kb ${e.kb_type === "synthesis" ? "synth" : ""} ${KBNEW === e.id ? "new" : ""}" id="kb-${e.id}"><label class="sel"><input type="checkbox" data-sel="${e.id}" ${KBSEL.has(e.id) ? "checked" : ""} aria-label="揀選「${esc(e.title)}」"></label>
 <div class="kicker">${esc(KBT[e.kb_type] || "文章")} · ${esc(e.kb_type === "item" ? (e.origin === "star" ? "收藏" : e.origin === "approved" ? "批准" : "手動") : e.source === "import" ? "匯入" : "AI")}${e.category && !["NOTE", "SYNTHESIS"].includes(e.category) ? " · " + esc(e.category) : ""}</div><h3>${esc(e.title)}</h3>
@@ -324,10 +327,15 @@ async function renderKB() {
 <a class="btn" href="/api/kb/export" download="radar-kb.md">匯出 Obsidian</a></div>
 ${tags.length ? `<div class="tags tagbar">${KBQ.tag ? `<button class="chip on" data-tag="">✕ #${esc(KBQ.tag)}</button>` : ""}${tags.filter(([t]) => t !== KBQ.tag).map(([t, n]) => `<button class="chip" data-tag="${esc(t)}">#${esc(t)} <span>${n}</span></button>`).join("")}</div>` : ""}
 <details class="panel bulk" id="kb-import" ${KBQ.importOpen ? "open" : ""}><summary>批量匯入筆記</summary><p class="meta">支援 Markdown／純文字：用 <code>---</code> 分隔、每篇以 <code># 標題</code> 開頭、或每行一條網址。<code>#tag</code> 會變標籤。唔使用 AI 額度。</p>
-<textarea id="kb-imp-text" rows="7" placeholder="# 筆記標題&#10;https://…&#10;內容… #agents&#10;---&#10;# 第二篇…"></textarea><div class="row"><button data-kbimp="preview">預覽</button></div><div id="kb-imp-out" role="status"></div></details>
+<textarea id="kb-imp-text" rows="7" placeholder="# 筆記標題&#10;https://…&#10;內容… #agents&#10;---&#10;# 第二篇…"></textarea><div class="row"><button data-kbimp="preview">預覽</button></div><div id="kb-imp-out" role="status"></div>
+<section class="threads-import" aria-labelledby="threads-import-title"><h3 id="threads-import-title">Threads JSON 拖拉／上傳</h3><p class="meta">在瀏覽器本地清理與預覽，不呼叫 AI；只匯入有效筆記，隔離項目預設排除。</p>
+<label class="threads-drop" id="threads-drop">拖放 .json 檔案到此處，或選擇檔案<input id="threads-json-file" type="file" accept=".json,application/json"></label><p id="threads-file-name" class="meta">尚未選擇檔案</p><div id="threads-preview" aria-live="polite"></div></section>
+ </details>
+${KBTHREADS_MESSAGE ? `<p class="meta" role="status">${esc(KBTHREADS_MESSAGE)}</p>` : ""}
 <p class="meta">共 ${d.entries.length} 篇${KBQ.q || KBQ.tag || KBQ.type ? "（已篩選）" : ""}</p>
 ${d.entries.length ? `<div class="grid kbgrid">${d.entries.map(kbCard).join("")}</div>` : "<p class='meta'>冇符合嘅筆記。喺「今日」撳「☆ 收藏」，或者用上面「批量匯入筆記」。</p>"}
 <div class="selbar" ${KBSEL.size ? "" : "hidden"} role="region" aria-label="已揀選"><span>已揀 <b>${KBSEL.size}</b> 篇</span><button class="rej" data-selclear>清除</button><button data-synth ${KBSEL.size < 2 ? "disabled" : ""}>AI 整理（1 次額度）</button><span id="synth-msg" role="status"></span></div>`;
+  if (KBTHREADS) { document.getElementById("threads-file-name").textContent = KBTHREADS_FILENAME; renderThreadsPreview(KBTHREADS); }
   if (KBNEW) document.getElementById("kb-" + KBNEW)?.scrollIntoView({ block: "start" });
 }
 const selbar = () => { const b = view.querySelector(".selbar"); if (!b) return; b.hidden = !KBSEL.size; b.querySelector("b").textContent = KBSEL.size; b.querySelector("[data-synth]").disabled = KBSEL.size < 2; };
@@ -335,7 +343,54 @@ view.addEventListener("submit", (ev) => { if (ev.target.id !== "kb-search") retu
 view.addEventListener("change", (ev) => {
   const s = ev.target.closest("[data-sel]"); if (s) { s.checked ? KBSEL.add(s.dataset.sel) : KBSEL.delete(s.dataset.sel); return selbar(); }
   const t = ev.target.closest("[data-kbtype]"); if (t) { KBQ.type = t.value; renderKB(); } });
+function renderThreadsPreview(result) {
+  const preview = document.getElementById("threads-preview");
+  const lanes = Object.entries(result.byLane).map(([lane, count]) => `${esc(lane)} ${count}`).join(" · ");
+  preview.innerHTML = `<p>原始筆數 ${result.rawCount} · 去重後筆數 ${result.uniqueCount} · 有效筆數 ${result.validItems.length} · 已隔離雜訊 ${result.quarantinedItems.length} · 預計批次 ${result.batches.length}（最多 50 筆／批）</p><p class="meta">Lane：${lanes || "無"}</p>${result.githubRepos.length ? `<p>找到 ${result.githubRepos.length} 個 GitHub Repo URL。</p><button data-threads-import="copy">複製 GitHub 來源清單</button>` : ""}<details><summary>預覽有效筆記（${result.validItems.length}）</summary><ol class="prev">${result.validItems.slice(0, 20).map((item) => `<li><b>${esc(item.title)}</b>${item.canonical_url ? ` <span class="meta">${esc(item.canonical_url)}</span>` : ""}<div class="meta">${esc(item.lane)} · 分數 ${item.pref_score}</div></li>`).join("")}${result.validItems.length > 20 ? `<li>其餘 ${result.validItems.length - 20} 筆略</li>` : ""}</ol></details>${result.quarantinedItems.length ? `<details><summary>查看隔離項目（預設不匯入）</summary><ul class="prev">${result.quarantinedItems.slice(0, 20).map((item) => `<li>${esc(item.title)} <span class="meta">${esc(item.quarantine_reason)}</span></li>`).join("")}</ul></details>` : ""}${result.batches.length ? `<p><button data-threads-import="start" ${KBTHREADS_RUN || KBTHREADS_STARTED ? "disabled" : ""}>${KBTHREADS_STARTED ? "此檔已處理" : "開始分批匯入 KB（0 AI）"}</button> ${KBTHREADS_RUN ? '<button data-threads-import="stop">停止匯入</button>' : ""}</p>` : "<p class='meta'>沒有有效筆記可匯入。</p>"}`;
+}
+async function loadThreadsFile(file) {
+  if (!file) return;
+  if (KBTHREADS_RUN) { KBTHREADS_MESSAGE = "分批匯入進行中，請等目前批次結束後再選新檔。"; return; }
+  KBTHREADS = null; KBTHREADS_MESSAGE = ""; KBTHREADS_STARTED = false; KBTHREADS_FILENAME = file.name;
+  document.getElementById("threads-file-name").textContent = file.name;
+  const preview = document.getElementById("threads-preview");
+  try {
+    const result = cleanThreadsExport(await file.text()); KBTHREADS = result;
+    renderThreadsPreview(result);
+  } catch (error) { preview.innerHTML = `<p class="err">${esc(error.message)}</p>`; }
+}
+view.addEventListener("change", (ev) => { if (ev.target.id === "threads-json-file") loadThreadsFile(ev.target.files?.[0]); });
+view.addEventListener("dragover", (ev) => { if (ev.target.closest?.("#threads-drop")) ev.preventDefault(); });
+view.addEventListener("drop", (ev) => { if (!ev.target.closest?.("#threads-drop")) return; ev.preventDefault(); loadThreadsFile(ev.dataTransfer?.files?.[0]); });
 view.addEventListener("click", async (ev) => {
+  const threadsAction = ev.target.closest("[data-threads-import]");
+  if (threadsAction) {
+    const action = threadsAction.dataset.threadsImport;
+    if (action === "copy") {
+      try { await navigator.clipboard.writeText(KBTHREADS?.githubRepos.join("\n") || ""); KBTHREADS_MESSAGE = "GitHub 來源清單已複製。"; }
+      catch { KBTHREADS_MESSAGE = "無法存取剪貼簿；可從匯出清單手動複製。"; }
+      threadsAction.insertAdjacentHTML("afterend", `<span class="meta">${esc(KBTHREADS_MESSAGE)}</span>`); return;
+    }
+    if (action === "stop") { if (KBTHREADS_RUN) KBTHREADS_RUN.stop = true; threadsAction.disabled = true; threadsAction.textContent = "目前批次完成後停止…"; return; }
+    if (action === "start" && KBTHREADS && !KBTHREADS_RUN) {
+      const run = { stop: false }; KBTHREADS_RUN = run; KBTHREADS_STARTED = true; let imported = 0, errors = 0;
+      const batches = KBTHREADS.batches;
+      threadsAction.disabled = true; threadsAction.insertAdjacentHTML("afterend", '<button data-threads-import="stop">停止匯入</button>');
+      for (let i = 0; i < batches.length; i++) {
+        if (run.stop) break;
+        const batch = batches[i];
+        const preview = document.getElementById("threads-preview");
+        preview.querySelector("[data-threads-progress]")?.remove();
+        preview.insertAdjacentHTML("beforeend", `<p class="meta" data-threads-progress>匯入中：第 ${i + 1} / ${batches.length} 批 · 已匯入 ${imported} · 錯誤 ${errors}</p>`);
+        try { const result = await postJ("/api/kb/import", { text: batch.text, commit: true }); imported += Number(result.added) || 0; }
+        catch { errors++; }
+      }
+      KBTHREADS_RUN = null;
+      KBTHREADS_MESSAGE = `${run.stop ? "已停止後續批次" : "分批匯入完成"}；新增 ${imported} 筆，錯誤 ${errors} 批。全程沒有呼叫 AI。`;
+      KBQ.importOpen = true; KBQ.type = "note"; await renderKB(); return;
+    }
+    return;
+  }
   const tg = ev.target.closest("[data-tag]"); if (tg) { KBQ.tag = tg.dataset.tag; KBNEW = null; return renderKB(); }
   if (ev.target.closest("[data-selclear]")) { KBSEL.clear(); return renderKB(); }
   const kt = ev.target.closest("[data-kbtags]"); if (kt) { const v = prompt("標籤（用空格分隔）", kt.dataset.v); if (v == null) return;
