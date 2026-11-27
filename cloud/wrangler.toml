@@ -56,3 +56,4 @@ OPENAI_COMPAT_MODEL = "openrouter/free"
 OPENAI_COMPAT_DAILY_CAP = "50"
 # Secrets (wrangler secret put): GEMINI_API_KEY
 # Optional Telegram secrets: TELEGRAM_BOT_TOKEN, TELEGRAM_OWNER_CHAT_ID, TELEGRAM_WEBHOOK_SECRET
+# Optional batch ingest secret (wrangler secret put): INGEST_API_TOKEN

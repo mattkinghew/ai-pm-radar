@@ -8,6 +8,7 @@ import { chunkParagraphs } from "./reader.mjs";
 import { canonicalSourceValue } from "./source-import.mjs";
 import { dailyDigest, PUBLISHABLE_ITEMS } from "./digest.mjs";
 import { handleTelegramWebhook, handleTelegramPush, pushTelegramDigest } from "./telegram.mjs";
+import { handleIngestBatch } from "./ingest-batch.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
@@ -117,6 +118,7 @@ function authFetch(env) {
 
 export async function handle(request, env, deps = {}) {
   const url = new URL(request.url);
+  if (url.pathname === "/api/ingest/batch") return handleIngestBatch(request, env);
   if (url.pathname === "/api/webhooks/telegram") return handleTelegramWebhook(request, env, deps);
   if (url.pathname === "/api/public/showcase") {
     if (request.method === "GET") return publicShowcase(env, url);
