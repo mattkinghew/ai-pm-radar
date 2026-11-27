@@ -7,6 +7,7 @@ import { normalizeUrl, dedup, applyQuotas, isMuted, kbMarkdown, kbPath, scoreLan
 import { chunkParagraphs } from "./reader.mjs";
 import { canonicalSourceValue } from "./source-import.mjs";
 import { dailyDigest, PUBLISHABLE_ITEMS } from "./digest.mjs";
+import { handleTelegramWebhook, handleTelegramPush, pushTelegramDigest } from "./telegram.mjs";
 
 const SEC = { "x-content-type-options": "nosniff", "referrer-policy": "no-referrer", "cache-control": "no-store" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...SEC } });
@@ -116,6 +117,7 @@ function authFetch(env) {
 
 export async function handle(request, env, deps = {}) {
   const url = new URL(request.url);
+  if (url.pathname === "/api/webhooks/telegram") return handleTelegramWebhook(request, env, deps);
   if (url.pathname === "/api/public/showcase") {
     if (request.method === "GET") return publicShowcase(env, url);
     const response = json({ error: "method_not_allowed" }, 405); response.headers.set("allow", "GET"); return response;
@@ -133,6 +135,7 @@ export async function handle(request, env, deps = {}) {
   if (!owner) return url.pathname.startsWith("/api/") ? json({ error: "unauthorized" }, 401) : new Response("Unauthorized", { status: 401, headers: SEC });
   if (!url.pathname.startsWith("/api/")) return env.ASSETS ? env.ASSETS.fetch(request) : new Response("Not found", { status: 404 });
   const db = env.DB; const now = new Date().toISOString(); const m = request.method;
+  if (url.pathname === "/api/digest/push-telegram") return handleTelegramPush(request, env, deps);
   if (url.pathname === "/api/digest") {
     if (m !== "GET") { const response = json({ error: "method_not_allowed" }, 405); response.headers.set("allow", "GET"); return response; }
     if (!url.searchParams.has("days") || url.searchParams.has("window")) {
@@ -504,7 +507,16 @@ async function listSources(db, url, owner = false) {
   return json({ sources: (await q.all()).results });
 }
 
+export async function runScheduled(env, deps = {}) {
+  const result = await runDaily(env, deps);
+  if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_OWNER_CHAT_ID) {
+    try { await pushTelegramDigest(env, deps); }
+    catch { console.log(JSON.stringify({ telegram_error: "telegram_push_failed" })); }
+  }
+  return result;
+}
+
 export default {
   fetch: (req, env) => handle(req, env),
-  scheduled: (event, env, ctx) => ctx.waitUntil(runDaily(env)),
+  scheduled: (event, env, ctx) => ctx.waitUntil(runScheduled(env)),
 };
