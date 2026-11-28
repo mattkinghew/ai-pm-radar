@@ -2,6 +2,7 @@ node_modules/
 .next/
 out/
 .runtime/
+exports/navide-kb/
 
 .env
 .env.local

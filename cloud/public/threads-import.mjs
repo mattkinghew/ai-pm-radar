@@ -105,7 +105,7 @@ export function cleanThreadsExport(input) {
       const match = url.match(/^https?:\/\/github\.com\/([^/\s?#]+)\/([^/\s?#]+)/iu);
       return match ? `https://github.com/${match[1].toLowerCase()}/${match[2].replace(/\.git$/iu, '').toLowerCase()}` : null;
     }).filter(Boolean)])];
-    return { ...meta, github_repos: githubRepos, title: title.slice(0, 100), canonical_url: item.canonical_url, author_handle: item.author_handle, published_at: item.published_at, raw_text: item.text };
+    return { ...meta, external_id: item.id, github_repos: githubRepos, title: title.slice(0, 100), canonical_url: item.canonical_url, author_handle: item.author_handle, published_at: item.published_at, raw_text: item.text };
   });
   const validItems = items.filter((item) => !item.quarantined);
   const byLane = Object.fromEntries(items.reduce((counts, item) => counts.set(item.lane, (counts.get(item.lane) || 0) + 1), new Map()));

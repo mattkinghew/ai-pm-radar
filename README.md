@@ -274,6 +274,23 @@ npm run validate:daily
 npm run build
 ```
 
+### 本機 Navide 知識庫匯出
+
+執行 `npm run export:navide-kb`，讀取 `data/daily/*.json` 及可選的
+`output/threads-cleaned/radar-threads-inbox.json`，產生 `exports/navide-kb/latest-briefing.md`
+與 `topics-index.json`。每份嚴格小於 40,000 UTF-8 bytes；兩份保留相同的最新紀錄，超額時捨棄較舊紀錄。
+
+僅使用 Node 內建模組，無連線、模型呼叫或遙測；不讀取環境變數、Cookie 或資料庫憑證。
+排除明確待審草稿、隔離及測試資料；舊 daily 無審核欄位者沿用既有靜態資料。
+Threads 僅收錄 `READY_FOR_INBOX` 且未隔離的收藏，摘要為原文前 600 字的摘錄，標示未核實，並不代表人工批准。
+JSON 僅含 `id/date/category/title/summary/tags`，ID 由公開來源網址雜湊產生。
+不輸出作者、帳戶、互動及擷取中繼資料；移除正文網址、作者名稱與帳號提及，偵測到常見憑證或聯絡資料則略過整筆。
+來源連結移除查詢參數及片段，仍可能包含公開作者路徑。這些規則無法判定任意敘述中的私人事實；輸入必須先清洗且不含私密內容。
+
+輸出為 owner-only 唯讀檔案（`0400`），重新執行會更新這兩份檔案；已加入 Git 忽略。
+僅供本機參考，不會自動匯入 Navide 或寫入下游系統。不支援直接讀取 SQLite、遠端 D1 或未清洗的原始備份。
+單元測試：`node --test tests/export-navide-kb.test.mjs`。
+
 ## 10. Deployment readiness
 
 The project is prepared for static hosting through Cloudflare Pages or Firebase Hosting.
